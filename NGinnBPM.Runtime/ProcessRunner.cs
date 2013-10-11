@@ -63,6 +63,7 @@ namespace NGinnBPM.Runtime
                 ps = ProcessSession.CreateNew(this);
                 ProcessSession.Current = ps;
                 act(ps);
+                
                 ts.Dispose();
             }
             finally

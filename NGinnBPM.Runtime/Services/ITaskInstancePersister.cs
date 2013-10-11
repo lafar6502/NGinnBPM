@@ -8,6 +8,7 @@ namespace NGinnBPM.Runtime.Services
     public interface ITaskInstancePersister
     {
         TaskPersisterSession OpenSession();
+        TaskPersisterSession OpenSession(DbSession ses);
     }
 
 

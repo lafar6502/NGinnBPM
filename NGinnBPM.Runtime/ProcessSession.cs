@@ -73,5 +73,30 @@ namespace NGinnBPM.Runtime
         {
             throw new NotImplementedException();
         }
+        
+        protected void DeliverEvent(TaskExecEvent ev)
+        {
+            
+        }
+
+        protected void DeliverControlMessage(TaskControlMessage msg)
+        {
+        }
+
+        public void PumpMessages()
+        {
+            do
+            {
+                while(_eventQ.Count > 0)
+                {
+                    DeliverEvent(_eventQ.Dequeue());
+                }
+                while(_controlQ.Count > 0)
+                {
+                    DeliverControlMessage(_controlQ.Dequeue());
+                }
+            }
+            while (_controlQ.Count + _eventQ.Count > 0);
+        }
     }
 }

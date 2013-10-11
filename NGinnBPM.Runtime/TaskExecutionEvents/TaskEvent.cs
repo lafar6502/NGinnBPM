@@ -6,8 +6,8 @@ using System.Text;
 namespace NGinnBPM.Runtime.TaskExecutionEvents
 {
     /// <summary>
-    /// Task execution events, delivered synchronously in a task execution context...
-    /// 
+    /// Task execution events, delivered synchronously in a task execution context
+    /// to parent task instances
     /// </summary>
     public class TaskExecEvent
     {

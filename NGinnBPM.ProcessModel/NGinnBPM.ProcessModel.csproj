@@ -30,8 +30,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="NLog">
+      <HintPath>..\packages\NLog.2.0.1.2\lib\net40\NLog.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -39,8 +43,55 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AtomicTaskDef.cs" />
     <Compile Include="Class1.cs" />
+    <Compile Include="CompositeTaskDef.cs" />
+    <Compile Include="DataBindingDef.cs" />
+    <Compile Include="Data\DataUtil.cs" />
+    <Compile Include="Data\EnumDef.cs" />
+    <Compile Include="Data\ExtensionPropertyHolder.cs" />
+    <Compile Include="Data\IDataContainer.cs" />
+    <Compile Include="Data\IDataObject.cs" />
+    <Compile Include="Data\MemberDef.cs" />
+    <Compile Include="Data\SimpleTypeDef.cs" />
+    <Compile Include="Data\StructDef.cs" />
+    <Compile Include="Data\TypeDef.cs" />
+    <Compile Include="Data\TypeSetDef.cs" />
+    <Compile Include="Data\VariableDef.cs" />
+    <Compile Include="EnumDef.cs" />
+    <Compile Include="Enums.cs" />
+    <Compile Include="Exceptions\DataTypeUndefinedException.cs" />
+    <Compile Include="Exceptions\DataValidationException.cs" />
+    <Compile Include="Exceptions\DeadlockException.cs" />
+    <Compile Include="Exceptions\InvalidTaskStatusException.cs" />
+    <Compile Include="Exceptions\NGinnException.cs" />
+    <Compile Include="Exceptions\ProcessDefinitionException.cs" />
+    <Compile Include="Exceptions\ProcessScriptCompilationError.cs" />
+    <Compile Include="Exceptions\TaskDataInvalidException.cs" />
+    <Compile Include="Exceptions\TaskInstanceNotFoundException.cs" />
+    <Compile Include="Exceptions\TaskParameterInvalidException.cs" />
+    <Compile Include="Exceptions\TaskRuntimeException.cs" />
+    <Compile Include="Exceptions\UndefinedNetNodeException.cs" />
+    <Compile Include="FlowDef.cs" />
+    <Compile Include="IHaveExtensionProperties.cs" />
+    <Compile Include="IValidate.cs" />
+    <Compile Include="KeyValue.cs" />
+    <Compile Include="MemberDef.cs" />
+    <Compile Include="NodeDef.cs" />
+    <Compile Include="PackageDef.cs" />
+    <Compile Include="PlaceDef.cs" />
+    <Compile Include="PlaceTypes.cs" />
+    <Compile Include="ProcessDef.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StructDef.cs" />
+    <Compile Include="TaskDef.cs" />
+    <Compile Include="TypeDef.cs" />
+    <Compile Include="TypeSetDef.cs" />
+    <Compile Include="VariableDef.cs" />
+    <Compile Include="XmlSchemaUtil.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

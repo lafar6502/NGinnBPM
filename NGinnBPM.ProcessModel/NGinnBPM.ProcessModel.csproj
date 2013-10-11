@@ -58,7 +58,6 @@
     <Compile Include="Data\TypeDef.cs" />
     <Compile Include="Data\TypeSetDef.cs" />
     <Compile Include="Data\VariableDef.cs" />
-    <Compile Include="EnumDef.cs" />
     <Compile Include="Enums.cs" />
     <Compile Include="Exceptions\DataTypeUndefinedException.cs" />
     <Compile Include="Exceptions\DataValidationException.cs" />
@@ -76,18 +75,13 @@
     <Compile Include="IHaveExtensionProperties.cs" />
     <Compile Include="IValidate.cs" />
     <Compile Include="KeyValue.cs" />
-    <Compile Include="MemberDef.cs" />
     <Compile Include="NodeDef.cs" />
     <Compile Include="PackageDef.cs" />
     <Compile Include="PlaceDef.cs" />
     <Compile Include="PlaceTypes.cs" />
     <Compile Include="ProcessDef.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StructDef.cs" />
     <Compile Include="TaskDef.cs" />
-    <Compile Include="TypeDef.cs" />
-    <Compile Include="TypeSetDef.cs" />
-    <Compile Include="VariableDef.cs" />
     <Compile Include="XmlSchemaUtil.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.Serialization;
+using NGinnBPM.ProcessModel.Data;
 
 namespace NGinnBPM.ProcessModel
 {
@@ -19,7 +20,7 @@ namespace NGinnBPM.ProcessModel
         public string PackageName { get; set; }
         
         [DataMember]
-        public TypeSetDef DataTypes { get; set; }
+        public TypeSet DataTypes { get; set; }
 
         [DataMember]
         public CompositeTaskDef Body { get; set; }

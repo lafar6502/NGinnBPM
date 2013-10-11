@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<process xmlns="http://www.nginn.org/WorkflowDefinition.1_0.xsd" name="Proc1" version="1">
+  
+  <dataTypes>
+    <enum name="Options">
+      <value>A</value>
+      <value>B</value>
+    </enum>
+  </dataTypes>
+  <variables>
+    <variable name="User" type="string" dir="In" required="true" />
+  </variables>
+  <body>
+    <places>
+      <place id="start" type="Start"/>
+      <place id="end" type="End"/>
+    </places>
+    <tasks>
+      <task id="1" type="Empty">
+        <variables></variables>
+        <inputBindings>
+          <bind variable="V1">
+            <sourceVar>V1</sourceVar>
+          </bind>
+        </inputBindings>
+        <outputBindings></outputBindings>
+        <parameters>
+          <param name="ReallyEmpty"><value>TRUE</value></param>
+        </parameters>
+      </task>
+      <composite id="2" splitType="XOR" joinType="XOR">
+        <body>
+          <places>
+            <place id="p1" label="P1" type="Start"/>
+            <place id="p2" label="P1" type="End"/>
+          </places>
+          <tasks>
+            <task id="4" label="mytasek" type="Empty">
+              <ext>
+                <editor xmlns="some.graphic.editor">
+                  <x>353</x>
+                  <y>233</y>
+                </editor>
+              </ext>
+            </task>
+          </tasks>
+          <flows>
+            <flow from="1" to="2"/>
+          </flows>
+        </body>
+      </composite>
+      <task id="3" type="Empty"/>
+    </tasks>
+    <flows>
+      <flow from="1" to="2" label="laba!"/>
+      <flow from="start" to="end">
+      </flow>
+    </flows>
+  </body>
+</process>

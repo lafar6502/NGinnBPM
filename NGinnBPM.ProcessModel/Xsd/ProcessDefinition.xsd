@@ -1,0 +1,313 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="ProcessDefinition"
+    targetNamespace="http://www.nginn.org/WorkflowDefinition.1_0.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.nginn.org/WorkflowDefinition.1_0.xsd"
+    xmlns:mstns="http://www.nginn.org/WorkflowDefinition.1_0.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+
+  <xs:include schemaLocation="NGinn.xsd" />
+
+  <xs:simpleType name="SplitJoinType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="AND" />
+      <xs:enumeration value="XOR" />
+      <xs:enumeration value="OR" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="AtomicTaskType">
+    <xs:annotation>
+      <xs:documentation>Enumeration of available (builtint) task types. Custom type is reserved for extensions.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Empty" />
+      <xs:enumeration value="SendMessage" />
+      <xs:enumeration value="ReceiveMessage" />
+      <xs:enumeration value="Timer" />
+      <xs:enumeration value="Notification" />
+      <xs:enumeration value="Script" />
+      <xs:enumeration value="Subprocess" />
+      <xs:enumeration value="Manual" />
+      <xs:enumeration value="XmlHttp" />
+      <xs:enumeration value="Custom" />
+      <xs:enumeration value="RaiseEvent" />
+      <xs:enumeration value="RaiseError" />
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="ParamBinding">
+    <xs:annotation>
+      <xs:documentation>Task parameter binding. Contains a literal value or an expression.</xs:documentation>
+    </xs:annotation>
+    <xs:choice>
+      <xs:element name="value" type="xs:string" />
+      <xs:element name="expr" type="xs:string" />
+    </xs:choice>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="VariableBinding">
+    <xs:annotation>
+      <xs:documentation>Task variable binding.</xs:documentation>
+    </xs:annotation>
+    <xs:choice>
+      <xs:element name="value" type="xs:string" />
+      <xs:element name="expr" type="xs:string" />
+      <xs:element name="sourceVar" type="xs:string" />
+    </xs:choice>
+    <xs:attribute name="variable" type="xs:string" use="required"/>
+  </xs:complexType>
+
+  <xs:complexType name="MultiInstanceBinding">
+    <xs:annotation>
+      <xs:documentation>
+        Data binding specification for multi-instance tasks
+        SplitExpression - expression that evaluates to a collection. 
+        ItemAlias - alias (variable name) for the collection data item, used during input data binding
+        ResultsVariable - name of the variable that will receive multi-instance task results. 
+      </xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="splitExpression" type="xs:string" minOccurs="1" maxOccurs="1" />
+      <xs:element name="itemAlias" type="xs:string" minOccurs="0" maxOccurs="1" />
+      <xs:element name="resultsVariable" type="xs:string" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:complexType name="ExtensionData">
+    <xs:annotation>
+      <xs:documentation>Storage for custom xml - application extensions etc.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##any" processContents="skip"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  
+  
+  <xs:complexType name="Task">
+    <xs:annotation>
+      <xs:documentation>Task definition. Base of atomic and composite task definitions.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="description" type="xs:string" maxOccurs="1" minOccurs="0" />
+      <xs:element name="variables" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="variable" type="VariableDef" minOccurs="0" maxOccurs="unbounded" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="inputBindings" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Input data binding - specifies values of task input variables.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="bind" type="VariableBinding" minOccurs="0" maxOccurs="unbounded" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="outputBindings" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Binding of task output variables to parent task data.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="bind" type="VariableBinding" minOccurs="0" maxOccurs="unbounded" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="multiInstanceBinding" type="MultiInstanceBinding" minOccurs="0" maxOccurs="1" />
+      <xs:element name="parameters" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Initial binding of task parameters. Executed on task startup.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="param" minOccurs="0" maxOccurs="unbounded" type="VariableBinding"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="outParamBindings" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Binding of task parameters to task output variables, executed on task completion.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="bind" minOccurs="0" maxOccurs="unbounded" type="VariableBinding"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="beforeEnableScript" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Script executed on task enablement. Use for nonstandard input data validation.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="afterEnableScript" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Script executed on task enablement. Use for nonstandard input data validation.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="onCompleteScript" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Script executed on task completion. Use for nonstandard validation of output data for manual tasks.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="extensionProperties" type="ExtensionProperties" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required" />
+    <xs:attribute name="label" type="xs:string" use="optional" />
+    <xs:attribute name="joinType" type="SplitJoinType" use="optional" />
+    <xs:attribute name="splitType" type="SplitJoinType" use="optional" />
+    <xs:attribute name="autoBindVariables" type="xs:boolean" use="optional" />
+    <xs:anyAttribute namespace="##other" processContents="skip" />
+  </xs:complexType>
+  
+  <xs:complexType name="AtomicTask">
+    <xs:complexContent>
+      <xs:extension base="Task">
+        <xs:attribute name="type" type="AtomicTaskType" use="required" />
+        <xs:attribute name="customType" type="xs:string" use="optional" />
+      </xs:extension>
+    </xs:complexContent> 
+  </xs:complexType>
+
+  <xs:complexType name="CompositeTask">
+    <xs:complexContent>
+      <xs:extension base="Task">
+        <xs:sequence>
+          <xs:element name="body" type="CompositeTaskBody" minOccurs="1" maxOccurs="1" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="Place">
+    <xs:annotation>
+      <xs:documentation>Place definition.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="description" type="xs:string" maxOccurs="1" minOccurs="0" />
+      <xs:element name="extensionProperties" type="ExtensionProperties" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required" />
+    <xs:attribute name="label" type="xs:string" use="optional" />
+    <xs:attribute name="type" type="PlaceType" use="optional" />
+    <xs:anyAttribute namespace="##other" processContents="skip" />
+  </xs:complexType>
+
+  <xs:simpleType name="PlaceType">
+    <xs:annotation>
+      <xs:documentation>Enumeration of place types.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Start" />
+      <xs:enumeration value="End" />
+      <xs:enumeration value="Normal" />
+    </xs:restriction>
+  </xs:simpleType>
+      
+  <xs:complexType name="CompositeTaskBody">
+    <xs:sequence>
+      <xs:element name="places">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="place" type="Place" minOccurs="2" maxOccurs="unbounded" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="tasks">
+        <xs:complexType>
+          <xs:choice minOccurs="1" maxOccurs="unbounded">
+            <xs:element name="task" type="AtomicTask" />
+            <xs:element name="composite" type="CompositeTask" />
+          </xs:choice>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="flows">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="flow" type="Flow" minOccurs="1" maxOccurs="unbounded" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="TaskOutPortType">
+    <xs:annotation>
+      <xs:documentation>Enumeration of task output port types</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="Default" />
+      <xs:enumeration value="Error" />
+      <xs:enumeration value="Cancel" />
+      <xs:enumeration value="Signal" />
+    </xs:restriction>
+  </xs:simpleType>
+  
+  <xs:complexType name="Flow">
+    <xs:annotation>
+      <xs:documentation>Flow data type</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="inputCondition" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+      <xs:element name="extensionProperties" type="ExtensionProperties" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="from" use="required" type="xs:string" />
+    <xs:attribute name="to" use="required" type="xs:string" />
+    <xs:attribute name="label" use="optional" type="xs:string" />
+    <xs:attribute name="evalOrder" use="optional" type="xs:int" />
+    <xs:attribute name="cancelling" use="optional" type="xs:boolean">
+      <xs:annotation>
+        <xs:documentation>Is the flow normal or cancelling (inhibitor)</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:attribute name="taskOutPort" type="TaskOutPortType" use="optional" />
+    <xs:anyAttribute namespace="##other" processContents="skip"/>
+  </xs:complexType>
+  
+  <xs:complexType name="ProcessDef">
+    <xs:annotation>
+      <xs:documentation>Process definition structure</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="description" type="xs:string" maxOccurs="1" minOccurs="0" />
+      <xs:element name="dataTypes" minOccurs="0" maxOccurs="1" type="TypeSetDef" />
+      <xs:element name="variables" minOccurs="0" maxOccurs="1">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="variable" type="VariableDef" minOccurs="0" maxOccurs="unbounded" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="onEnableScript" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Script executed on process start. Use for nonstandard input data validation.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="onCompleteScript" type="xs:string" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Script executed on process completion. Use for nonstandard validation of output data.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="body" minOccurs="1" maxOccurs="1" type="CompositeTaskBody" />
+      <xs:element name="extensionProperties" type="ExtensionProperties" minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required" />
+    <xs:attribute name="version" type="xs:string" use="required" />
+    <xs:attribute name="displayName" type="xs:string" use="optional">
+      <xs:annotation>
+        <xs:documentation>Process display name</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
+    <xs:anyAttribute namespace="##other" processContents="skip" />
+  </xs:complexType>
+  
+  <xs:element name="process" type="ProcessDef">
+    
+  </xs:element>
+</xs:schema>

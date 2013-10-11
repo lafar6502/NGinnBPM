@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.Serialization;
+using NGinnBPM.ProcessModel.Data;
 
 namespace NGinnBPM.ProcessModel
 {
@@ -14,7 +15,7 @@ namespace NGinnBPM.ProcessModel
         [DataMember]
         public List<ProcessDef> ProcessDefinitions { get; set; }
         [DataMember]
-        public List<TypeSetDef> PackageTypeSets { get; set; }
+        public List<TypeSet> PackageTypeSets { get; set; }
         [DataMember]
         public List<string> ExternalResources { get; set; }
         [DataMember]

@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="NGinn"
+    targetNamespace="http://www.nginn.org/PackageDefinition.1_0.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://www.nginn.org/PackageDefinition.1_0.xsd"
+    xmlns:mstns="http://www.nginn.org/PackageDefinition.1_0.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+  <xs:element name="package">
+    <xs:complexType>
+      <xs:choice>
+        <xs:element name="process" type="xs:string" />
+        <xs:element name="schema" type="xs:string" />
+        <xs:element name="resource" type="xs:string" />
+        <xs:element name="alias">
+          <xs:complexType>
+            <xs:attribute name="process" type="xs:string" use="required" />
+            <xs:attribute name="as" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+       </xs:choice>
+    </xs:complexType>  
+  </xs:element>
+</xs:schema>

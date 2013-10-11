@@ -5,7 +5,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NGinnBPM.ProcessModel", "NG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NGinnBPM.Runtime", "NGinnBPM.Runtime\NGinnBPM.Runtime.csproj", "{1EAFF797-331D-4F67-BE8A-91C89B2E170B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHost.cs", "TestHost.cs\TestHost.cs.csproj", "{9468A67F-6005-4400-84C2-EBBEFAF5E7C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHost", "TestHost\TestHost.csproj", "{9468A67F-6005-4400-84C2-EBBEFAF5E7C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

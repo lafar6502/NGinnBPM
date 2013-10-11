@@ -107,6 +107,8 @@ namespace NGinnBPM.Runtime.ProcessDSL
         protected void variable(string name, string type, Action act)
         {
         }
+
+
         
     }
 }

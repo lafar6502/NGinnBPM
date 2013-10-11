@@ -15,7 +15,7 @@ namespace NGinnBPM.Runtime
     public class ProcessRunner 
     {
         public Services.ITaskInstancePersister TaskPersister { get; set; }
-
+        public Services.IDbSessionFactory SessionFactory { get; set; }
 
         public string StartProcess(string definitionId, Dictionary<string, object> inputData)
         {
@@ -84,12 +84,14 @@ namespace NGinnBPM.Runtime
         {
             try
             {
+                DbSession.Current = SessionFactory.OpenSession();
+                Services.TaskPersisterSession.Current = TaskPersister.OpenSession(DbSession.Current);
+
                 ProcessSession.Current = ProcessSession.CreateNew(this);
 
-                var ti = new TaskInstance();
-                ti.Activate(ProcessSession.Current);
-                ti.Enable(new Dictionary<string, object>());
-                
+
+
+                Services.TaskPersisterSession.Current.SaveChanges();
             }
             finally
             {

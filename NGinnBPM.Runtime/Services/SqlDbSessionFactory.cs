@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Data.Common;
+using System.Configuration;
 
 namespace NGinnBPM.Runtime.Services
 {
@@ -31,6 +32,8 @@ namespace NGinnBPM.Runtime.Services
                 _conn = null;
             }
         }
+
+        
     }
 
     public class SqlDbSessionFactory : IDbSessionFactory
@@ -39,7 +42,13 @@ namespace NGinnBPM.Runtime.Services
 
         public DbSession OpenSession()
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(ConnectionString)) throw new Exception("ConnectionString");
+            var cs = ConfigurationManager.ConnectionStrings[this.ConnectionString];
+            var fac = DbProviderFactories.GetFactory(cs == null || string.IsNullOrEmpty(cs.ProviderName) ? "System.Data.SqlClient" : cs.ProviderName);
+            var conn = fac.CreateConnection();
+            conn.ConnectionString = cs == null ? this.ConnectionString : cs.ConnectionString;
+            conn.Open();
+            return new SqlSession(conn, true);
         }
     }
 }

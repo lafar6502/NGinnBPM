@@ -13,3 +13,6 @@ niech composite określa czy w nim jest sync czy async...
 Poza enablowaniem, później nie ma już chyba takich sytuacji że musimy wszystko zrobić synchronicznie.
 
 2. Composite task - późniejsze zdarzenia (np. zmiany w zadaniach potomnych) są obsługiwane 
+
+zaraz, jak zrobię enable na tasku synchronicznym to wszystkie child taski mi się enablują zanim
+głównego Enable() się zakończy. Czyli nie muszę trzymać w sesji komunikatów....

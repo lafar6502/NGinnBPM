@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NGinnBPM.ProcessModel", "NG
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NGinnBPM.Runtime", "NGinnBPM.Runtime\NGinnBPM.Runtime.csproj", "{1EAFF797-331D-4F67-BE8A-91C89B2E170B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestHost.cs", "TestHost.cs\TestHost.cs.csproj", "{9468A67F-6005-4400-84C2-EBBEFAF5E7C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{1EAFF797-331D-4F67-BE8A-91C89B2E170B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1EAFF797-331D-4F67-BE8A-91C89B2E170B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1EAFF797-331D-4F67-BE8A-91C89B2E170B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9468A67F-6005-4400-84C2-EBBEFAF5E7C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9468A67F-6005-4400-84C2-EBBEFAF5E7C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9468A67F-6005-4400-84C2-EBBEFAF5E7C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9468A67F-6005-4400-84C2-EBBEFAF5E7C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

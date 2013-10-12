@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NGinnBPM.ProcessModel;
 
 namespace NGinnBPM.Runtime
 {
@@ -19,6 +20,7 @@ namespace NGinnBPM.Runtime
     {
         string Name { get; }
         IEnumerable<string> ProcessNames { get; }
+        ProcessDef GetProcessDefinition(string definitionId);
         IProcessScriptRuntime GetScriptRuntime(string processDefinition);
     }
 

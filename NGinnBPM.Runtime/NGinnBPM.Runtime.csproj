@@ -78,6 +78,7 @@
     <Compile Include="DbSession.cs" />
     <Compile Include="ITaskExecutionContext.cs" />
     <Compile Include="ProcessDSL\BooDslPackageRepository.cs" />
+    <Compile Include="ProcessDSL\PackageDSLEngine.cs" />
     <Compile Include="ProcessDSL\ProcessDefDSLBase.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessSession.cs" />

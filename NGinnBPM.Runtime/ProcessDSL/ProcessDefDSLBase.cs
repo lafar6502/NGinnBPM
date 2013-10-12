@@ -70,9 +70,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
         }
         #endregion //process_data_types
 
-        protected void composite_task(string id, Action act)
-        {
-        }
+        #region tasks
 
         protected void task_variables(Action act)
         {
@@ -108,7 +106,96 @@ namespace NGinnBPM.Runtime.ProcessDSL
         {
         }
 
+        private CompositeTaskDef _currentCompositeTask;
 
-        
+        protected AtomicTaskDef _curTask = null;
+        protected void task(string id, string taskType, Action act)
+        {
+            if (_curTask != null) throw new Exception("Nesting atomic tasks not allowed");
+            if (_currentCompositeTask == null) throw new Exception("Tasks must be nested in a process or composite task");
+            _curTask = new AtomicTaskDef { Id = id };
+            act();
+            _currentCompositeTask.Tasks.Add(_curTask);
+            _curTask = null;
+        }
+
+        protected void composite_task(string id, Action act)
+        {
+            var p = _currentCompositeTask;
+            _currentCompositeTask = new CompositeTaskDef();
+            _currentCompositeTask.Id = id;
+            act();
+            p.Tasks.Add(_currentCompositeTask);
+            _currentCompositeTask = p;
+        }
+
+        protected void split_type(TaskSplitType ts)
+        {
+            if (_curTask != null)
+                _curTask.SplitType = ts;
+            else if (_currentCompositeTask != null)
+                _currentCompositeTask.SplitType = ts;
+            else throw new Exception();
+        }
+
+        protected void join_type(TaskSplitType ts)
+        {
+            if (_curTask != null)
+                _curTask.JoinType = ts;
+            else if (_currentCompositeTask != null)
+                _currentCompositeTask.JoinType = ts;
+            else throw new Exception();
+        }
+
+        #endregion tasks
+
+        #region flows
+        protected void flow(string from, string to)
+        {
+            flow(from, to, null);
+        }
+
+        protected void flow(string from, string to, SC.IDictionary options)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected void flow_to(string to)
+        {
+            if (_curTask == null) throw new Exception("flow_to allowed only in an atomic task");
+            flow(_curTask.Id, to);
+        }
+        #endregion //flows
+
+        #region places
+        protected void start_place(string id)
+        {
+            if (_currentCompositeTask.Places.Any(x => x.Id == id)) throw new Exception("Place already defined: " + id);
+            _currentCompositeTask.Places.Add(new PlaceDef { Id = id, PlaceType = PlaceTypes.Start });
+        }
+
+        protected void end_place(string id)
+        {
+            if (_currentCompositeTask.Places.Any(x => x.Id == id)) throw new Exception("Place already defined: " + id);
+            _currentCompositeTask.Places.Add(new PlaceDef { Id = id, PlaceType = PlaceTypes.End });
+        }
+
+        protected void place(string id)
+        {
+            place(id, null);
+        }
+
+        protected void place(string id, SC.IDictionary options)
+        {
+            if (_currentCompositeTask.Places.Any(x => x.Id == id)) throw new Exception("Place already defined: " + id);
+            var pl = new PlaceDef { Id = id, PlaceType = PlaceTypes.Internediate };
+            if (options != null)
+            {
+                pl.Label = GetOption(options, "label", "");
+                pl.Description = GetOption(options, "description", (string)null);
+            }
+            _currentCompositeTask.Places.Add(pl);
+        }
+        #endregion places
     }
 }

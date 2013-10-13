@@ -6,6 +6,7 @@ using NGinnBPM.ProcessModel;
 using NGinnBPM.ProcessModel.Data;
 using BL = Boo.Lang;
 using SC = System.Collections;
+using AST = Boo.Lang.Compiler.Ast;
 
 namespace NGinnBPM.Runtime.ProcessDSL
 {
@@ -22,6 +23,8 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _curProcessDef.ProcessName = this.GetType().Name;
             _curProcessDef.Version = 1;
             _curProcessDef.DataTypes = new TypeSet();
+            _currentCompositeTask = new CompositeTaskDef();
+            _curProcessDef.Body = _currentCompositeTask;
             Prepare();
             return _curProcessDef;
         }
@@ -33,6 +36,13 @@ namespace NGinnBPM.Runtime.ProcessDSL
         protected static VariableDef.Dir output = VariableDef.Dir.Out;
         protected static VariableDef.Dir local = VariableDef.Dir.Local;
         protected static VariableDef.Dir in_out = VariableDef.Dir.InOut;
+
+        protected BL.IQuackFu InputData { get; set; }
+        protected BL.IQuackFu TaskData { get; set; }
+        [BL.DuckTyped]
+        protected TaskInstance Task { get; set; }
+        
+           
 
         private ProcessDef _curProcessDef = null;
 
@@ -72,13 +82,9 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         #region tasks
 
-        protected void task_variables(Action act)
-        {
-        }
-
         protected static T GetOption<T>(SC.IDictionary options, string name, T defVal)
         {
-            if (!options.Contains(name)) return defVal;
+            if (options == null || !options.Contains(name)) return defVal;
             object v = options[name];
             if (typeof(T).IsAssignableFrom(v.GetType())) return (T) v;
             if (typeof(T).IsEnum)
@@ -94,17 +100,36 @@ namespace NGinnBPM.Runtime.ProcessDSL
             {
                 Name = name,
                 TypeName = type,
-                IsRequired = GetOption(options, "required", false),
-                IsArray = GetOption(options, "array", false),
-                VariableDir = GetOption(options, "dir", VariableDef.Dir.Local),
+                IsRequired = GetOption(options, required, false),
+                IsArray = GetOption(options, array, false),
+                VariableDir = GetOption(options, dir, VariableDef.Dir.Local),
                 DefaultValueExpr = GetOption(options, "defaultValue", "")
             };
+            if (_curTask != null)
+            {
+                if (_curTask.Variables == null) _curTask.Variables = new List<VariableDef>();
+                _curTask.Variables.Add(vd);
+            }
+            else
+            {
+                if (_currentCompositeTask.Variables == null) _currentCompositeTask.Variables = new List<VariableDef>();
+                _currentCompositeTask.Variables.Add(vd);
+            }
         }
+
+
 
         private VariableDef _curVar;
         protected void variable(string name, string type, Action act)
         {
         }
+
+
+        [BL.Meta]
+        protected void init_parameter(AST.Expression pref, AST.Expression expr)
+        {
+        }
+
 
         private CompositeTaskDef _currentCompositeTask;
 
@@ -113,7 +138,8 @@ namespace NGinnBPM.Runtime.ProcessDSL
         {
             if (_curTask != null) throw new Exception("Nesting atomic tasks not allowed");
             if (_currentCompositeTask == null) throw new Exception("Tasks must be nested in a process or composite task");
-            _curTask = new AtomicTaskDef { Id = id };
+            _curTask = new AtomicTaskDef { Id = id, AutoBindVariables = true };
+            _curTask.TaskType = (NGinnTaskType)Enum.Parse(typeof(NGinnTaskType), taskType, true);
             act();
             _currentCompositeTask.Tasks.Add(_curTask);
             _curTask = null;
@@ -147,17 +173,35 @@ namespace NGinnBPM.Runtime.ProcessDSL
             else throw new Exception();
         }
 
+        protected void init_task(Action act)
+        {
+        }
+
+        protected void prepare_output_data(Action act)
+        {
+        }
+
         #endregion tasks
 
         #region flows
         protected void flow(string from, string to)
         {
-            flow(from, to, null);
+            flow(from, to, (SC.IDictionary) null);
         }
 
         protected void flow(string from, string to, SC.IDictionary options)
         {
-            throw new NotImplementedException();
+            var fd = new FlowDef
+            {
+                From = from,
+                To = to,
+                IsCancelling = GetOption(options, "cancelling", false),
+                Label = GetOption(options, "label", (string)null),
+                SourcePortType = GetOption(options, "sourcePort", TaskOutPortType.Default),
+                TargetPortType = GetOption(options, "targetPort", TaskInPortType.Default),
+                EvalOrder = GetOption(options, "evalOrder", 0)
+            };
+            _currentCompositeTask.Flows.Add(fd);
         }
 
         protected void flow_to(string to)
@@ -165,6 +209,47 @@ namespace NGinnBPM.Runtime.ProcessDSL
             if (_curTask == null) throw new Exception("flow_to allowed only in an atomic task");
             flow(_curTask.Id, to);
         }
+
+        private FlowDef _curFlow = null;
+        protected void flow(string from, string to, Action act)
+        {
+            _curFlow = new FlowDef { From = from, To = to };
+            act();
+            _currentCompositeTask.Flows.Add(_curFlow);
+            _curFlow = null;
+        }
+
+        protected void flow_condition(Func<bool> cond, string condString)
+        {
+            if (_curFlow != null)
+            {
+                _curFlow.InputCondition = condString;
+                _curFlow.FInputCondition = cond;
+            }
+            else throw new Exception();
+        }
+
+        [BL.Meta]
+        public static AST.Expression when(AST.Expression expr)
+        {
+            AST.BlockExpression condition = new AST.BlockExpression();
+            condition.Body.Add(new AST.ReturnStatement(expr));
+            return new AST.MethodInvocationExpression(new AST.ReferenceExpression("flow_condition"), condition, new AST.StringLiteralExpression(expr.ToCodeString()));
+        }
+
+        protected void options(SC.IDictionary options)
+        {
+            if (_curFlow != null)
+            {
+                _curFlow.IsCancelling = GetOption(options, "cancelling", _curFlow.IsCancelling);
+                _curFlow.Label = GetOption(options, "label", _curFlow.Label);
+                _curFlow.SourcePortType = GetOption(options, "sourcePort", _curFlow.SourcePortType);
+                _curFlow.TargetPortType = GetOption(options, "targetPort", _curFlow.TargetPortType);
+                _curFlow.EvalOrder = GetOption(options, "evalOrder", _curFlow.EvalOrder);
+            }
+            else throw new Exception();
+        }
+
         #endregion //flows
 
         #region places

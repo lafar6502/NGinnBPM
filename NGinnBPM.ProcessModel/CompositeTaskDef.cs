@@ -9,6 +9,13 @@ namespace NGinnBPM.ProcessModel
     [DataContract(Name="CompositeTask")]
     public class CompositeTaskDef : TaskDef
     {
+        public CompositeTaskDef()
+        {
+            Tasks = new List<TaskDef>();
+            Places = new List<PlaceDef>();
+            Flows = new List<FlowDef>();
+        }
+
         [DataMember]
         public List<TaskDef> Tasks { get; set; }
         [DataMember]

@@ -27,5 +27,10 @@ namespace NGinnBPM.ProcessModel
         public TaskInPortType TargetPortType { get; set; }
         [DataMember]
         public TaskOutPortType SourcePortType { get; set; }
+        /// <summary>
+        /// Input condition delegate. Depends on scripting engine implementation.
+        /// </summary>
+        [IgnoreDataMember]
+        public Func<bool> FInputCondition { get; set; }
     }
 }

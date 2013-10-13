@@ -33,6 +33,9 @@
     <Reference Include="Boo.Lang">
       <HintPath>..\extlib\Boo.Lang.dll</HintPath>
     </Reference>
+    <Reference Include="Boo.Lang.CodeDom">
+      <HintPath>..\extlib\Boo.Lang.CodeDom.dll</HintPath>
+    </Reference>
     <Reference Include="Boo.Lang.Compiler">
       <HintPath>..\extlib\Boo.Lang.Compiler.dll</HintPath>
     </Reference>

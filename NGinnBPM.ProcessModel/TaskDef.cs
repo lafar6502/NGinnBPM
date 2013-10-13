@@ -10,6 +10,11 @@ namespace NGinnBPM.ProcessModel
     [DataContract]
     public abstract class TaskDef : NodeDef
     {
+        public TaskDef()
+        {
+            
+        }
+
         [DataMember]
         public TaskSplitType SplitType { get; set; }
         [DataMember]
@@ -42,8 +47,5 @@ namespace NGinnBPM.ProcessModel
         public string AfterEnableScript { get; set; }
         [DataMember]
         public string BeforeCompleteScript { get; set; }
-
-        
-
     }
 }

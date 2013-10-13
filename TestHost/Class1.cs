@@ -26,6 +26,9 @@ namespace TestHost.cs
                 Console.WriteLine("Loading Process: {0}", s);
 
                 var pd = pkg.GetProcessDefinition(s);
+                List<string> problems = new List<string>();
+                pd.Validate(problems);
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(pd));
             }
 
         }

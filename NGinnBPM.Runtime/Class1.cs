@@ -27,5 +27,25 @@ namespace NGinnBPM.Runtime
     public interface IProcessScriptRuntime
     {
         string ProcessDefinitionId { get; }
+
+        /// <summary>
+        /// Execute task input data binding and initialize parameters according to bindings
+        /// </summary>
+        /// <param name="ti"></param>
+        /// <param name="inputData"></param>
+        /// <param name="ctx"></param>
+        void InitializeNewTask(TaskInstance ti, Dictionary<string, object> inputData, ITaskExecutionContext ctx);
+
+        /// <summary>
+        /// Execute task output parameter bindings and collect task output data
+        /// </summary>
+        /// <param name="ti"></param>
+        /// <param name="ctx"></param>
+        /// <returns></returns>
+        Dictionary<string, object> GatherOutputData(TaskInstance ti, ITaskExecutionContext ctx);
+
+        bool EvalFlow(TaskInstance ti, FlowDef fd, ITaskExecutionContext ctx);
+
+        
     }
 }

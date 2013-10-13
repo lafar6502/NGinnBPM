@@ -27,5 +27,19 @@ namespace NGinnBPM.ProcessModel
         {
             return true;
         }
+
+        public TaskDef FindTask(string id)
+        {
+            foreach (var t in Tasks)
+            {
+                if (t.Id == id) return t;
+                if (t is CompositeTaskDef)
+                {
+                    var t2 = ((CompositeTaskDef)t).FindTask(id);
+                    if (t2 != null) return t2;
+                }
+            }
+            return null;
+        }
     }
 }

@@ -8,6 +8,7 @@ using Castle.Windsor;
 using Castle.MicroKernel.Registration;
 using NGinnBPM.Runtime;
 using NGinnBPM.Runtime.Services;
+using NGinnBPM.Runtime.Tasks;
 
 namespace TestHost.cs
 {
@@ -31,7 +32,7 @@ namespace TestHost.cs
         public NGinnConfigurator FinishConfiguration()
         {
             MessageBusConfigurator.Begin(_wc)
-                .AddMessageHandlersFromAssembly(typeof(NGinnBPM.Runtime.TaskInstance).Assembly)
+                .AddMessageHandlersFromAssembly(typeof(TaskInstance).Assembly)
                 .AddMessageHandlersFromAssembly(typeof(NGinnConfigurator).Assembly)
                 .ConfigureFromAppConfig()
                 .AutoStartMessageBus(true)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using System.IO;
+using NGinnBPM.Runtime.Tasks;
 
 namespace NGinnBPM.Runtime.Services
 {

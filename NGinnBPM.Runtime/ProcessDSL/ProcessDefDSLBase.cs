@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NGinnBPM.ProcessModel;
 using NGinnBPM.ProcessModel.Data;
+using NGinnBPM.Runtime.Tasks;
 using BL = Boo.Lang;
 using SC = System.Collections;
 using AST = Boo.Lang.Compiler.Ast;
@@ -46,11 +47,20 @@ namespace NGinnBPM.Runtime.ProcessDSL
         }
         [BL.DuckTyped]
         protected TaskInstance Task { get; set; }
-        
+        protected ITaskExecutionContext Context { get; set; }
            
 
         private ProcessDef _curProcessDef = null;
 
+        #region runtime data initialization
+        public void SetTaskInstanceInfo(TaskInstance ti, ITaskExecutionContext ctx)
+        {
+            this.Task = ti;
+            this.TaskData = null;
+            this.Context = ctx;
+        }
+
+        #endregion
         #region process_data_types
 
         protected void process_data_types(Action act)
@@ -282,6 +292,8 @@ namespace NGinnBPM.Runtime.ProcessDSL
             if (_curTask == null) throw new Exception("flow_to allowed only in an atomic task");
             flow(_curTask.Id, to);
         }
+
+        
 
         private FlowDef _curFlow = null;
         protected void flow(string from, string to, Action act)

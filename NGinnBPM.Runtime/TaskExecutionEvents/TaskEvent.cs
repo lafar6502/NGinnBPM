@@ -29,6 +29,7 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
 
     public class TaskCompleted : TaskExecEvent
     {
+        public Dictionary<string, object> OutputData { get; set; }
     }
 
     public class TaskFailed : TaskExecEvent

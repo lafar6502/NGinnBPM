@@ -69,6 +69,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -81,6 +82,7 @@
     <Compile Include="DbSession.cs" />
     <Compile Include="ITaskExecutionContext.cs" />
     <Compile Include="ProcessDSL\BooDslPackageRepository.cs" />
+    <Compile Include="ProcessDSL\BooDslProcessRuntime.cs" />
     <Compile Include="ProcessDSL\PackageDSLEngine.cs" />
     <Compile Include="ProcessDSL\ProcessDefDSLBase.cs" />
     <Compile Include="ProcessRunner.cs" />
@@ -93,7 +95,12 @@
     <Compile Include="Services\SqlTaskInstancePersister.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlMessage.cs" />
     <Compile Include="TaskExecutionEvents\TaskEvent.cs" />
-    <Compile Include="TaskInstance.cs" />
+    <Compile Include="TaskStatus.cs" />
+    <Compile Include="Tasks\AtomicTaskInstance.cs" />
+    <Compile Include="Tasks\EmptyTaskInstance.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tasks\TaskInstance.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Execution.txt" />

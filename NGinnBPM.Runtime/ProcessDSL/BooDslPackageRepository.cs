@@ -42,15 +42,22 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         public IProcessScriptRuntime GetScriptRuntime(string processDefinition)
         {
-            throw new NotImplementedException();
+            var dsl = GetProcessDsl(processDefinition);
+            return new BooDslProcessRuntime(dsl);
         }
 
 
         public ProcessModel.ProcessDef GetProcessDefinition(string definitionId)
         {
+            var dsl = GetProcessDsl(definitionId);
+            return dsl.GetProcessDef();
+        }
+
+        protected ProcessDefDSLBase GetProcessDsl(string definitionId)
+        {
             string fn = definitionId.EndsWith(".boo") ? definitionId : definitionId + ".boo";
             var pd = GetDSL().Create<ProcessDefDSLBase>(fn);
-            return pd.GetProcessDef();
+            return pd;
         }
     }
 }

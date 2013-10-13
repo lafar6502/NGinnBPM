@@ -4,11 +4,22 @@ process_data_types:
         member "Name", "string"
         member "SomeNum", "int"
         
+
+variable "V0", "string":
+    default_value Environment.MachineName
+    options {dir: input, required:true}
+        
 start_place "start"
 end_place "end"
 
+
 task "T1", "manual":
-    variable "V1", "string", {dir: input, required: true, array: false}
+    variable "V1", "string":
+        default_value DateTime.Now.ToString()
+        options {dir: input, required: true, array: false}
+        input_binding ParentData.V0
+        
+    output_binding "V0", OutputData.V1 + "- ma kota"
     #init_parameter AssigneeGroup, InputData.Value1 + 17
     init_task:
         Task.AssigneeGroup = TaskData.AssigneeId

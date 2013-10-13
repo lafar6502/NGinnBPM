@@ -47,5 +47,19 @@ namespace NGinnBPM.ProcessModel
         public string AfterEnableScript { get; set; }
         [DataMember]
         public string BeforeCompleteScript { get; set; }
+
+        public void AddInputDataBinding(DataBindingDef b)
+        {
+            if (InputDataBindings == null) InputDataBindings = new List<DataBindingDef>();
+            if (InputDataBindings.Any(x => x.Target == b.Target)) throw new Exception("Binding already defined for " + b.Target);
+            InputDataBindings.Add(b);
+        }
+
+        public void AddOutputDataBinding(DataBindingDef b)
+        {
+            if (OutputDataBindings == null) OutputDataBindings = new List<DataBindingDef>();
+            if (OutputDataBindings.Any(x => x.Target == b.Target)) throw new Exception("Binding already defined for " + b.Target);
+            OutputDataBindings.Add(b);
+        }
     }
 }

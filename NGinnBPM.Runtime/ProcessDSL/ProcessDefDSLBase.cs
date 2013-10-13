@@ -39,6 +39,11 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         protected BL.IQuackFu InputData { get; set; }
         protected BL.IQuackFu TaskData { get; set; }
+        protected BL.IQuackFu OutputData { get; set; }
+        protected BL.IQuackFu ParentData
+        {
+            get { return TaskData; }
+        }
         [BL.DuckTyped]
         protected TaskInstance Task { get; set; }
         
@@ -96,34 +101,102 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         protected void variable(string name, string type, SC.IDictionary options)
         {
-            VariableDef vd = new VariableDef
+            variable(name, type, delegate()
             {
-                Name = name,
-                TypeName = type,
-                IsRequired = GetOption(options, required, false),
-                IsArray = GetOption(options, array, false),
-                VariableDir = GetOption(options, dir, VariableDef.Dir.Local),
-                DefaultValueExpr = GetOption(options, "defaultValue", "")
-            };
-            if (_curTask != null)
-            {
-                if (_curTask.Variables == null) _curTask.Variables = new List<VariableDef>();
-                _curTask.Variables.Add(vd);
-            }
-            else
-            {
-                if (_currentCompositeTask.Variables == null) _currentCompositeTask.Variables = new List<VariableDef>();
-                _currentCompositeTask.Variables.Add(vd);
-            }
+                this.options(options);
+            });
         }
-
 
 
         private VariableDef _curVar;
         protected void variable(string name, string type, Action act)
         {
+            _curVar = new VariableDef { Name = name, TypeName = type };
+            act();
+            if (_curTask != null)
+            {
+                if (_curTask.Variables == null) _curTask.Variables = new List<VariableDef>();
+                _curTask.Variables.Add(_curVar);
+            }
+            else
+            {
+                if (_currentCompositeTask.Variables == null) _currentCompositeTask.Variables = new List<VariableDef>();
+                _currentCompositeTask.Variables.Add(_curVar);
+            }
+            _curVar = null;
         }
 
+        protected void variable_default(Func<object> f, string codeString)
+        {
+            _curVar.DefaultValueExpr = codeString;
+            _curVar.FDefaultValueExpr = f;
+        }
+
+        [BL.Meta]
+        public static AST.Expression default_value(AST.Expression expr)
+        {
+            AST.BlockExpression condition = new AST.BlockExpression();
+            condition.Body.Add(new AST.ReturnStatement(expr));
+            return new AST.MethodInvocationExpression(new AST.ReferenceExpression("variable_default"), condition, new AST.StringLiteralExpression(expr.ToCodeString()));
+        }
+
+        protected void variable_input_binding(Func<object> f, string codeString)
+        {
+            if (_curVar == null) throw new Exception("input_binding only in variable def");
+            var b = new DataBindingDef
+                {
+                    BindType = DataBindingType.Expr,
+                    FSourceExpr = f,
+                    Source = codeString,
+                    Target = _curVar.Name
+                };
+            if (_curTask != null)
+            {
+                _curTask.AddInputDataBinding(b);
+            }
+            else if (_currentCompositeTask != null)
+            {
+                _currentCompositeTask.AddInputDataBinding(b);
+            }
+            else throw new Exception();
+        }
+
+        [BL.Meta]
+        protected static AST.Expression input_binding(AST.Expression expr)
+        {
+            AST.BlockExpression condition = new AST.BlockExpression();
+            condition.Body.Add(new AST.ReturnStatement(expr));
+            return new AST.MethodInvocationExpression(new AST.ReferenceExpression("variable_input_binding"), condition, new AST.StringLiteralExpression(expr.ToCodeString()));
+        }
+
+        protected void add_output_binding(string destinationVariable, Func<object> expression, string codeString)
+        {
+            var b = new DataBindingDef
+            {
+                BindType = DataBindingType.Expr,
+                Source = codeString,
+                FSourceExpr = expression,
+                Target = destinationVariable
+            };
+            if (_curTask != null)
+            {
+                _curTask.AddOutputDataBinding(b);
+            }
+            else if (_currentCompositeTask != null)
+            {
+                _currentCompositeTask.AddOutputDataBinding(b);
+            }
+        }
+
+        [BL.Meta]
+        protected static AST.Expression output_binding(AST.Expression vname, AST.Expression expr)
+        {
+            AST.BlockExpression condition = new AST.BlockExpression();
+            condition.Body.Add(new AST.ReturnStatement(expr));
+            return new AST.MethodInvocationExpression(new AST.ReferenceExpression("add_output_binding"), vname, condition, new AST.StringLiteralExpression(expr.ToCodeString()));
+        }
+
+        
 
         [BL.Meta]
         protected void init_parameter(AST.Expression pref, AST.Expression expr)
@@ -246,6 +319,13 @@ namespace NGinnBPM.Runtime.ProcessDSL
                 _curFlow.SourcePortType = GetOption(options, "sourcePort", _curFlow.SourcePortType);
                 _curFlow.TargetPortType = GetOption(options, "targetPort", _curFlow.TargetPortType);
                 _curFlow.EvalOrder = GetOption(options, "evalOrder", _curFlow.EvalOrder);
+            }
+            else if (_curVar != null)
+            {
+                _curVar.IsRequired = GetOption(options, required, _curVar.IsRequired);
+                _curVar.IsArray = GetOption(options, array, _curVar.IsArray);
+                _curVar.VariableDir = GetOption(options, dir, _curVar.VariableDir);
+                _curVar.DefaultValueExpr = GetOption(options, "defaultValue", _curVar.DefaultValueExpr);
             }
             else throw new Exception();
         }

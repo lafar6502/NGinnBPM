@@ -227,7 +227,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _curTask = new AtomicTaskDef { Id = id, AutoBindVariables = true };
             _curTask.TaskType = (NGinnTaskType)Enum.Parse(typeof(NGinnTaskType), taskType, true);
             act();
-            _currentCompositeTask.Tasks.Add(_curTask);
+            _currentCompositeTask.AddTask(_curTask);
             _curTask = null;
         }
 
@@ -237,7 +237,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _currentCompositeTask = new CompositeTaskDef();
             _currentCompositeTask.Id = id;
             act();
-            p.Tasks.Add(_currentCompositeTask);
+            p.AddTask(_currentCompositeTask);
             _currentCompositeTask = p;
         }
 
@@ -287,7 +287,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
                 TargetPortType = GetOption(options, "targetPort", TaskInPortType.Default),
                 EvalOrder = GetOption(options, "evalOrder", 0)
             };
-            _currentCompositeTask.Flows.Add(fd);
+            _currentCompositeTask.AddFlow(fd);
         }
 
         protected void flow_to(string to)
@@ -303,7 +303,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
         {
             _curFlow = new FlowDef { From = from, To = to };
             act();
-            _currentCompositeTask.Flows.Add(_curFlow);
+            _currentCompositeTask.AddFlow(_curFlow);
             _curFlow = null;
         }
 
@@ -351,13 +351,13 @@ namespace NGinnBPM.Runtime.ProcessDSL
         protected void start_place(string id)
         {
             if (_currentCompositeTask.Places.Any(x => x.Id == id)) throw new Exception("Place already defined: " + id);
-            _currentCompositeTask.Places.Add(new PlaceDef { Id = id, PlaceType = PlaceTypes.Start });
+            _currentCompositeTask.AddPlace(new PlaceDef { Id = id, PlaceType = PlaceTypes.Start });
         }
 
         protected void end_place(string id)
         {
             if (_currentCompositeTask.Places.Any(x => x.Id == id)) throw new Exception("Place already defined: " + id);
-            _currentCompositeTask.Places.Add(new PlaceDef { Id = id, PlaceType = PlaceTypes.End });
+            _currentCompositeTask.AddPlace(new PlaceDef { Id = id, PlaceType = PlaceTypes.End });
         }
 
         protected void place(string id)
@@ -372,9 +372,10 @@ namespace NGinnBPM.Runtime.ProcessDSL
             if (options != null)
             {
                 pl.Label = GetOption(options, "label", "");
+                pl.PlaceType = GetOption(options, "type", pl.PlaceType);
                 pl.Description = GetOption(options, "description", (string)null);
             }
-            _currentCompositeTask.Places.Add(pl);
+            _currentCompositeTask.AddPlace(pl);
         }
         #endregion places
     }

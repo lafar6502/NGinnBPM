@@ -25,7 +25,7 @@ namespace NGinnBPM.ProcessModel
 
         public bool Validate(List<string> problemsFound)
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         #endregion

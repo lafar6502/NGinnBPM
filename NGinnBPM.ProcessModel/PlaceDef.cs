@@ -11,6 +11,8 @@ namespace NGinnBPM.ProcessModel
     {
         [DataMember]
         public PlaceTypes PlaceType { get; set; }
+        [DataMember]
+        public bool Implicit { get; set; }
 
         public override bool Validate(List<string> problemsFound)
         {

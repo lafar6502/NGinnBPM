@@ -43,6 +43,11 @@ namespace NGinnBPM.Runtime.Tasks
             if (TaskDefinition == null) throw new Exception("Task not found in process definition: " + this.TaskId);
         }
 
+        protected void RequireActivation(bool b)
+        {
+            if (this.Context == null) throw new Exception("Task not activated");
+        }
+
         public virtual void Deactivate()
         {
 
@@ -56,41 +61,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             if (Status != TaskStatus.Enabling) throw new Exception("Invalid status!");
             this.TaskData = new Dictionary<string, object>();
-            foreach (var vd in this.TaskDefinition.Variables)
-            {
-                if (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.In ||
-                    vd.VariableDir == ProcessModel.Data.VariableDef.Dir.InOut)
-                {
-                    if (inputData.ContainsKey(vd.Name))
-                    {
-                        TaskData[vd.Name] = inputData[vd.Name];
-                    }
-                    else
-                    {
-                        if (vd.FDefaultValueExpr != null)
-                        {
-                            TaskData[vd.Name] = vd.FDefaultValueExpr();
-                        }
-                        else if (!string.IsNullOrEmpty(vd.DefaultValueExpr))
-                        {
-                        }
-                    }
-                }
-                else if (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.Local ||
-                    vd.VariableDir == ProcessModel.Data.VariableDef.Dir.Out)
-                {
-                    if (vd.FDefaultValueExpr != null)
-                    {
-                        TaskData[vd.Name] = vd.FDefaultValueExpr();
-                    }
-                }
-                if (vd.IsRequired && (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.In ||
-                    vd.VariableDir == ProcessModel.Data.VariableDef.Dir.InOut) &&
-                    (!TaskData.ContainsKey(vd.Name) || TaskData[vd.Name] == null))
-                {
-                    throw new Exception("Required variable missing: " + vd.Name);
-                }
-            }
+            Context.SetupTaskHelper(this, inputData);
             this.Status = TaskStatus.Enabled;
             Context.NotifyTaskEvent(new TaskEnabled { InstanceId = this.InstanceId, ParentTaskInstanceId = this.ParentTaskInstanceId });
             this.OnTaskEnabled();

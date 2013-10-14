@@ -43,11 +43,7 @@ namespace NGinnBPM.ProcessModel.Data
         [DataMember(IsRequired = false, EmitDefaultValue = false)]
         public string DefaultValueExpr { get; set; }
 
-        /// <summary>
-        /// Default value expression delegate
-        /// </summary>
-        [IgnoreDataMember]
-        public Func<object> FDefaultValueExpr { get; set; }
+        
 
         public override void LoadFromXml(XmlElement el, XmlNamespaceManager nsmgr)
         {

@@ -11,13 +11,31 @@ namespace TestHost.cs
     {
         public static void Main(string[] args)
         {
-            TestProcessDsl();
+            //TestProcessDsl();
+            TestPackageRepo();
+        }
+
+        public static void TestPackageRepo()
+        {
+            string bd = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\ProcessPackages");
+            ProcessPackageRepository repo = new ProcessPackageRepository
+            {
+                BaseDirectory = bd
+            };
+            foreach (var pn in repo.PackageNames)
+            {
+                Console.WriteLine("Package {0}", pn);
+            }
+            foreach (var pn in repo.PackageNames)
+            {
+                var pkg = repo.GetProcessPackage(pn);
+            }
         }
 
         public static void TestProcessDsl()
         {
             string bd = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\..\\ProcessPackages");
-            BooDslPackageRepository pkg = new BooDslPackageRepository
+            BooDSLProcessPackage pkg = new BooDSLProcessPackage
             {
                 BaseDirectory = Path.Combine(bd, "Test2")
             };
@@ -29,6 +47,10 @@ namespace TestHost.cs
                 List<string> problems = new List<string>();
                 pd.Validate(problems);
                 Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(pd));
+                foreach (var vd in pd.Body.Variables)
+                {
+                    
+                }
             }
 
         }

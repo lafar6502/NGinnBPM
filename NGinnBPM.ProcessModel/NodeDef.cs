@@ -17,6 +17,11 @@ namespace NGinnBPM.ProcessModel
         public string Description { get; set; }
         [DataMember]
         public Dictionary<string, string> ExtensionProperties { get; set; }
+        
+        [IgnoreDataMember]
+        public CompositeTaskDef Parent { get; set; }
+        [IgnoreDataMember]
+        public ProcessDef ParentProcess { get; set; }
 
         public abstract bool Validate(List<string> problemsFound);
 
@@ -44,5 +49,43 @@ namespace NGinnBPM.ProcessModel
         }
 
         #endregion
+
+        [IgnoreDataMember]
+        public IEnumerable<FlowDef> FlowsOut
+        {
+            get
+            {
+                if (Parent == null) throw new Exception();
+                return Parent.Flows.Where(x => x.From == this.Id);
+            }
+        }
+
+        [IgnoreDataMember]
+        public IEnumerable<FlowDef> FlowsIn
+        {
+            get
+            {
+                if (Parent == null) throw new Exception();
+                return Parent.Flows.Where(x => x.From == this.Id);
+            }
+        }
+        [IgnoreDataMember]
+        public IEnumerable<NodeDef> NodesOut
+        {
+            get
+            {
+                return this.FlowsOut.Select(x => Parent.GetNode(x.To));
+            }
+        }
+
+        [IgnoreDataMember]
+        public IEnumerable<NodeDef> NodesIn
+        {
+            get
+            {
+                return this.FlowsIn.Select(x => Parent.GetNode(x.From));
+            }
+        }
+
     }
 }

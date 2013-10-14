@@ -26,7 +26,38 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         public void InitializeNewTask(TaskInstance ti, Dictionary<string, object> inputData, ITaskExecutionContext ctx)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(ti.InstanceId) ||
+                string.IsNullOrEmpty(ti.TaskId) ||
+                string.IsNullOrEmpty(ti.ProcessDefinitionId) ||
+                string.IsNullOrEmpty(ti.ProcessInstanceId))
+                throw new Exception("Task not inited properly");
+            _pd.SetTaskInstanceInfo(ti, ctx);
+            
+            TaskDef td = _def.GetRequiredTask(ti.TaskId);
+            foreach (var vd in td.Variables)
+            {
+                if (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.In ||
+                    vd.VariableDir == ProcessModel.Data.VariableDef.Dir.InOut)
+                {
+                    if (inputData.ContainsKey(vd.Name))
+                        ti.TaskData[vd.Name] = inputData[vd.Name];
+                }
+                if (!ti.TaskData.ContainsKey(vd.Name))
+                {
+                    var k = DslUtil.TaskVariableDefaultKey(td.Id, vd.Name);
+                    if (_pd._variableBinds.ContainsKey(k))
+                    {
+                        ti.TaskData[vd.Name] = _pd._variableBinds[k]();
+                    }
+                    else if (!string.IsNullOrEmpty(vd.DefaultValueExpr))
+                    {
+                        ti.TaskData[vd.Name] = vd.DefaultValueExpr;
+                    }
+                    else if (vd.IsRequired)
+                        throw new Exception("Required variable missing: " + vd.Name);
+                }
+            }
+            //now initialize task parameters
         }
 
         public Dictionary<string, object> GatherOutputData(TaskInstance ti, ITaskExecutionContext ctx)
@@ -34,10 +65,19 @@ namespace NGinnBPM.Runtime.ProcessDSL
             throw new NotImplementedException();
         }
 
-        public bool EvalFlow(TaskInstance ti, ProcessModel.FlowDef fd, ITaskExecutionContext ctx)
+        public bool EvalFlowCondition(TaskInstance ti, ProcessModel.FlowDef fd, ITaskExecutionContext ctx)
         {
+            string k = DslUtil.FlowConditionKey(fd.Parent.Id, fd.From, fd.To);
+            if (!_pd._flowConditions.ContainsKey(k)) throw new Exception("!no flow cond..");
             _pd.SetTaskInstanceInfo(ti, ctx);
-            return fd.FInputCondition();
+            return _pd._flowConditions[k]();
+        }
+
+
+        
+        public void SetTaskScriptContext(TaskInstance task, Dictionary<string, object> inputData, Dictionary<string, object> outputData)
+        {
+            throw new NotImplementedException();
         }
     }
 }

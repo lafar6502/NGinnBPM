@@ -29,6 +29,7 @@ namespace NGinnBPM.Runtime
     {
         string ProcessDefinitionId { get; }
 
+
         /// <summary>
         /// Execute task input data binding and initialize parameters according to bindings
         /// </summary>
@@ -45,7 +46,7 @@ namespace NGinnBPM.Runtime
         /// <returns></returns>
         Dictionary<string, object> GatherOutputData(TaskInstance ti, ITaskExecutionContext ctx);
 
-        bool EvalFlow(TaskInstance ti, FlowDef fd, ITaskExecutionContext ctx);
+        bool EvalFlowCondition(TaskInstance ti, FlowDef fd, ITaskExecutionContext ctx);
 
         
     }

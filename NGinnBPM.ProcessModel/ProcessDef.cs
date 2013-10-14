@@ -27,10 +27,32 @@ namespace NGinnBPM.ProcessModel
 
         [DataMember]
         public List<KeyValue> ExtensionProperties { get; set; }
-        
+
+        [IgnoreDataMember]
+        public PackageDef Package { get; set; }
+
         public string DefinitionId
         {
             get { return string.Format("{0}.{1}.{2}", PackageName, ProcessName, Version); }
+        }
+
+        public PlaceDef GetPlace(string id)
+        {
+            return Body.FindPlace(id);
+        }
+
+        public PlaceDef GetRequiredPlace(string id)
+        {
+            var pl = GetPlace(id);
+            if (pl == null) throw new Exception("Place not found: " + id);
+            return pl;
+        }
+
+        public TaskDef GetRequiredTask(string id)
+        {
+            var td = Body.FindTask(id);
+            if (td == null) throw new Exception("Task not found: " + id);
+            return td;
         }
 
         #region IValidate Members
@@ -46,5 +68,13 @@ namespace NGinnBPM.ProcessModel
         }
 
         #endregion
+
+        public void FinishModelBuild()
+        {
+            if (Body == null) return;
+            Body.ParentProcess = this;
+            Body.Parent = null;
+            Body.UpdateParentRefs();
+        }
     }
 }

@@ -44,7 +44,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AtomicTaskDef.cs" />
-    <Compile Include="Class1.cs" />
     <Compile Include="CompositeTaskDef.cs" />
     <Compile Include="DataBindingDef.cs" />
     <Compile Include="Data\DataUtil.cs" />

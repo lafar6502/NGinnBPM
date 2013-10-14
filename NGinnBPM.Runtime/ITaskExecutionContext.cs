@@ -24,5 +24,7 @@ namespace NGinnBPM.Runtime
         /// <param name="ti"></param>
         /// <returns></returns>
         Dictionary<string, object> GetTaskOutputDataHelper(TaskInstance ti);
+
+        
     }
 }

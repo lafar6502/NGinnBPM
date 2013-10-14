@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using NGinnBPM.ProcessModel;
+
+namespace NGinnBPM.Runtime.ProcessDSL
+{
+    public class DslUtil
+    {
+        public static string TaskVariableDefaultKey(string taskId, string variable)
+        {
+            return string.Format("{0}_vdefault_{1}", taskId, variable);
+        }
+
+        public static string FlowConditionKey(string compositeTaskId, string from, string to)
+        {
+            return string.Format("{0}_flow_{1}_{2}", compositeTaskId, from, to);
+        }
+
+        public static string TaskScriptKey(string taskId, string scriptId)
+        {
+            return string.Format("{0}_script_{1}", taskId, scriptId);
+        }
+
+        public static string TaskParamInBindingKey(string taskId, string paramName)
+        {
+            return string.Format("{0}_initparam_{1}", taskId, paramName);
+        }
+
+        public static string TaskParamOutBindingKey(string taskId, string variableName)
+        {
+            return string.Format("{0}_outparam_{1}", taskId, variableName);
+        }
+    }
+
+}

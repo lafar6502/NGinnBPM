@@ -81,10 +81,13 @@
     <Compile Include="Class1.cs" />
     <Compile Include="DbSession.cs" />
     <Compile Include="ITaskExecutionContext.cs" />
-    <Compile Include="ProcessDSL\BooDslPackageRepository.cs" />
+    <Compile Include="ProcessDSL\BooDSLProcessPackage.cs" />
     <Compile Include="ProcessDSL\BooDslProcessRuntime.cs" />
+    <Compile Include="ProcessDSL\DslUtil.cs" />
     <Compile Include="ProcessDSL\PackageDSLEngine.cs" />
     <Compile Include="ProcessDSL\ProcessDefDSLBase.cs" />
+    <Compile Include="ProcessDSL\ProcessPackageRepository.cs" />
+    <Compile Include="ProcessDSL\QuackDictionaryWrapper.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

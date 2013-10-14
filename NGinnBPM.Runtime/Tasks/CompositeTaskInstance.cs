@@ -2,23 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NGinnBPM.Runtime.Events;
-using NGinnBPM.Runtime.Tasks;
-using NGinnBPM.Services;
-using NGinnBPM.Lib.Interfaces;
-using NGinnBPM.Lib.Schema;
-using NGinnBPM.Lib.Data;
+using NGinnBPM.ProcessModel.Data;
 using NGinnBPM.MessageBus;
-using NGinnBPM.Lib.Exceptions;
+using NGinnBPM.ProcessModel.Exceptions;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.Serialization;
-using NGinnBPM.Lib.Messages;
-using NGinnBPM.Runtime.Messages;
+using NGinnBPM.Runtime.TaskExecutionEvents;
 using Newtonsoft.Json;
-using NGinnBPM.Lib.Util;
+using NGinnBPM.ProcessModel;
 
-namespace NGinnBPM.Runtime
+namespace NGinnBPM.Runtime.Tasks
 {
     /// <summary>
     /// Status of transition in composite task
@@ -54,44 +48,22 @@ namespace NGinnBPM.Runtime
     /// Information about a transition in composite task (subnet)
     /// TODO: this class should be made internal
     /// </summary>
-    [Serializable]
     [DataContract]
     public class TransitionInfo
     {
-        private string _instanceId;
-        private string _taskId;
-        private TransitionStatus _status;
-        private Dictionary<string, object> _outData;
-
+        
         [DataMember]
-        public string InstanceId
-        {
-            get { return _instanceId; }
-            set { _instanceId = value; }
-        }
+        public string InstanceId { get;set;}
         [DataMember]
-        public string TaskId
-        {
-            get { return _taskId; }
-            set { _taskId = value; }
-        }
+        public string TaskId { get;set;}
         [DataMember]
-        public TransitionStatus Status
-        {
-            get { return _status; }
-            set { _status = value; }
-        }
-
+        public TransitionStatus Status { get;set;}
         /// <summary>
         /// Output data. used by multi-instance tasks.
         /// </summary>
         [DataMember(IsRequired=false)]
-        public Dictionary<string, object> OutputData
-        {
-            get { return _outData; }
-            set { _outData = value; }
-        }
-
+        public Dictionary<string, object> OutputData { get;set;}
+        
         private List<string> _allocPlaces = new List<string>();
 
         [DataMember(IsRequired=false)]
@@ -100,7 +72,6 @@ namespace NGinnBPM.Runtime
             get { return _allocPlaces; }
             set { _allocPlaces = new List<string>(value); }
         }
-        
         
         public void SetAllocatedPlaces(ICollection col)
         {
@@ -124,7 +95,6 @@ namespace NGinnBPM.Runtime
                     || Status == TransitionStatus.Cancelling;
             }
         }
-        
 
         public override string ToString()
         {
@@ -166,16 +136,11 @@ namespace NGinnBPM.Runtime
     /// 1. by DoOneStep
     /// 2. child task completed, cancelled, started, failed
     /// </summary>
+    /// new TODO
+    /// EnableTaskTimeout - wyrzucić, niech tym się zajmuje infrastruktura a nie taski
+    /// CancelTaskTimeout - to samo!
     [DataContract]
-    [Serializable]
-    public class CompositeTaskInstance : TaskInstance,
-        ITaskMessageHandler<TaskSelected>,
-        ITaskMessageHandler<TaskFailed>,
-        ITaskMessageHandler<TaskCompleted>,
-        ITaskMessageHandler<TaskCancelled>,
-        ITaskMessageHandler<TaskEnabled>,
-        ITaskMessageHandler<EnableTaskTimeout>,
-        ITaskMessageHandler<CancelTaskTimeout>
+    public class CompositeTaskInstance : TaskInstance
     {
         protected List<TransitionInfo> _taskRecords = new List<TransitionInfo>();
         private bool? _canContinue = null;
@@ -219,8 +184,8 @@ namespace NGinnBPM.Runtime
         {
             RequireActivation(true);
             List<TransitionInfo> lst = new List<TransitionInfo>();
-            Place pl = ParentProcess.RequirePlace(placeId);
-            foreach (Task tsk in pl.NodesOut)
+            PlaceDef pl = ProcessDefinition.GetRequiredPlace(placeId);
+            foreach (TaskDef tsk in pl.NodesOut)
             {
                 TransitionInfo ti = GetActiveInstanceOfTask(tsk.Id);
                 if (ti != null)
@@ -236,12 +201,7 @@ namespace NGinnBPM.Runtime
         /// <returns></returns>
         public TransitionInfo GetActiveInstanceOfTask(string taskId)
         {
-            foreach (TransitionInfo ti in _taskRecords)
-            {
-                if (ti.TaskId == taskId && ti.IsTransitionActive)
-                    return ti;
-            }
-            return null;
+            return _taskRecords.FirstOrDefault(x => x.TaskId == taskId && x.IsTransitionActive);
         }
 
         /// <summary>
@@ -275,15 +235,16 @@ namespace NGinnBPM.Runtime
             }
         }
 
-        public override void Passivate()
+        public override void Deactivate()
         {
-            Dictionary<string, int> nm = new Dictionary<string,int>();
+            base.Deactivate();
+            Dictionary<string, int> nm = new Dictionary<string, int>();
             foreach (string k in Marking.Keys)
                 if (Marking[k] > 0) nm[k] = Marking[k];
             Marking = nm;
-            bool b = CanContinue;
-            base.Passivate();
+            
         }
+        
 
         private void OnInternalStatusChanged()
         {
@@ -477,6 +438,12 @@ namespace NGinnBPM.Runtime
                     ((EnableTaskMessage) et).InputData = PrepareDataForChildTask(tsk.Id);
                 }
                 _taskRecords.Add(ti);
+                /*Context.SendTaskControlMessage(new EnableChildTask {
+                    CorrelationId = ti.InstanceId,
+                    FromProcessInstanceId = this.ProcessInstanceId,
+                    FromTaskInstanceId = this.InstanceId,
+                    ToTaskInstanceId = ti.InstanceId,
+                    InputData = ...*/
                 string nid = Context.EnableChildTask(et);
                 Debug.Assert(nid == ti.InstanceId);
                 log.Info("Child task {0} created: {1}", taskId, ti.InstanceId);
@@ -1592,12 +1559,13 @@ namespace NGinnBPM.Runtime
 
         #endregion
 
-
+        
         /// <summary>
         /// Child task cancellation timed out
         /// TODO implement
         /// </summary>
         /// <param name="message"></param>
+        /*
         public void Handle(CancelTaskTimeout message)
         {
             if (this.Status == TaskStatus.Completed ||
@@ -1618,6 +1586,6 @@ namespace NGinnBPM.Runtime
             {
                 log.Debug("Child task {1} ({0}) cancellation timeout - ignoring because the transition is not in cancelling. ", ti.InstanceId, ti.TaskId);
             }
-        }
+        }*/
     }
 }

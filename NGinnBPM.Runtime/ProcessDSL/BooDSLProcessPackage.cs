@@ -10,7 +10,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
     /// <summary>
     /// Repository with a single process package
     /// </summary>
-    public class BooDslPackageRepository : IProcessPackage
+    public class BooDSLProcessPackage : IProcessPackage
     {
         public string BaseDirectory { get; set; }
         private DslFactory _dsl;

@@ -27,6 +27,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _currentCompositeTask = new CompositeTaskDef();
             _curProcessDef.Body = _currentCompositeTask;
             Prepare();
+            _curProcessDef.FinishModelBuild();
             return _curProcessDef;
         }
 
@@ -48,7 +49,8 @@ namespace NGinnBPM.Runtime.ProcessDSL
         [BL.DuckTyped]
         protected TaskInstance Task { get; set; }
         protected ITaskExecutionContext Context { get; set; }
-           
+        internal Dictionary<string, Func<bool>> _flowConditions = new Dictionary<string, Func<bool>>();
+        internal Dictionary<string, Func<object>> _variableBinds = new Dictionary<string, Func<object>>();
 
         private ProcessDef _curProcessDef = null;
 
@@ -138,8 +140,9 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         protected void variable_default(Func<object> f, string codeString)
         {
+            string k = DslUtil.TaskVariableDefaultKey(_curTask == null ? _currentCompositeTask.Id : _curTask.Id, _curVar.Name);
             _curVar.DefaultValueExpr = codeString;
-            _curVar.FDefaultValueExpr = f;
+            _variableBinds[k] = f;
         }
 
         [BL.Meta]
@@ -309,7 +312,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
             if (_curFlow != null)
             {
                 _curFlow.InputCondition = condString;
-                _curFlow.FInputCondition = cond;
+                _flowConditions[DslUtil.FlowConditionKey(_currentCompositeTask.Id, _curFlow.From, _curFlow.To)] = cond;
             }
             else throw new Exception();
         }

@@ -23,7 +23,6 @@ task "T1", "manual":
     #init_parameter AssigneeGroup, InputData.Value1 + 17
     init_task:
         Task.AssigneeGroup = TaskData.AssigneeId
-    flow_to "end"
         
 flow "start", "T1"
 

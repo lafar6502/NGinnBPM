@@ -21,6 +21,7 @@ namespace NGinnBPM.Runtime
     {
         string Name { get; }
         IEnumerable<string> ProcessNames { get; }
+        PackageDef GetPackageDef();
         ProcessDef GetProcessDefinition(string definitionId);
         IProcessScriptRuntime GetScriptRuntime(string processDefinition);
     }

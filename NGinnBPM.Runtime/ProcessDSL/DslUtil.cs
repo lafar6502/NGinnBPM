@@ -23,6 +23,16 @@ namespace NGinnBPM.Runtime.ProcessDSL
             return string.Format("{0}_script_{1}", taskId, scriptId);
         }
 
+        public static string TaskVarInBindingKey(string taskId, string paramName)
+        {
+            return string.Format("{0}_input_var_bind_{1}", taskId, paramName);
+        }
+
+        public static string TaskVarOutBindingKey(string taskId, string paramName)
+        {
+            return string.Format("{0}_output_var_bind_{1}", taskId, paramName);
+        }
+
         public static string TaskParamInBindingKey(string taskId, string paramName)
         {
             return string.Format("{0}_initparam_{1}", taskId, paramName);
@@ -32,6 +42,8 @@ namespace NGinnBPM.Runtime.ProcessDSL
         {
             return string.Format("{0}_outparam_{1}", taskId, variableName);
         }
+
+
     }
 
 }

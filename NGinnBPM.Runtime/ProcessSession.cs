@@ -83,6 +83,14 @@ namespace NGinnBPM.Runtime
         protected void DeliverControlMessage(TaskControlMessage msg)
         {
         }
+        private Dictionary<string, object> _content = new Dictionary<string, object>();
+
+        public object this[string index]
+        {
+            get { return _content[index]; }
+            set { _content[index] = value; }
+        }
+
 
         public void PumpMessages()
         {

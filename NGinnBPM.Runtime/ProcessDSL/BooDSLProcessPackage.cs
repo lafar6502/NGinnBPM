@@ -59,5 +59,11 @@ namespace NGinnBPM.Runtime.ProcessDSL
             var pd = GetDSL().Create<ProcessDefDSLBase>(fn);
             return pd;
         }
+
+
+        public ProcessModel.PackageDef GetPackageDef()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

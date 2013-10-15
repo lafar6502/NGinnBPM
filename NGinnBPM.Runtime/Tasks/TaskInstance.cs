@@ -23,9 +23,10 @@ namespace NGinnBPM.Runtime.Tasks
 
         [IgnoreDataMember]
         protected ITaskExecutionContext Context { get; set; }
-        
         [IgnoreDataMember]
         protected ProcessDef ProcessDefinition { get; set; }
+        [IgnoreDataMember]
+        protected IProcessScriptRuntime ScriptRuntime { get; set; }
         
         [IgnoreDataMember]
         protected TaskDef TaskDefinition { get; set; }
@@ -35,11 +36,12 @@ namespace NGinnBPM.Runtime.Tasks
             Status = TaskStatus.Enabling;
         }
 
-        public virtual void Activate(ITaskExecutionContext ctx, ProcessDef processDef)
+        public virtual void Activate(ITaskExecutionContext ctx, ProcessDef processDef, IProcessScriptRuntime scriptRuntime)
         {
             Context = ctx;
             ProcessDefinition = processDef;
             TaskDefinition = processDef.Body.FindTask(this.TaskId);
+            ScriptRuntime = scriptRuntime;
             if (TaskDefinition == null) throw new Exception("Task not found in process definition: " + this.TaskId);
         }
 
@@ -61,10 +63,13 @@ namespace NGinnBPM.Runtime.Tasks
         {
             if (Status != TaskStatus.Enabling) throw new Exception("Invalid status!");
             this.TaskData = new Dictionary<string, object>();
-            Context.SetupTaskHelper(this, inputData);
+            ScriptRuntime.InitializeNewTask(this, inputData, Context);
             this.Status = TaskStatus.Enabled;
-            Context.NotifyTaskEvent(new TaskEnabled { InstanceId = this.InstanceId, ParentTaskInstanceId = this.ParentTaskInstanceId });
             this.OnTaskEnabled();
+            if (this.Status == TaskStatus.Enabled)
+            {
+                Context.NotifyTaskEvent(new TaskEnabled { InstanceId = this.InstanceId, ParentTaskInstanceId = this.ParentTaskInstanceId });
+            }
         }
 
         protected virtual void OnTaskEnabled()

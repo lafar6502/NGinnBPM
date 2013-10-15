@@ -22,11 +22,5 @@ namespace NGinnBPM.ProcessModel
         public string Source { get; set; }
         [DataMember]
         public DataBindingType BindType { get; set; }
-
-        /// <summary>
-        /// source expression eval delegate
-        /// </summary>
-        [IgnoreDataMember]
-        public Func<object> FSourceExpr { get; set; }
     }
 }

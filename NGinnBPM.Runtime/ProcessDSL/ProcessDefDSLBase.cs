@@ -51,6 +51,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
         protected ITaskExecutionContext Context { get; set; }
         internal Dictionary<string, Func<bool>> _flowConditions = new Dictionary<string, Func<bool>>();
         internal Dictionary<string, Func<object>> _variableBinds = new Dictionary<string, Func<object>>();
+        internal Dictionary<string, Action> _taskScripts = new Dictionary<string, Action>();
 
         private ProcessDef _curProcessDef = null;
 
@@ -156,13 +157,14 @@ namespace NGinnBPM.Runtime.ProcessDSL
         protected void variable_input_binding(Func<object> f, string codeString)
         {
             if (_curVar == null) throw new Exception("input_binding only in variable def");
+            string k = DslUtil.TaskVarInBindingKey(_curTask != null ? _curTask.Id : _currentCompositeTask.Id, _curVar.Name);
             var b = new DataBindingDef
                 {
                     BindType = DataBindingType.Expr,
-                    FSourceExpr = f,
                     Source = codeString,
                     Target = _curVar.Name
                 };
+            _variableBinds[k] = f;
             if (_curTask != null)
             {
                 _curTask.AddInputDataBinding(b);
@@ -188,9 +190,10 @@ namespace NGinnBPM.Runtime.ProcessDSL
             {
                 BindType = DataBindingType.Expr,
                 Source = codeString,
-                FSourceExpr = expression,
                 Target = destinationVariable
             };
+            var k = DslUtil.TaskVarOutBindingKey(_curTask != null ? _curTask.Id : _currentCompositeTask.Id, destinationVariable);
+            _variableBinds[k] = expression;
             if (_curTask != null)
             {
                 _curTask.AddOutputDataBinding(b);

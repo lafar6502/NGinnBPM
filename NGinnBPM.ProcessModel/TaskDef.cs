@@ -61,5 +61,62 @@ namespace NGinnBPM.ProcessModel
             if (OutputDataBindings.Any(x => x.Target == b.Target)) throw new Exception("Binding already defined for " + b.Target);
             OutputDataBindings.Add(b);
         }
+
+        /// <summary>
+        /// Get task input data definition
+        /// </summary>
+        /// <returns></returns>
+        public virtual StructDef GetInputDataSchema()
+        {
+            if (ParentProcess == null) throw new Exception();
+            StructDef sd = new StructDef();
+            sd.ParentTypeSet = ParentProcess.DataTypes;
+            foreach (VariableDef vd in Variables)
+            {
+                if (vd.VariableDir == VariableDef.Dir.In || vd.VariableDir == VariableDef.Dir.InOut)
+                {
+                    sd.Members.Add(vd);
+                }
+            }
+            return sd;
+        }
+
+        /// <summary>
+        /// Get task output data definition
+        /// </summary>
+        /// <returns></returns>
+        public virtual StructDef GetOutputDataSchema()
+        {
+            if (ParentProcess == null) throw new Exception();
+            StructDef sd = new StructDef();
+            sd.ParentTypeSet = ParentProcess.DataTypes;
+            foreach (VariableDef vd in Variables)
+            {
+                if (vd.VariableDir == VariableDef.Dir.Out || vd.VariableDir == VariableDef.Dir.InOut)
+                {
+                    sd.Members.Add(vd);
+                }
+            }
+            return sd;
+        }
+
+        /// <summary>
+        /// Get the definition of internal task data structure (all variables)
+        /// Warning: there are no required fields in the internal data schema. So any variable, even the required ones, can be skipped
+        /// in an xml document.
+        /// </summary>
+        /// <returns></returns>
+        public virtual StructDef GetInternalDataSchema()
+        {
+            if (ParentProcess == null) throw new Exception();
+            StructDef sd = new StructDef();
+            sd.ParentTypeSet = ParentProcess.DataTypes;
+            foreach (VariableDef vd in Variables)
+            {
+                VariableDef vd2 = new VariableDef(vd); vd2.IsRequired = false;
+                sd.Members.Add(vd2);
+            }
+            return sd;
+        }
     }
 }

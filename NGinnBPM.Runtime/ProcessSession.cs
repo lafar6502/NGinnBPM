@@ -62,6 +62,41 @@ namespace NGinnBPM.Runtime
 
         }
 
+        private Dictionary<string, object> _sessionData = new Dictionary<string, object>();
+
+        /// <summary>
+        /// Store some data in a session
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="v"></param>
+        public void SetSessionData(string key, object v)
+        {
+            _sessionData.Remove(key);
+            _sessionData.Add(key, v);
+        }
+
+        /// <summary>
+        /// retrieve data stored in a session
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public T GetSessionData<T>(string key)
+        {
+            object v;
+            return _sessionData.TryGetValue(key, out v) ? (T)v : default(T);
+        }
+
+        public T GetOrAddSessionData<T>(string key, Func<T> valueProvider)
+        {
+            object v;
+            if (_sessionData.TryGetValue(key, out v))
+            {
+                v = valueProvider();
+                _sessionData[key] = v;
+            }
+            return (T)v;
+        }
         
 
 

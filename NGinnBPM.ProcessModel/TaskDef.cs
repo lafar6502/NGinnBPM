@@ -62,6 +62,11 @@ namespace NGinnBPM.ProcessModel
             OutputDataBindings.Add(b);
         }
 
+        public IEnumerable<FlowDef> GetFlowsForPortOut(TaskOutPortType portType)
+        {
+            return this.FlowsOut.Where(x => x.SourcePortType == portType);
+        }
+
         /// <summary>
         /// Get task input data definition
         /// </summary>

@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using NGinnBPM.Runtime.TaskExecutionEvents;
 using Newtonsoft.Json;
 using NGinnBPM.ProcessModel;
+using NLog;
 
 namespace NGinnBPM.Runtime.Tasks
 {
@@ -144,6 +145,7 @@ namespace NGinnBPM.Runtime.Tasks
     {
         protected List<TransitionInfo> _taskRecords = new List<TransitionInfo>();
         private bool? _canContinue = null;
+        private static Logger log = LogManager.GetCurrentClassLogger();
 
         public CompositeTaskInstance()
         {
@@ -259,7 +261,7 @@ namespace NGinnBPM.Runtime.Tasks
             }
             _canContinue = CheckIfCanContinue(false);
             if (_canContinue.Value) return;
-            foreach (Place pl in MyTask.GetPlaces())
+            foreach (PlaceDef pl in MyTask.Places)
             {
                 int n = GetMarkingOfPlace(pl.Id);
                 if (n > 0 && pl.PlaceType != PlaceTypes.End)
@@ -337,7 +339,7 @@ namespace NGinnBPM.Runtime.Tasks
             }
             if (!foundActive)
             {
-                foreach (Place pl in MyTask.GetPlaces())
+                foreach (PlaceDef pl in MyTask.Places)
                 {
                     if (pl.PlaceType != PlaceTypes.End && GetMarkingOfPlace(pl.Id) > 0)
                     {
@@ -700,12 +702,12 @@ namespace NGinnBPM.Runtime.Tasks
         }
 
         [IgnoreDataMember]
-        protected CompositeTask MyTask
+        protected CompositeTaskDef MyTask
         {
             get
             {
-                if (ParentProcess == null) throw new TaskRuntimeException("Parent process missing. Activate!");
-                return (CompositeTask) ParentProcess.GetTask(TaskId);
+                if (ProcessDefinition == null) throw new TaskRuntimeException("Parent process missing. Activate!");
+                return (CompositeTaskDef)ProcessDefinition.GetRequiredTask(TaskId);
             }
         }
 
@@ -862,17 +864,17 @@ namespace NGinnBPM.Runtime.Tasks
         }
 
 
-        private void ExecuteFlow(string instanceId, Flow fl)
+        private void ExecuteFlow(string instanceId, FlowDef fl)
         {
             TransitionInfo ti = GetTransitionInfo(instanceId);
-            if (ti.TaskId != fl.From.Id) throw new Exception();
+            if (ti.TaskId != fl.From) throw new Exception();
             if (fl.IsCancelling)
             {
-                RemoveAllTokensInPlace(fl.To.Id);
+                RemoveAllTokensInPlace(fl.To);
             }
             else
             {
-                AddToken(fl.To.Id);
+                AddToken(fl.To);
             }
         }
 
@@ -886,12 +888,12 @@ namespace NGinnBPM.Runtime.Tasks
             TransitionInfo ti = GetTransitionInfo(instanceId);
             Debug.Assert(ti != null);
             Debug.Assert(ti.Status == TransitionStatus.Completed || ti.Status == TransitionStatus.Cancelled || ti.Status == TransitionStatus.Failed);
-            Task tsk = MyTask.GetTask(ti.TaskId);
+            TaskDef tsk =  MyTask.GetTask(ti.TaskId);
             if (ti.Status == TransitionStatus.Completed)
             {
-                List<Flow> normalFlows = new List<Flow>();
-                List<Flow> cancellingFlows = new List<Flow>();
-                foreach(Flow fl in tsk.GetFlowsForPortOut(TaskOutPortType.Default))
+                List<FlowDef> normalFlows = new List<FlowDef>();
+                List<FlowDef> cancellingFlows = new List<FlowDef>();
+                foreach(FlowDef fl in tsk.GetFlowsForPortOut(TaskOutPortType.Default))
                 {
                     if (fl.IsCancelling)
                         cancellingFlows.Add(fl);
@@ -900,10 +902,10 @@ namespace NGinnBPM.Runtime.Tasks
                 }
                 if (normalFlows.Count == 0)
                 {
-                    throw new ProcessDefinitionException(MyTask.ParentProcessDefinition.DefinitionId, ti.TaskId, "No out flow");
+                    throw new ProcessDefinitionException(MyTask.ParentProcess.DefinitionId, ti.TaskId, "No out flow");
                 }
                 ///always eval all cancellations 
-                foreach(Flow fl in cancellingFlows)
+                foreach(FlowDef fl in cancellingFlows)
                 {
                     ExecuteFlow(instanceId, fl);
                 }
@@ -1018,21 +1020,9 @@ namespace NGinnBPM.Runtime.Tasks
         /// </summary>
         /// <param name="fl"></param>
         /// <returns></returns>
-        protected bool EvaluateFlowInputCondition(Flow fl)
+        protected bool EvaluateFlowInputCondition(FlowDef fl)
         {
-            try
-            {
-                ITaskScript tsc = Context.ScriptManager.GetTaskScript(ParentProcess, this.TaskId);
-                tsc.TaskContext = Context;
-                tsc.TaskInstance = this;
-                tsc.SourceData = this.TaskData;
-                return tsc.EvaluateFlowInputCondition(fl);
-            }
-            catch (Exception ex)
-            {
-                log.Warn("Error evaluating input condition of flow {0} in {1}: {2}", fl.ToString(), ParentProcess.DefinitionId, ex);
-                throw;
-            }
+            return this.ScriptRuntime.EvalFlowCondition(this, fl, Context);
         }
 
         /// <summary>
@@ -1067,8 +1057,8 @@ namespace NGinnBPM.Runtime.Tasks
         {
             log.Info("ConsumeToken: removing token from {0}", placeId);
             RemoveToken(placeId);
-            Place pl = MyTask.GetPlace(placeId);
-            foreach (Task tsk in pl.NodesOut)
+            PlaceDef pl = MyTask.FindPlace(placeId);
+            foreach (TaskDef tsk in pl.NodesOut)
             {
                 TransitionInfo ti = GetActiveInstanceOfTask(tsk.Id);
                 if (ti == null)
@@ -1305,44 +1295,9 @@ namespace NGinnBPM.Runtime.Tasks
             }
         }
 
-        private Dictionary<string, object> ExecuteInputBindings(ITaskScript scr, Task tsk)
+        private Dictionary<string, object> ExecuteInputDataBindings(TaskDef tsk)
         {
-            Dictionary<string, object> dob = new Dictionary<string, object>();
-            if (tsk.AutoBindVariables)
-            {
-                foreach (VariableDef vd in tsk.Variables)
-                {
-                    if (vd.VariableDir != VariableDef.Dir.In && vd.VariableDir != VariableDef.Dir.InOut) 
-                        continue;
-                    VariableDef src = MyTask.GetVariable(vd.Name);
-                    if (src == null) continue;
-                    if (src.TypeName != vd.TypeName)
-                    {
-                        log.Info("Auto-binding variable {0} in task {1}.{2}: type mismatch, value not copied", vd.Name, tsk.ParentProcessDefinition.DefinitionId, tsk.Id);
-                        continue;
-                    }
-                    object val;
-                    if (scr.SourceData.TryGetValue(vd.Name, out val)) dob[vd.Name] = val;
-                }
-            }
-            foreach (VariableBinding vb in tsk.InputBindings)
-            {
-                if (vb.BindType == VariableBindingType.CopyVar)
-                {
-                    object val;
-                    if (scr.SourceData.TryGetValue(vb.Expression, out val)) dob[vb.VariableName] = val;
-                }
-                else if (vb.BindType == VariableBindingType.Expr)
-                {
-                    dob[vb.VariableName] = scr.EvalInputVariableBinding(vb.VariableName);
-                }
-                else if (vb.BindType == VariableBindingType.Literal)
-                {
-                    dob[vb.VariableName] = vb.Expression;
-                }
-                else throw new Exception("Binding type not supported");
-            }
-            return dob;
+            return this.ScriptRuntime.PrepareChildTaskInputData(this, tsk, this.Context);
         }
 
         private Dictionary<string, object> ExecuteOutputBindings(ITaskScript scr, Task tsk)
@@ -1414,7 +1369,7 @@ namespace NGinnBPM.Runtime.Tasks
             foreach (object v in enu)
             {
                 srcData[tsk.MultiInstanceItemAlias] = v;
-                lst.Add(ExecuteInputBindings(scr, tsk));
+                lst.Add(ExecuteInputDataBindings(scr, tsk));
             }
             return lst;
         }
@@ -1431,7 +1386,7 @@ namespace NGinnBPM.Runtime.Tasks
             ITaskScript tsc = Context.ScriptManager.GetTaskScript(ParentProcess, taskId);
             tsc.TaskContext = Context;
             tsc.SourceData = sourceData;
-            Dictionary<string, object> taskInput = ExecuteInputBindings(tsc, tsk); 
+            Dictionary<string, object> taskInput = ExecuteInputDataBindings(tsc, tsk); 
             return taskInput;
         }
 
@@ -1498,7 +1453,8 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<EnableTaskTimeout> Members
 
-        public void Handle(EnableTaskTimeout message)
+        /* RG: not here!
+         * public void Handle(EnableTaskTimeout message)
         {
             RequireActivation(true);
             lock (this)
@@ -1522,7 +1478,7 @@ namespace NGinnBPM.Runtime.Tasks
                 }
             }
         }
-
+        */
         #endregion
 
         #region IMessageConsumer<TaskEnabled> Members

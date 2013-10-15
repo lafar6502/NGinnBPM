@@ -130,6 +130,16 @@ namespace NGinnBPM.ProcessModel
             if (t != null) return t;
             return Places.Find(x => x.Id == id);
         }
+
+        public TaskDef GetTask(string id)
+        {
+            return Tasks.FirstOrDefault(x => x.Id == id);
+        }
+
+        public PlaceDef GetPlace(string id)
+        {
+            return Places.FirstOrDefault(x => x.Id == id);
+        }
         
         /// <summary>
         /// Fix parent references in child tasks.

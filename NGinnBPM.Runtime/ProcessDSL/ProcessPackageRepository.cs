@@ -85,5 +85,24 @@ namespace NGinnBPM.Runtime.ProcessDSL
         {
             _packageCache = new Dictionary<string, BooDSLProcessPackage>();
         }
+
+        protected static string[] SplitDefinitionId(string processDefinitionId)
+        {
+            int idx = processDefinitionId.IndexOf('.');
+            if (idx < 0) return null;
+            return new string[] { processDefinitionId.Substring(0, idx), processDefinitionId.Substring(idx + 1) };
+        }
+
+        public ProcessModel.ProcessDef GetProcessDef(string definitionId)
+        {
+            string[] v = SplitDefinitionId(definitionId);
+            return this.GetProcessPackage(v[0]).GetProcessDefinition(v[1]);
+        }
+
+        public IProcessScriptRuntime GetScriptRuntime(string definitionId)
+        {
+            string[] v = SplitDefinitionId(definitionId);
+            return this.GetProcessPackage(v[0]).GetScriptRuntime(v[1]);
+        }
     }
 }

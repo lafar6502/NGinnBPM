@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NGinnBPM.Runtime.TaskExecutionEvents;
 using System.Transactions;
+using NGinnBPM.ProcessModel;
 
 namespace NGinnBPM.Runtime
 {
@@ -16,9 +17,14 @@ namespace NGinnBPM.Runtime
     {
         public Services.ITaskInstancePersister TaskPersister { get; set; }
         public Services.IDbSessionFactory SessionFactory { get; set; }
+        public IProcessPackageRepo PackageRepository { get; set; }
 
         public string StartProcess(string definitionId, Dictionary<string, object> inputData)
         {
+            RunProcessTransaction(ps =>
+            {
+                
+            });
             throw new NotImplementedException();
         }
 
@@ -48,6 +54,16 @@ namespace NGinnBPM.Runtime
             throw new NotImplementedException();
         }
 
+        protected ProcessDef GetProcessDef(string definitionId)
+        {
+            return ProcessSession.Current.GetOrAddSessionData("_ProcessDef_" + definitionId, () => PackageRepository.GetProcessDef(definitionId));
+        }
+
+        protected IProcessScriptRuntime GetProcessScriptRuntime(string definitionId)
+        {
+            return ProcessSession.Current.GetOrAddSessionData("_ProcessScript_" + definitionId, () => PackageRepository.GetScriptRuntime(definitionId));
+        }
+
 
         protected void RunProcessTransaction(Action<ProcessSession> act)
         {
@@ -63,7 +79,6 @@ namespace NGinnBPM.Runtime
                 ps = ProcessSession.CreateNew(this);
                 ProcessSession.Current = ps;
                 act(ps);
-                
                 ts.Dispose();
             }
             finally
@@ -79,6 +94,8 @@ namespace NGinnBPM.Runtime
                 }
             }            
         }
+
+        
 
         public void DoSomething()
         {

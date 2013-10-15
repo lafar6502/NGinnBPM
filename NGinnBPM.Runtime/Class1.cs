@@ -78,5 +78,15 @@ namespace NGinnBPM.Runtime
         /// <param name="ctx"></param>
         /// <returns></returns>
         IEnumerable<Dictionary<string, object>> PrepareMultiInstanceTaskInputData(CompositeTaskInstance cti, TaskDef childTask, ITaskExecutionContext ctx);
+
+        /// <summary>
+        /// Execute bindings on child task's output data and
+        /// update current task data
+        /// </summary>
+        /// <param name="ti"></param>
+        /// <param name="childTask"></param>
+        /// <param name="childOutputData"></param>
+        /// <param name="ctx"></param>
+        void ExecuteChildTaskOutputDataBinding(CompositeTaskInstance ti, TaskDef childTask, Dictionary<string, object> childOutputData, ITaskExecutionContext ctx);
     }
 }

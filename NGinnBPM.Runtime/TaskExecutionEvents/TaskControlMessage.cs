@@ -24,6 +24,10 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
         public Dictionary<string, object> InputData { get; set; }
     }
 
+    public class CancelTask : TaskControlMessage
+    {
+        public string Reason { get; set; }
+    }
 
 
 

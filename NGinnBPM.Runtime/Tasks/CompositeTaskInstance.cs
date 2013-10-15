@@ -223,7 +223,7 @@ namespace NGinnBPM.Runtime.Tasks
         
 
         [IgnoreDataMember]
-        public override bool CanContinue
+        public bool CanContinue
         {
             get
             {
@@ -319,23 +319,20 @@ namespace NGinnBPM.Runtime.Tasks
         protected bool CheckIfCanContinue(bool throwOnDeadlock)
         {
             bool foundActive = false;
-            foreach (Task tsk in MyTask.GetTasks())
+            foreach (TaskDef tsk in MyTask.Tasks)
             {
-                lock (this)
+                TransitionInfo ti = GetActiveInstanceOfTask(tsk.Id);
+                if (ti != null)
                 {
-                    TransitionInfo ti = GetActiveInstanceOfTask(tsk.Id);
-                    if (ti != null)
-                    {
-                        log.Debug("Skipping already active transition {0}", ti.ToString());
-                        foundActive = true;
-                        continue;
-                    }
-                    if (CanEnableTransition(tsk.Id))
-                    {
-                        log.Info("Transition {0} can be enabled", tsk.Id);
-                        return true;
-                    }
+                    log.Debug("Skipping already active transition {0}", ti.ToString());
+                    foundActive = true;
+                    continue;
                 }
+                if (CanEnableTransition(tsk.Id))
+                {
+                    log.Info("Transition {0} can be enabled", tsk.Id);
+                    return true;
+                }   
             }
             if (!foundActive)
             {
@@ -379,7 +376,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             bool enabled = false;
             log.Debug("[DoOneStep start]");
-            foreach (Task tsk in MyTask.GetTasks())
+            foreach (TaskDef tsk in MyTask.Tasks)
             {
                 lock (this)
                 {
@@ -410,11 +407,34 @@ namespace NGinnBPM.Runtime.Tasks
                 List<string> enablingPlaces;
                 bool b = CanEnableTransition(taskId, out enablingPlaces);
                 if (!b) throw new Exception("Task cannot be enabled: " + taskId);
-                Task tsk = MyTask.RequireTask(taskId);
+                TaskDef tsk = MyTask.GetTask(taskId);
                 TransitionInfo ti = new TransitionInfo();
                 ti.Status = TransitionStatus.Enabling;
                 ti.TaskId = taskId;
                 ti.InstanceId = AllocateNewTaskInstanceId(ti.TaskId);
+                EnableChildTask msg = new EnableChildTask
+                {
+                };
+                if (tsk.IsMultiInstance)
+                {
+                    ScriptRuntime
+                    log.Info("Preparing data for multi-instance child task {0}", tsk.Id);
+                    ICollection<Dictionary<string, object>> col = GetDataForMultiInstanceTask(taskId);
+                    log.Info("Creating child multi-instance task {0}", taskId);
+                    ((EnableMultiInstanceTaskMessage)et).MultiInputData = col.ToArray();
+                }
+                else
+                {
+                    log.Info("Preparing data for child task {0}", tsk.Id);
+                    ((EnableTaskMessage)et).InputData = PrepareDataForChildTask(tsk.Id);
+                }
+
+                _taskRecords.Add(ti);
+                
+                Context.SendTaskControlMessage(new EnableChildTask
+                {
+                });
+
                 
                 //no longer needed hah
                 //TODO: calculate shared Id here and generate instance id for the task
@@ -427,18 +447,7 @@ namespace NGinnBPM.Runtime.Tasks
                 et.TaskId = taskId;
                 et.NewTaskInstanceId = ti.InstanceId;
             
-                if (tsk.IsMultiInstance)
-                {
-                    log.Info("Preparing data for multi-instance child task {0}", tsk.Id);
-                    ICollection<Dictionary<string, object>> col = GetDataForMultiInstanceTask(taskId);
-                    log.Info("Creating child multi-instance task {0}", taskId);
-                    ((EnableMultiInstanceTaskMessage)et).MultiInputData = col.ToArray();
-                }
-                else
-                {
-                    log.Info("Preparing data for child task {0}", tsk.Id);
-                    ((EnableTaskMessage) et).InputData = PrepareDataForChildTask(tsk.Id);
-                }
+                
                 _taskRecords.Add(ti);
                 /*Context.SendTaskControlMessage(new EnableChildTask {
                     CorrelationId = ti.InstanceId,
@@ -602,10 +611,10 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 if (tfe.ParentTaskInstanceId != this.InstanceId)
                     throw new TaskRuntimeException("Parent task correlation id is incorrect").SetInstanceId(InstanceId);
-                TransitionInfo ti = GetTransitionInfo(tfe.SourceTaskInstanceId);
+                TransitionInfo ti = GetTransitionInfo(tfe.InstanceId);
                 if (ti == null)
-                    throw new TaskInstanceNotFoundException(tfe.SourceTaskInstanceId);
-                log.Info("Child task {0} failed: {1}", tfe.SourceTaskInstanceId, tfe.ErrorInfo);
+                    throw new TaskInstanceNotFoundException(tfe.InstanceId);
+                log.Info("Child task {0} failed: {1}", tfe.InstanceId, tfe.ErrorInfo);
                 if (ti.Status == TransitionStatus.Failed)
                 {
                     return;
@@ -989,28 +998,24 @@ namespace NGinnBPM.Runtime.Tasks
         /// <param name="tce"></param>
         private void OnChildTaskCompleted(TaskCompleted tce)
         {
-            log.Debug("Child task completed: {0}", tce.SourceTaskInstanceId);
-            TransitionInfo ti = GetTransitionInfo(tce.SourceTaskInstanceId);
-            Task tsk = MyTask.RequireTask(ti.TaskId);
+            log.Debug("Child task completed: {0}", tce.InstanceId);
+            TransitionInfo ti = GetTransitionInfo(tce.InstanceId);
+            TaskDef tsk = MyTask.GetTask(ti.TaskId);
             if (ti.Status == TransitionStatus.Enabling)
                 ti.Status = TransitionStatus.Enabled;
             if (tce.OutputData != null)
             {
-                ITaskScript tsc = Context.ScriptManager.GetTaskScript(ParentProcess, tsk.Id);
-                tsc.TaskContext = Context;
                 if (tsk.IsMultiInstance)
                 {
                     throw new NotImplementedException(); //ten przypadek jeszcze nie dziala
                 }
                 else
                 {
-                    tsc.SourceData = tce.OutputData;
-                    Dictionary<string, object> varsToUpdate = ExecuteOutputBindings(tsc, tsk);
-                    UpdateTaskData(varsToUpdate);
+                    ScriptRuntime.ExecuteChildTaskOutputDataBinding(this, tsk, tce.OutputData, Context);
                 }
             }
             //
-            ConsumeTaskInputTokens(tce.SourceTaskInstanceId);
+            ConsumeTaskInputTokens(tce.InstanceId);
             ti.Status = TransitionStatus.Completed;
             ProduceTaskOutputTokens(ti.InstanceId);
         }
@@ -1093,7 +1098,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             lock (this)
             {
-                Place pl = MyTask.RequirePlace(placeId);
+                PlaceDef pl = MyTask.GetPlace(placeId);
                 log.Info("Removing all tokens from {0}", placeId);
                 foreach (Task tsk in pl.NodesOut)
                 {
@@ -1166,13 +1171,20 @@ namespace NGinnBPM.Runtime.Tasks
                 return;
             }
             ti.Status = TransitionStatus.Cancelling;
-            Context.CancelTaskInstance(ti.InstanceId);
+            Context.SendTaskControlMessage(new CancelTask
+            {
+                FromProcessInstanceId = this.ProcessInstanceId,
+                FromTaskInstanceId = this.InstanceId,
+                ToTaskInstanceId = ti.InstanceId,
+                Reason = ""
+            });
+            /* RG v2 - to framework niech zalatwi...
             if (ti.Status == TransitionStatus.Cancelling)
             {
                 Context.MessageBus.NewMessage(new CancelTaskTimeout { TargetTaskInstanceId = this.InstanceId, ChildInstanceId = ti.InstanceId })
                     .SetDeliveryDate(DateTime.Now.AddHours(24))
                     .Publish();
-            }
+            }*/
             //Context.MessageBus.Notify(new object[] {ctm, new ScheduledMessage(ctt, DateTime.Now.AddHours(24))});
         }
 
@@ -1203,7 +1215,13 @@ namespace NGinnBPM.Runtime.Tasks
             if (doCancel)
             {
 #warning: don't we have to handle TransitionStatus.Cancelling here (hm, why?)
-                Context.CancelTaskInstance(ti.InstanceId);
+                Context.SendTaskControlMessage(new CancelTask
+                {
+                    FromProcessInstanceId = this.ProcessInstanceId,
+                    FromTaskInstanceId = this.InstanceId,
+                    ToTaskInstanceId = ti.InstanceId,
+                    Reason = ""
+                });
             }
             ///we're producing cancel out tokens even if task hasn't really been cancelled (it was failed before cancelling)
             if (produceCancelOutTokens)
@@ -1217,7 +1235,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// Cancels every active task instance in the composite task.
         /// Completed tasks are not touched.
         /// </summary>
-        public override void Cancel()
+        public override void Cancel(string reason)
         {
             lock (this)
             {
@@ -1242,7 +1260,7 @@ namespace NGinnBPM.Runtime.Tasks
         }
 
         
-
+        
         /// <summary>
         /// Force-complete the composite task.
         /// All currently active tasks in it will be cancelled, then data will be updated.
@@ -1250,32 +1268,27 @@ namespace NGinnBPM.Runtime.Tasks
         /// </summary>
         /// <param name="finishedBy"></param>
         /// <param name="updatedData"></param>
-        public override void Complete(string finishedBy, Dictionary<string, object> updatedData)
+        public override void ForceComplete(Dictionary<string, object> updatedData)
         {
-            lock (this)
-            {
-                
-                if (Status != TaskStatus.Enabled &&
-                Status != TaskStatus.Selected)
-                    throw new InvalidTaskStatusException(InstanceId, "Invalid task status");
+            if (Status != TaskStatus.Enabled &&
+            Status != TaskStatus.Selected)
+                throw new InvalidTaskStatusException(InstanceId, "Invalid task status");
 
-                foreach (TransitionInfo ti in this.ActiveTasks)
-                {
-                    if (ti.Status != TransitionStatus.Cancelling)
-                        CancelTransition1(ti.InstanceId);
-                    //CancelTransition(ti.InstanceId, false);
-                }
-                Marking = new Dictionary<string, int>();
-                _canContinue = false;
-                OnInternalStatusChanged();
+            foreach (TransitionInfo ti in this.ActiveTasks)
+            {
+                if (ti.Status != TransitionStatus.Cancelling)
+                    CancelTransition1(ti.InstanceId);
+                //CancelTransition(ti.InstanceId, false);
             }
+            Marking = new Dictionary<string, int>();
+            OnInternalStatusChanged();    
         }
 
         /// <summary>
         /// Force-fail composite task
         /// </summary>
         /// <param name="errorInformation"></param>
-        public override void Fail(string errorInformation)
+        public override void ForceFail(string errorInformation)
         {
             lock (this)
             {
@@ -1300,45 +1313,6 @@ namespace NGinnBPM.Runtime.Tasks
             return this.ScriptRuntime.PrepareChildTaskInputData(this, tsk, this.Context);
         }
 
-        private Dictionary<string, object> ExecuteOutputBindings(ITaskScript scr, Task tsk)
-        {
-            Dictionary<string, object> dob = new Dictionary<string, object>();
-            if (tsk.AutoBindVariables)
-            {
-                foreach (VariableDef vd in tsk.Variables)
-                {
-                    if (vd.VariableDir != VariableDef.Dir.Out && vd.VariableDir != VariableDef.Dir.InOut)
-                        continue;
-                    VariableDef trg = MyTask.GetVariable(vd.Name);
-                    if (trg == null) continue;
-                    if (trg.TypeName != vd.TypeName)
-                    {
-                        log.Info("Auto-binding out variable {0} in task {1}.{2}: type mismatch, value not copied", vd.Name, tsk.ParentProcessDefinition.DefinitionId, tsk.Id);
-                        continue;
-                    }
-                    object val;
-                    if (scr.SourceData.TryGetValue(vd.Name, out val)) dob[vd.Name] = val;
-                }
-            }
-            foreach (VariableBinding vb in tsk.OutputBindings)
-            {
-                if (vb.BindType == VariableBindingType.CopyVar)
-                {
-                    object val;
-                    if (scr.SourceData.TryGetValue(vb.Expression, out val)) dob[vb.VariableName] = val;
-                }
-                else if (vb.BindType == VariableBindingType.Expr)
-                {
-                    dob[vb.VariableName] = scr.EvalOutputVariableBinding(vb.VariableName);
-                }
-                else if (vb.BindType == VariableBindingType.Literal)
-                {
-                    dob[vb.VariableName] = vb.Expression;
-                }
-                else throw new Exception("Binding type not supported");
-            }
-            return dob;
-        }
 
         /// <summary>
         /// Execute data bindings for multi-instance task
@@ -1347,31 +1321,9 @@ namespace NGinnBPM.Runtime.Tasks
         /// </summary>
         /// <param name="taskId"></param>
         /// <returns></returns>
-        private ICollection<Dictionary<string, object>> GetDataForMultiInstanceTask(string taskId)
+        private IEnumerable<Dictionary<string, object>> GetDataForMultiInstanceTask(string taskId)
         {
-            ITaskScript scr = Context.ScriptManager.GetTaskScript(this.ParentProcess, taskId);
-            Task tsk = MyTask.RequireTask(taskId);
-            scr.TaskContext = Context;
-            Dictionary<string, object> srcData = new Dictionary<string, object>(TaskData);
-            scr.SourceData = srcData;
-            object obj = scr.EvalMultiInstanceSplitQuery();
-            IEnumerable enu;
-            if (obj is IEnumerable)
-                enu = (IEnumerable)obj;
-            else
-            {
-                ArrayList al = new ArrayList();
-                al.Add(obj);
-                enu = al;
-            }
-            List<Dictionary<string, object>> lst = new List<Dictionary<string, object>>();
-
-            foreach (object v in enu)
-            {
-                srcData[tsk.MultiInstanceItemAlias] = v;
-                lst.Add(ExecuteInputDataBindings(scr, tsk));
-            }
-            return lst;
+            return ScriptRuntime.PrepareMultiInstanceTaskInputData(this, MyTask.GetTask(taskId), Context);
         }
 
         /// <summary>
@@ -1381,13 +1333,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// <returns></returns>
         protected Dictionary<string, object> PrepareDataForChildTask(string taskId)
         {
-            Task tsk = MyTask.RequireTask(taskId);
-            Dictionary<string, object> sourceData = TaskData;
-            ITaskScript tsc = Context.ScriptManager.GetTaskScript(ParentProcess, taskId);
-            tsc.TaskContext = Context;
-            tsc.SourceData = sourceData;
-            Dictionary<string, object> taskInput = ExecuteInputDataBindings(tsc, tsk); 
-            return taskInput;
+            return ScriptRuntime.PrepareChildTaskInputData(this, MyTask.GetTask(taskId), Context);
         }
 
         #region IMessageConsumer<TaskStartedEvent> Members

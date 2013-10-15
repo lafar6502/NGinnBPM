@@ -132,5 +132,46 @@ namespace NGinnBPM.Runtime.ProcessDSL
         {
             throw new NotImplementedException();
         }
+
+
+        public Dictionary<string, object> PrepareChildTaskInputData(CompositeTaskInstance cti, TaskDef childTask, ITaskExecutionContext ctx)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Dictionary<string, object>> PrepareMultiInstanceTaskInputData(CompositeTaskInstance cti, TaskDef childTask, ITaskExecutionContext ctx)
+        {
+            /*
+            ITaskScript scr = Context.ScriptManager.GetTaskScript(this.ParentProcess, taskId);
+            Task tsk = MyTask.RequireTask(taskId);
+            scr.TaskContext = Context;
+            Dictionary<string, object> srcData = new Dictionary<string, object>(TaskData);
+            scr.SourceData = srcData;
+            object obj = scr.EvalMultiInstanceSplitQuery();
+            IEnumerable enu;
+            if (obj is IEnumerable)
+                enu = (IEnumerable)obj;
+            else
+            {
+                ArrayList al = new ArrayList();
+                al.Add(obj);
+                enu = al;
+            }
+            List<Dictionary<string, object>> lst = new List<Dictionary<string, object>>();
+
+            foreach (object v in enu)
+            {
+                srcData[tsk.MultiInstanceItemAlias] = v;
+                lst.Add(ExecuteInputDataBindings(scr, tsk));
+            }
+            return lst;
+            */
+            throw new NotImplementedException();
+        }
+
+        public void ExecuteChildTaskOutputDataBinding(CompositeTaskInstance ti, TaskDef childTask, Dictionary<string, object> childOutputData, ITaskExecutionContext ctx)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

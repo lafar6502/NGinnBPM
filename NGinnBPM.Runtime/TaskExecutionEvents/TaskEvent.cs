@@ -34,6 +34,7 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
 
     public class TaskFailed : TaskExecEvent
     {
+        public string ErrorInfo { get; set; }
     }
 
     public class TaskCancelled : TaskExecEvent

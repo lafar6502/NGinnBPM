@@ -140,6 +140,22 @@ namespace NGinnBPM.ProcessModel
         {
             return Places.FirstOrDefault(x => x.Id == id);
         }
+
+        public PlaceDef StartPlace
+        {
+            get
+            {
+                return Places.FirstOrDefault(x => x.PlaceType == PlaceTypes.Start);
+            }
+        }
+
+        public PlaceDef EndPlace
+        {
+            get
+            {
+                return Places.FirstOrDefault(x => x.PlaceType == PlaceTypes.End);
+            }
+        }
         
         /// <summary>
         /// Fix parent references in child tasks.

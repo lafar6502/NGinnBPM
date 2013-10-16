@@ -47,6 +47,11 @@ namespace NGinnBPM.ProcessModel
         public string AfterEnableScript { get; set; }
         [DataMember]
         public string BeforeCompleteScript { get; set; }
+        /// <summary>
+        /// List of places to check for tokens when executing an OR-join
+        /// </summary>
+        [DataMember]
+        public List<string> ORJoinChecklist { get; set; }
 
         public void AddInputDataBinding(DataBindingDef b)
         {

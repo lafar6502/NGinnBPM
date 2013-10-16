@@ -13,6 +13,7 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
     {
         public string InstanceId { get; set; }
         public string ParentTaskInstanceId { get; set; }
+        public string CorrelationId { get; set; }
     }
 
     /// <summary>
@@ -35,6 +36,10 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
     public class TaskFailed : TaskExecEvent
     {
         public string ErrorInfo { get; set; }
+        /// <summary>
+        /// true if error is 'controlled'
+        /// </summary>
+        public bool IsExpected { get; set; }
     }
 
     public class TaskCancelled : TaskExecEvent

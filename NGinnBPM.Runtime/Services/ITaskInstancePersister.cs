@@ -28,7 +28,8 @@ namespace NGinnBPM.Runtime.Services
             public string TaskData { get; set; }
             public string TaskTypeId { get; set; }
             public TaskInstance Deserialized { get; set; }
-            public RecordState State { get; set; }  
+            public RecordState State { get; set; }
+            public string DbVersion { get; set; }
         }
 
         private Dictionary<string, TaskHolder> _cache = new Dictionary<string, TaskHolder>();
@@ -43,7 +44,9 @@ namespace NGinnBPM.Runtime.Services
             TaskHolder th;
             if (!_cache.TryGetValue(instanceId, out th))
             {
-
+                th = LoadTaskRecord(instanceId, false);
+                th.State = RecordState.Unmodified;
+                _cache[instanceId] = th;
             }
             return th.Deserialized;
         }
@@ -53,9 +56,22 @@ namespace NGinnBPM.Runtime.Services
             TaskHolder th;
             if (!_cache.TryGetValue(instanceId, out th))
             {
-
+                th = LoadTaskRecord(instanceId, true);
+                th.State = RecordState.Unmodified;
+                _cache[instanceId] = th;
             }
             return th.Deserialized;
+        }
+
+        /// <summary>
+        /// Returns a task instance only if it's been already cached by the session.
+        /// </summary>
+        /// <param name="instanceId"></param>
+        /// <returns></returns>
+        public virtual TaskInstance GetSessionLocalInstance(string instanceId)
+        {
+            TaskHolder th;
+            return _cache.TryGetValue(instanceId, out th) ? th.Deserialized : null;
         }
 
 
@@ -102,8 +118,13 @@ namespace NGinnBPM.Runtime.Services
         
         public virtual void SaveChanges()
         {
-            throw new NotImplementedException();
+            var l = _cache.Where(kv => kv.Value.State == RecordState.Modified || kv.Value.State == RecordState.New)
+                .Select(kv => kv.Value);
+            WriteRecords(l);
         }
+
+        protected abstract TaskHolder LoadTaskRecord(string instanceId, bool forUpdate);
+        protected abstract void WriteRecords(IEnumerable<TaskHolder> records);
 
         [ThreadStatic]
         private static TaskPersisterSession _ses;

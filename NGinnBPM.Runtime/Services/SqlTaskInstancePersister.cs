@@ -16,44 +16,43 @@ namespace NGinnBPM.Runtime.Services
             _ses = ses;
         }
 
-        public override TaskInstance GetForRead(string instanceId)
-        {
-            return base.GetForRead(instanceId);
-        }
 
-        public override TaskInstance GetForUpdate(string instanceId)
-        {
-            return base.GetForUpdate(instanceId);
-        }
 
-        protected bool ReadTaskData(string instanceId, bool lockUpdate, out string taskData, out string taskTypeId, out string version)
+        protected override TaskPersisterSession.TaskHolder LoadTaskRecord(string instanceId, bool forUpdate)
         {
-            taskData = null; taskTypeId = null; version = null;
+            var th = new TaskHolder { State = RecordState.Unmodified };
             using (var cmd = _ses.Connection.CreateCommand())
             {
-                cmd.CommandText = string.Format("select instance_id, task_data, task_type, version from TaskInstance {1} where instance_id='{0}'", instanceId, lockUpdate ? "with(updlock)" : "");
+                cmd.CommandText = string.Format("select instance_id, task_data, task_type, version from TaskInstance {1} where instance_id='{0}'", instanceId, forUpdate ? "with(updlock)" : "");
                 using (var dr = cmd.ExecuteReader())
                 {
-                    if (!dr.Read()) return false;
-                    taskData = Convert.ToString(dr["task_data"]);
-                    taskTypeId = Convert.ToString(dr["task_type"]);
-                    version = Convert.ToString(dr["version"]);
-                    return true;
+                    if (!dr.Read()) return null;
+                    th.TaskData = Convert.ToString(dr["task_data"]);
+                    th.TaskTypeId = Convert.ToString(dr["task_type"]);
+                    th.DbVersion = Convert.ToString(dr["version"]);
+                    th.Deserialized = _ser.Deserialize(th.TaskData, th.TaskTypeId);
+                }
+            }
+            return th;
+        }
+
+        protected override void WriteRecords(IEnumerable<TaskPersisterSession.TaskHolder> records)
+        {
+            throw new NotImplementedException();
+            using (var cmd = _ses.Connection.CreateCommand())
+            {
+                int pcnt = 0;
+                foreach (var th in records)
+                {
+                    if (th.State == RecordState.New)
+                    {
+                    }
+                    else if (th.State == RecordState.Modified)
+                    {
+                    }
                 }
             }
         }
-
-        protected void InsertTaskData(string instanceId, string taskData, string taskTypeId)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected void UpdateTaskData(string instanceId, string version, string taskData, string taskTypeId)
-        {
-            throw new NotImplementedException();
-        }
-        
-        
     }
 
     public class SqlTaskInstancePersister : ITaskInstancePersister

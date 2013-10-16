@@ -13,7 +13,7 @@ start_place "start"
 end_place "end"
 
 
-task "T1", "manual":
+task "T1", "empty":
     variable "V1", "string":
         default_value DateTime.Now.ToString()
         options {dir: input, required: true, array: false}

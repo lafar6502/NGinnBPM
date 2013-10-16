@@ -169,6 +169,7 @@ namespace NGinnBPM.Runtime
                 if (string.IsNullOrEmpty(ev.ParentTaskInstanceId))
                 {
                     log.Info("event has no parent: {0}", ev);
+                    return; //TODO handle process-level events
                 }
                 var cti = (CompositeTaskInstance) ps.PersisterSession.GetForUpdate(ev.ParentTaskInstanceId);
                 cti.HandleChildTaskEvent(ev);
@@ -179,8 +180,54 @@ namespace NGinnBPM.Runtime
         {
             RunProcessTransaction(ps =>
             {
+                if (tcm is EnableChildTask)
+                {
+                    EnableChildTask(tcm as EnableChildTask);
+                    return;
+                }
                 throw new NotImplementedException();
             });
+        }
+
+        protected string EnableChildTask(EnableChildTask msg)
+        {
+            var ps = ProcessSession.Current;
+            var pd = this.GetProcessDef(msg.ProcessDefinitionId);
+            var pscript = this.GetProcessScriptRuntime(msg.ProcessDefinitionId);
+            var td = pd.GetRequiredTask(msg.TaskId);
+            TaskInstance ti;
+            if (msg.MultiInputData != null)
+            {
+                if (!td.IsMultiInstance) throw new Exception("Task is not multi-instance: " + td.Id);
+                ti = CreateTaskInstance(td); //TODO: multi, multi!
+            }
+            else
+            {
+                ti = CreateTaskInstance(td);
+            }
+            ti.ParentTaskInstanceId = msg.FromTaskInstanceId;
+            ti.ProcessInstanceId = msg.FromProcessInstanceId;
+            ti.InstanceId = string.IsNullOrEmpty(msg.CorrelationId) ? null : msg.CorrelationId;
+            ti.ProcessDefinitionId = msg.ProcessDefinitionId;
+            ti.TaskId = msg.TaskId;
+            ps.AddNewTaskInstance(ti);
+            ti.Activate(ps, pd, pscript);
+            ti.Enable(msg.InputData);
+            ti.Deactivate();
+            return ti.InstanceId;
+        }
+
+        protected TaskInstance CreateTaskInstance(TaskDef td)
+        {
+            if (td is CompositeTaskDef) return new CompositeTaskInstance();
+            AtomicTaskDef at = td as AtomicTaskDef;
+            switch (at.TaskType)
+            {
+                case NGinnTaskType.Empty:
+                    return new EmptyTaskInstance();
+                default:
+                    return new EmptyTaskInstance();
+            }
         }
         #endregion
     }

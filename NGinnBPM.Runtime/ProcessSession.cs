@@ -36,6 +36,8 @@ namespace NGinnBPM.Runtime
             _controlQ.Enqueue(msg);
         }
 
+        
+
         public static ProcessSession CreateNew(ProcessRunner r, TaskPersisterSession ps)
         {
             var s = new ProcessSession
@@ -127,12 +129,14 @@ namespace NGinnBPM.Runtime
         
         protected void DeliverEvent(TaskExecEvent ev)
         {
-            
+            _runner.DeliverTaskExecEvent(ev);
         }
 
         protected void DeliverControlMessage(TaskControlMessage msg)
         {
+            _runner.DeliverTaskControlMessage(msg);
         }
+
         private Dictionary<string, object> _content = new Dictionary<string, object>();
 
         public object this[string index]

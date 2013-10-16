@@ -27,5 +27,5 @@ task "T1", "manual":
 flow "start", "T1"
 
 flow "T1", "end":
-    when TaskData.AssigneeGroup > 30
+    when true
     options {}

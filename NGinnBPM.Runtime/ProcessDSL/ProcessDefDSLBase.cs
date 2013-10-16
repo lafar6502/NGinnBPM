@@ -68,9 +68,20 @@ namespace NGinnBPM.Runtime.ProcessDSL
         public void SetTaskInstanceInfo(TaskInstance ti, ITaskExecutionContext ctx)
         {
             this.Task = ti;
-            this.TaskData = null;
+            this.TaskData = new QuackTaskDataWrapper(ti.TaskData);
             this.Context = ctx;
         }
+
+        public void SetInputData(Dictionary<string, object> data)
+        {
+            InputData = new QuackTaskDataWrapper(data);
+        }
+
+        public void SetOutputData(Dictionary<string, object> data)
+        {
+            OutputData = new QuackTaskDataWrapper(data);
+        }
+
 
         #endregion
         #region process_data_types
@@ -319,14 +330,6 @@ namespace NGinnBPM.Runtime.ProcessDSL
             };
             _currentCompositeTask.AddFlow(fd);
         }
-
-        protected void flow_to(string to)
-        {
-            if (_curTask == null) throw new Exception("flow_to allowed only in an atomic task");
-            flow(_curTask.Id, to);
-        }
-
-        
 
         private FlowDef _curFlow = null;
         protected void flow(string from, string to, Action act)

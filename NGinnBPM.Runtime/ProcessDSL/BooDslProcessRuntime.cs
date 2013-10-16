@@ -34,51 +34,57 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _pd.SetTaskInstanceInfo(ti, ctx);
             
             TaskDef td = _def.GetRequiredTask(ti.TaskId);
-            foreach (var vd in td.Variables)
+            if (td.Variables != null)
             {
-                if (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.In ||
-                    vd.VariableDir == ProcessModel.Data.VariableDef.Dir.InOut)
+                foreach (var vd in td.Variables)
                 {
-                    if (inputData.ContainsKey(vd.Name))
-                        ti.TaskData[vd.Name] = inputData[vd.Name];
-                }
-                if (!ti.TaskData.ContainsKey(vd.Name))
-                {
-                    var k = DslUtil.TaskVariableDefaultKey(td.Id, vd.Name);
-                    if (_pd._variableBinds.ContainsKey(k))
+                    if (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.In ||
+                        vd.VariableDir == ProcessModel.Data.VariableDef.Dir.InOut)
                     {
-                        ti.TaskData[vd.Name] = _pd._variableBinds[k]();
+                        if (inputData.ContainsKey(vd.Name))
+                            ti.TaskData[vd.Name] = inputData[vd.Name];
                     }
-                    else if (!string.IsNullOrEmpty(vd.DefaultValueExpr))
+                    if (!ti.TaskData.ContainsKey(vd.Name))
                     {
-                        ti.TaskData[vd.Name] = vd.DefaultValueExpr; //TODO: add type conversion
+                        var k = DslUtil.TaskVariableDefaultKey(td.Id, vd.Name);
+                        if (_pd._variableBinds.ContainsKey(k))
+                        {
+                            ti.TaskData[vd.Name] = _pd._variableBinds[k]();
+                        }
+                        else if (!string.IsNullOrEmpty(vd.DefaultValueExpr))
+                        {
+                            ti.TaskData[vd.Name] = vd.DefaultValueExpr; //TODO: add type conversion
+                        }
+                        else if (vd.IsRequired)
+                            throw new NGinnBPM.ProcessModel.Exceptions.DataValidationException("Required variable missing: " + vd.Name).SetTaskId(ti.TaskId).SetProcessDef(ti.ProcessDefinitionId);
                     }
-                    else if (vd.IsRequired)
-                        throw new NGinnBPM.ProcessModel.Exceptions.DataValidationException("Required variable missing: " + vd.Name).SetTaskId(ti.TaskId).SetProcessDef(ti.ProcessDefinitionId);
                 }
             }
             //now initialize task parameters
-            foreach (var bd in td.InputParameterBindings)
+            if (td.InputParameterBindings != null)
             {
-                var pi = ti.GetType().GetProperty(bd.Target);
-                if (pi == null)
+                foreach (var bd in td.InputParameterBindings)
                 {
-                    throw new NGinnBPM.ProcessModel.Exceptions.TaskParameterInvalidException(bd.Target, "Property not found: " + bd.Target).SetTaskId(ti.TaskId);
+                    var pi = ti.GetType().GetProperty(bd.Target);
+                    if (pi == null)
+                    {
+                        throw new NGinnBPM.ProcessModel.Exceptions.TaskParameterInvalidException(bd.Target, "Property not found: " + bd.Target).SetTaskId(ti.TaskId);
+                    }
+                    string k = DslUtil.TaskParamInBindingKey(td.Id, bd.Target);
+                    if (bd.BindType == DataBindingType.Expr)
+                    {
+                        pi.SetValue(ti, _pd._variableBinds[k](), null);
+                    }
+                    else if (bd.BindType == DataBindingType.CopyVar)
+                    {
+                        pi.SetValue(ti, ti.TaskData.ContainsKey(bd.Source) ? ti.TaskData[bd.Source] : null, null);
+                    }
+                    else if (bd.BindType == DataBindingType.Literal)
+                    {
+                        pi.SetValue(ti, Convert.ChangeType(bd.Source, pi.PropertyType), null);
+                    }
+                    else throw new Exception();
                 }
-                string k = DslUtil.TaskParamInBindingKey(td.Id, bd.Target);
-                if (bd.BindType == DataBindingType.Expr)
-                {
-                    pi.SetValue(ti, _pd._variableBinds[k](), null);
-                }
-                else if (bd.BindType == DataBindingType.CopyVar)
-                {
-                    pi.SetValue(ti, ti.TaskData.ContainsKey(bd.Source) ? ti.TaskData[bd.Source] : null, null);
-                }
-                else if (bd.BindType == DataBindingType.Literal)
-                {
-                    pi.SetValue(ti, Convert.ChangeType(bd.Source, pi.PropertyType), null);
-                }
-                else throw new Exception();
             }
             string ks = DslUtil.TaskScriptKey(ti.TaskId, "_paramInit");
             if (_pd._taskScripts.ContainsKey(ks))
@@ -87,6 +93,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         public Dictionary<string, object> GatherOutputData(TaskInstance ti, ITaskExecutionContext ctx)
         {
+            _pd.SetTaskInstanceInfo(ti, ctx);
             string ks = DslUtil.TaskScriptKey(ti.TaskId, "_variableUpdateOnComplete");
             if (_pd._taskScripts.ContainsKey(ks)) _pd._taskScripts[ks]();
             var td = _def.GetRequiredTask(ti.TaskId);
@@ -120,6 +127,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         public bool EvalFlowCondition(TaskInstance ti, ProcessModel.FlowDef fd, ITaskExecutionContext ctx)
         {
+            _pd.SetTaskInstanceInfo(ti, ctx);
             string k = DslUtil.FlowConditionKey(fd.Parent.Id, fd.From, fd.To);
             if (!_pd._flowConditions.ContainsKey(k)) throw new Exception("!no flow cond..");
             _pd.SetTaskInstanceInfo(ti, ctx);
@@ -136,7 +144,44 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         public Dictionary<string, object> PrepareChildTaskInputData(CompositeTaskInstance cti, TaskDef childTask, ITaskExecutionContext ctx)
         {
-            throw new NotImplementedException();
+            _pd.SetTaskInstanceInfo(cti, ctx);
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+            if (childTask.Variables != null)
+            {
+                if (childTask.AutoBindVariables)
+                {
+                    foreach (var vd in childTask.Variables)
+                    {
+                        if (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.In ||
+                            vd.VariableDir == ProcessModel.Data.VariableDef.Dir.InOut)
+                        {
+                            //TODO add type conversion/control
+                            if (cti.TaskData.ContainsKey(vd.Name)) ret[vd.Name] = cti.TaskData[vd.Name];
+                        }
+                    }
+                }
+                if (childTask.InputDataBindings != null)
+                {
+                    foreach (var bd in childTask.InputDataBindings)
+                    {
+                        if (bd.BindType == DataBindingType.CopyVar)
+                        {
+                            ret[bd.Target] = cti.TaskData[bd.Source];
+                        }
+                        else if (bd.BindType == DataBindingType.Literal)
+                        {
+                            ret[bd.Target] = bd.Source;
+                        }
+                        else if (bd.BindType == DataBindingType.Expr)
+                        {
+                            string k = DslUtil.TaskVarInBindingKey(childTask.Id, bd.Target);
+                            if (!_pd._variableBinds.ContainsKey(k)) throw new Exception("Fail: missing delegate: " + k);
+                            ret[bd.Target] = _pd._variableBinds[k]();
+                        }
+                    }
+                }
+            }
+            return ret;
         }
 
         public IEnumerable<Dictionary<string, object>> PrepareMultiInstanceTaskInputData(CompositeTaskInstance cti, TaskDef childTask, ITaskExecutionContext ctx)

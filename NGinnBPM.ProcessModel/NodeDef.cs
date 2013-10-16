@@ -66,7 +66,7 @@ namespace NGinnBPM.ProcessModel
             get
             {
                 if (Parent == null) throw new Exception();
-                return Parent.Flows.Where(x => x.From == this.Id);
+                return Parent.Flows.Where(x => x.To == this.Id);
             }
         }
         [IgnoreDataMember]

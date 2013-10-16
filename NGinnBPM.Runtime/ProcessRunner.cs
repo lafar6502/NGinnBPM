@@ -7,6 +7,7 @@ using System.Transactions;
 using NGinnBPM.ProcessModel;
 using NGinnBPM.Runtime.Tasks;
 using NLog;
+using NGinnBPM.MessageBus;
 
 namespace NGinnBPM.Runtime
 {
@@ -30,8 +31,8 @@ namespace NGinnBPM.Runtime
         public Services.ITaskInstancePersister TaskPersister { get; set; }
         public Services.IDbSessionFactory SessionFactory { get; set; }
         public IProcessPackageRepo PackageRepository { get; set; }
-
-        
+        public IMessageBus MessageBus { get; set; }
+        private static Logger log = LogManager.GetCurrentClassLogger();
 
         public string StartProcess(string definitionId, Dictionary<string, object> inputData)
         {
@@ -150,12 +151,37 @@ namespace NGinnBPM.Runtime
                         {
                             ProcessSession.Current = ps;
                             act(ps);
+                            ps.PumpMessages();
                         }
                         pess.SaveChanges();
                         Services.TaskPersisterSession.Current = null;
                     }
                 });
-            });            
+            });
         }
+
+        #region internals, event handlers
+
+        internal void DeliverTaskExecEvent(TaskExecEvent ev)
+        {
+            RunProcessTransaction(ps =>
+            {
+                if (string.IsNullOrEmpty(ev.ParentTaskInstanceId))
+                {
+                    log.Info("event has no parent: {0}", ev);
+                }
+                var cti = (CompositeTaskInstance) ps.PersisterSession.GetForUpdate(ev.ParentTaskInstanceId);
+                cti.HandleChildTaskEvent(ev);
+            });
+        }
+
+        internal void DeliverTaskControlMessage(TaskControlMessage tcm)
+        {
+            RunProcessTransaction(ps =>
+            {
+                throw new NotImplementedException();
+            });
+        }
+        #endregion
     }
 }

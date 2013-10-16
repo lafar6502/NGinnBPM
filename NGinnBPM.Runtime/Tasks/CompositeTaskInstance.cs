@@ -1436,6 +1436,13 @@ namespace NGinnBPM.Runtime.Tasks
 
         #endregion
 
+        public void HandleChildTaskEvent(TaskExecEvent ev)
+        {
+            if (ev.ParentTaskInstanceId != this.InstanceId) throw new Exception("invalid instance id");
+            var ti = GetTransitionInfo(ev.InstanceId);
+            if (ti == null) throw new Exception("Child transition not found: " + ev.InstanceId);
+            
+        }
         
         /// <summary>
         /// Child task cancellation timed out

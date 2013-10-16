@@ -31,6 +31,10 @@ namespace NGinnBPM.ProcessModel
         public List<DataBindingDef> OutputParameterBindings { get; set; }
         [DataMember]
         public bool IsMultiInstance { get; set; }
+        /// <summary>
+        /// Automatically bind in/out variables
+        /// with matching names.
+        /// </summary>
         [DataMember]
         public bool AutoBindVariables { get; set; }
         [DataMember]

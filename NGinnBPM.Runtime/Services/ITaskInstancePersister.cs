@@ -119,7 +119,10 @@ namespace NGinnBPM.Runtime.Services
 
         public void Dispose()
         {
-            
+            if (TaskPersisterSession.Current == this)
+            {
+                TaskPersisterSession.Current = null;
+            }
         }
 
         

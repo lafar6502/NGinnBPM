@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using NGinnBPM.Runtime.TaskExecutionEvents;
 using NGinnBPM.Runtime.Tasks;
+using NGinnBPM.Runtime.Services;
 
 namespace NGinnBPM.Runtime
 {
@@ -18,13 +19,9 @@ namespace NGinnBPM.Runtime
             set { _ses = value; }
         }
 
-        protected class TaskInstanceHolder
-        {
-            public bool IsNew { get; set; }
-            public TaskInstance Instance { get; set; }
-        }
+        protected TaskPersisterSession _persisterSession;
+        protected ProcessRunner _runner;
 
-        private Dictionary<string, TaskInstanceHolder> _touchedTasks = new Dictionary<string, TaskInstanceHolder>();
         private Queue<TaskExecEvent> _eventQ = new Queue<TaskExecEvent>();
         private Queue<TaskControlMessage> _controlQ = new Queue<TaskControlMessage>();
 
@@ -39,27 +36,45 @@ namespace NGinnBPM.Runtime
             _controlQ.Enqueue(msg);
         }
 
+        public static ProcessSession CreateNew(ProcessRunner r, TaskPersisterSession ps)
+        {
+            var s = new ProcessSession
+            {
+                _runner = r,
+                _persisterSession = ps
+            };
+            if (s._persisterSession == null) throw new Exception("Task persister session not present");
+            return s;
+        }
+
         public static ProcessSession CreateNew(ProcessRunner r)
         {
-            var s = new ProcessSession();
-            return s;
+            return CreateNew(r, TaskPersisterSession.Current);
+        }
+
+        public TaskPersisterSession PersisterSession
+        {
+            get { return _persisterSession; }
         }
 
         public void Dispose()
         {
-
+            if (ProcessSession.Current == this)
+            {
+                ProcessSession.Current = null;
+            }
         }
 
         protected void ModifyTaskInstance(string instanceId, Action<TaskInstance> act)
         {
-            TaskInstanceHolder thi;
-            if (!_touchedTasks.TryGetValue(instanceId, out thi))
-            {
-                thi = new TaskInstanceHolder();
-                thi.IsNew = false;
-            }
-            act(thi.Instance);
+            var ti = _persisterSession.GetForUpdate(instanceId);
+            act(ti);
+            _persisterSession.Update(ti);
+        }
 
+        public void AddNewTaskInstance(TaskInstance ti)
+        {
+            _persisterSession.SaveNew(ti);
         }
 
         private Dictionary<string, object> _sessionData = new Dictionary<string, object>();
@@ -90,7 +105,7 @@ namespace NGinnBPM.Runtime
         public T GetOrAddSessionData<T>(string key, Func<T> valueProvider)
         {
             object v;
-            if (_sessionData.TryGetValue(key, out v))
+            if (!_sessionData.TryGetValue(key, out v))
             {
                 v = valueProvider();
                 _sessionData[key] = v;

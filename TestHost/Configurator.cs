@@ -9,6 +9,7 @@ using Castle.MicroKernel.Registration;
 using NGinnBPM.Runtime;
 using NGinnBPM.Runtime.Services;
 using NGinnBPM.Runtime.Tasks;
+using System.IO;
 
 namespace TestHost.cs
 {
@@ -29,16 +30,51 @@ namespace TestHost.cs
             return Begin(new WindsorContainer());
         }
 
+        public NGinnConfigurator ConfigureProcessRepository(string baseDir)
+        {
+            string bd = AppDomain.CurrentDomain.BaseDirectory;
+            bd = Path.IsPathRooted(baseDir) ? baseDir : Path.Combine(bd, baseDir);
+            _wc.Register(Component.For<IProcessPackageRepo>().ImplementedBy<NGinnBPM.Runtime.ProcessDSL.ProcessPackageRepository>()
+                .DependsOn(new {
+                    BaseDirectory = bd
+                }).LifeStyle.Singleton);
+            return this;
+        }
+
+        public NGinnConfigurator ConfigureSqlStorage(string connString)
+        {
+            _wc.Register(Component.For<IDbSessionFactory>()
+                .ImplementedBy<SqlDbSessionFactory>()
+                .DependsOn(new
+                {
+                    ConnectionString = connString
+                }).LifeStyle.Singleton);
+            return this;
+        }
+
         public NGinnConfigurator FinishConfiguration()
         {
+            _wc.Register(Component.For<ProcessRunner>()
+                .ImplementedBy<ProcessRunner>()
+                .LifeStyle.Singleton);
+            _wc.Register(Component.For<ITaskInstancePersister>()
+                .ImplementedBy<SqlTaskInstancePersister>()
+                .LifeStyle.Singleton);
+            _wc.Register(Component.For<ITaskInstanceSerializer>()
+                .ImplementedBy<JsonTaskInstanceSerializer>());
+
             MessageBusConfigurator.Begin(_wc)
                 .AddMessageHandlersFromAssembly(typeof(TaskInstance).Assembly)
                 .AddMessageHandlersFromAssembly(typeof(NGinnConfigurator).Assembly)
                 .ConfigureFromAppConfig()
                 .AutoStartMessageBus(true)
                 .FinishConfiguration();
-
             return this;
+        }
+
+        public IServiceResolver GetContainer()
+        {
+            return _wc.Resolve<IServiceResolver>();
         }
     }
 }

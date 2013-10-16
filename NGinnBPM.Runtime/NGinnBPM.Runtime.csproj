@@ -104,6 +104,7 @@
     <Compile Include="Tasks\EmptyTaskInstance.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Tasks\ProcessInstance.cs" />
     <Compile Include="Tasks\TaskInstance.cs" />
   </ItemGroup>
   <ItemGroup>

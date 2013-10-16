@@ -10,7 +10,7 @@ namespace NGinnBPM.Runtime.Tasks
 {
     public abstract class TaskInstance
     {
-        public string InstanceId { get; set; }
+        public virtual string InstanceId { get; set; }
         public string ParentTaskInstanceId { get; set; }
         public string ProcessInstanceId { get; set; }
         public string TaskId { get; set; }
@@ -44,7 +44,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             Context = ctx;
             ProcessDefinition = processDef;
-            TaskDefinition = processDef.Body.FindTask(this.TaskId);
+            TaskDefinition = processDef.GetRequiredTask(this.TaskId);
             ScriptRuntime = scriptRuntime;
             if (TaskDefinition == null) throw new Exception("Task not found in process definition: " + this.TaskId);
         }

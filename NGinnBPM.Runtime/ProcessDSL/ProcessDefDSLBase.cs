@@ -21,10 +21,18 @@ namespace NGinnBPM.Runtime.ProcessDSL
         public ProcessDef GetProcessDef()
         {
             _curProcessDef = new ProcessDef();
-            _curProcessDef.ProcessName = this.GetType().Name;
+            string name = this.GetType().FullName;
+            int idx = name.LastIndexOf('.');
+            if (idx < 0) throw new Exception("Invalid type name");
+            _curProcessDef.PackageName = Package == null ? null : Package.Name;
+            _curProcessDef.ProcessName = name.Substring(0, idx);
+            _curProcessDef.Version = Int32.Parse(name.Substring(idx + 1));
             _curProcessDef.Version = 1;
             _curProcessDef.DataTypes = new TypeSet();
-            _currentCompositeTask = new CompositeTaskDef();
+            _currentCompositeTask = new CompositeTaskDef
+            {
+                Id = _curProcessDef.ProcessName
+            };
             _curProcessDef.Body = _currentCompositeTask;
             Prepare();
             _curProcessDef.FinishModelBuild();
@@ -52,6 +60,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
         internal Dictionary<string, Func<bool>> _flowConditions = new Dictionary<string, Func<bool>>();
         internal Dictionary<string, Func<object>> _variableBinds = new Dictionary<string, Func<object>>();
         internal Dictionary<string, Action> _taskScripts = new Dictionary<string, Action>();
+        public IProcessPackage Package { get; set; }
 
         private ProcessDef _curProcessDef = null;
 
@@ -230,6 +239,11 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _curTask = new AtomicTaskDef { Id = id, AutoBindVariables = true };
             _curTask.TaskType = (NGinnTaskType)Enum.Parse(typeof(NGinnTaskType), taskType, true);
             act();
+            if (_curTask.JoinType == TaskSplitType.OR &&
+                (_curTask.OrJoinCheckList == null || _curTask.OrJoinCheckList.Count == 0))
+            {
+                throw new Exception("Define or_join_checklist for task " + _curTask.Id);
+            }
             _currentCompositeTask.AddTask(_curTask);
             _curTask = null;
         }
@@ -240,6 +254,11 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _currentCompositeTask = new CompositeTaskDef();
             _currentCompositeTask.Id = id;
             act();
+            if (_currentCompositeTask.JoinType == TaskSplitType.OR &&
+                (_currentCompositeTask.OrJoinCheckList == null || _currentCompositeTask.OrJoinCheckList.Count == 0))
+            {
+                throw new Exception("Define or_join_checklist for task " + _currentCompositeTask.Id);
+            }
             p.AddTask(_currentCompositeTask);
             _currentCompositeTask = p;
         }
@@ -260,6 +279,14 @@ namespace NGinnBPM.Runtime.ProcessDSL
             else if (_currentCompositeTask != null)
                 _currentCompositeTask.JoinType = ts;
             else throw new Exception();
+        }
+
+        protected void or_join_checklist(params string[] names)
+        {
+            var tsk = _curTask == null ? (TaskDef) _currentCompositeTask : _curTask;
+            if (tsk.JoinType != TaskSplitType.OR) throw new Exception("or_join_checklist only allowed for OR join tasks");
+            if (tsk.OrJoinCheckList == null) tsk.OrJoinCheckList = new List<string>();
+            tsk.OrJoinCheckList.AddRange(names);
         }
 
         protected void init_task(Action act)

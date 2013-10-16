@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using NGinnBPM.Runtime.ProcessDSL;
 using System.IO;
+using NGinnBPM.MessageBus;
+using NGinnBPM.Runtime;
 
 namespace TestHost.cs
 {
@@ -12,7 +14,12 @@ namespace TestHost.cs
         public static void Main(string[] args)
         {
             //TestProcessDsl();
-            TestPackageRepo();
+            //TestPackageRepo();
+            var c = ConfigureNGinnBPM();
+
+            var pr = c.GetInstance<ProcessRunner>();
+            var proc = pr.StartProcess("Test2.TestProcess.1", new Dictionary<string,object> {});
+
         }
 
         public static void TestPackageRepo()
@@ -29,6 +36,11 @@ namespace TestHost.cs
             foreach (var pn in repo.PackageNames)
             {
                 var pkg = repo.GetProcessPackage(pn);
+                foreach (var pname in pkg.ProcessNames)
+                {
+                    Console.WriteLine("Process {0}", pname);
+                    Console.WriteLine(pkg.GetProcessDefinition(pname).DefinitionId);
+                }
             }
         }
 
@@ -54,5 +66,15 @@ namespace TestHost.cs
             }
 
         }
+
+        public static IServiceResolver ConfigureNGinnBPM()
+        {
+            var cfg = NGinnConfigurator.Begin()
+                .ConfigureProcessRepository("..\\..\\..\\ProcessPackages")
+                .ConfigureSqlStorage("nginn")
+                .FinishConfiguration();
+            return cfg.GetContainer();
+        }
+            
     }
 }

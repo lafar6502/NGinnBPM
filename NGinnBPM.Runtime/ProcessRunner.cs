@@ -5,9 +5,21 @@ using System.Text;
 using NGinnBPM.Runtime.TaskExecutionEvents;
 using System.Transactions;
 using NGinnBPM.ProcessModel;
+using NGinnBPM.Runtime.Tasks;
+using NLog;
 
 namespace NGinnBPM.Runtime
 {
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum ProcessStateSaveStrategy
+    {
+        DontPersistAnything = 0,
+        PersistAliveTasksOnly = 1,
+        PersistAll = 2
+    };
+
     /// <summary>
     /// Process runner does run the processes by pushing them forward in a transactional manner.
     /// A single process transaction does as much as it can, without bothering parent tasks (they don't get mixed into child task's transaction).
@@ -19,16 +31,34 @@ namespace NGinnBPM.Runtime
         public Services.IDbSessionFactory SessionFactory { get; set; }
         public IProcessPackageRepo PackageRepository { get; set; }
 
+        
+
         public string StartProcess(string definitionId, Dictionary<string, object> inputData)
         {
+            string ret = null;
             RunProcessTransaction(ps =>
             {
-                
+                var pd = this.GetProcessDef(definitionId);
+                var pscript = this.GetProcessScriptRuntime(definitionId);
+
+                string instanceId = Guid.NewGuid().ToString("N");
+                ProcessInstance pi = new ProcessInstance
+                {
+                    InstanceId = instanceId,
+                    ProcessDefinitionId = definitionId,
+                    ProcessInstanceId = instanceId,
+                    TaskId = pd.Body.Id
+                };
+                pi.Activate(ps, pd, pscript);
+                pi.Enable(inputData);
+                pi.Deactivate();
+                ps.PersisterSession.SaveNew(pi);
+                ret = pi.InstanceId;
             });
-            throw new NotImplementedException();
+            return ret;
         }
 
-        public void UpdateTask(string instanceId, Dictionary<string, object> updatedData)
+        public void UpdateTaskData(string instanceId, Dictionary<string, object> updatedData)
         {
             throw new NotImplementedException();
         }
@@ -64,62 +94,68 @@ namespace NGinnBPM.Runtime
             return ProcessSession.Current.GetOrAddSessionData("_ProcessScript_" + definitionId, () => PackageRepository.GetScriptRuntime(definitionId));
         }
 
+        protected void InDbTransaction(Action<DbSession> act)
+        {
+            if (DbSession.Current != null)
+            {
+                act(DbSession.Current);
+            }
+            else
+            {
+                using (var dbs = SessionFactory.OpenSession())
+                {
+                    DbSession.Current = dbs;
+                    act(dbs);
+                    DbSession.Current = null;
+                }
+            }
+        }
+
+        protected void InSystemTransaction(Action act)
+        {
+            if (Transaction.Current != null)
+            {
+                act();
+            }
+            else
+            {
+                TransactionOptions to = new TransactionOptions { 
+                    IsolationLevel = IsolationLevel.ReadCommitted,
+                    Timeout = TimeSpan.FromSeconds(60)
+                };
+                using (var ts = new TransactionScope(TransactionScopeOption.Required, to))
+                {
+                    act();
+                    ts.Complete();
+                }
+            }
+        }
 
         protected void RunProcessTransaction(Action<ProcessSession> act)
         {
-            TransactionOptions to = new TransactionOptions { 
-                IsolationLevel = IsolationLevel.ReadCommitted,
-                Timeout = TimeSpan.FromSeconds(60)
-            };
-            TransactionScope ts = null;
-            ProcessSession ps = null;
-            try
+            if (ProcessSession.Current != null)
             {
-                ts = new TransactionScope(TransactionScopeOption.Required, to);
-                ps = ProcessSession.CreateNew(this);
-                ProcessSession.Current = ps;
-                act(ps);
-                ts.Dispose();
+                act(ProcessSession.Current);
+                return;
             }
-            finally
+
+            InSystemTransaction(() =>
             {
-                ProcessSession.Current = null;
-                if (ps != null)
+                InDbTransaction(dbs =>
                 {
-                    ps.Dispose();
-                }
-                if (ts != null)
-                {
-                    ts.Dispose();
-                }
-            }            
+                    using (var pess = TaskPersister.OpenSession(dbs))
+                    {
+                        Services.TaskPersisterSession.Current = pess;
+                        using (var ps = ProcessSession.CreateNew(this, pess))
+                        {
+                            ProcessSession.Current = ps;
+                            act(ps);
+                        }
+                        pess.SaveChanges();
+                        Services.TaskPersisterSession.Current = null;
+                    }
+                });
+            });            
         }
-
-        
-
-        public void DoSomething()
-        {
-            try
-            {
-                DbSession.Current = SessionFactory.OpenSession();
-                Services.TaskPersisterSession.Current = TaskPersister.OpenSession(DbSession.Current);
-
-                ProcessSession.Current = ProcessSession.CreateNew(this);
-
-
-
-                Services.TaskPersisterSession.Current.SaveChanges();
-            }
-            finally
-            {
-                var ps = ProcessSession.Current;
-                if (ps != null)
-                {
-                    ps.Dispose();
-                    ProcessSession.Current = null;
-                }
-            }
-        }
-        
     }
 }

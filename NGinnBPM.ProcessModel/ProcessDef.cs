@@ -33,7 +33,7 @@ namespace NGinnBPM.ProcessModel
 
         public string DefinitionId
         {
-            get { return string.Format("{0}.{1}.{2}", PackageName, ProcessName, Version); }
+            get { return string.IsNullOrEmpty(PackageName) ? string.Format("{0}.{1}", ProcessName, Version) : string.Format("{0}.{1}.{2}", PackageName, ProcessName, Version); }
         }
 
         public PlaceDef GetPlace(string id)
@@ -50,6 +50,7 @@ namespace NGinnBPM.ProcessModel
 
         public TaskDef GetRequiredTask(string id)
         {
+            if (id == Body.Id) return Body;
             var td = Body.FindTask(id);
             if (td == null) throw new Exception("Task not found: " + id);
             return td;

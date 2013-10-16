@@ -2,18 +2,18 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NGinnBPM.Lib.Data;
-using NGinnBPM.Runtime.Events;
+using NGinnBPM.ProcessModel.Data;
+using NGinnBPM.ProcessModel;
+using NGinnBPM.Runtime.TaskExecutionEvents;
 using System.Runtime.Serialization;
 
-namespace NGinnBPM.Runtime
+namespace NGinnBPM.Runtime.Tasks
 {
 
     /// <summary>
     /// Represents a process instance.
     /// </summary>
     [DataContract]
-    [Serializable]
     public class ProcessInstance : CompositeTaskInstance
     {
         /// <summary>
@@ -21,14 +21,14 @@ namespace NGinnBPM.Runtime
         /// assigned to a process instance
         /// </summary>
         [DataMember(IsRequired=false)]
-        [TaskParameter(IsInput=true, DynamicAllowed=true, Required=false)]
+        //[TaskParameter(IsInput=true, DynamicAllowed=true, Required=false)]
         public string ProcessCorrelationId { get; set; }
 
         /// <summary>
         /// Id of user who started the process
         /// </summary>
         [DataMember(IsRequired = false)]
-        [TaskParameter(IsInput = true, DynamicAllowed = true, Required = false)]
+        //[TaskParameter(IsInput = true, DynamicAllowed = true, Required = false)]
         public string StartedBy { get; set; }
 
         /// <summary>
@@ -40,16 +40,7 @@ namespace NGinnBPM.Runtime
         /// TODO: implement that
         /// </summary>
         [DataMember(IsRequired=false)]
-        [TaskParameter(IsInput=true, DynamicAllowed=true, Required=false)]
+        //[TaskParameter(IsInput=true, DynamicAllowed=true, Required=false)]
         public string NotifyEndpoint { get; set; }
-
-        public override void Enable(Dictionary<string, object> inputData)
-        {
-            this.ProcessStartDate = DateTime.Now;
-            base.Enable(inputData);
-            
-            ProcessStartedEvent pse = new ProcessStartedEvent(InstanceId, this.ParentTaskInstanceId);
-            Context.MessageBus.Notify(pse);
-        }
     }
 }

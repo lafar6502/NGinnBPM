@@ -17,6 +17,10 @@ namespace NGinnBPM.Runtime.Tasks
         public string ProcessDefinitionId { get; set; }
         public TaskStatus Status { get; set; }
         /// <summary>
+        /// Additional information in case of failure or cancel
+        /// </summary>
+        public string StatusInfo { get; set; }
+        /// <summary>
         /// Current task data
         /// </summary>
         public Dictionary<string, object> TaskData { get; set; }
@@ -83,7 +87,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         public virtual void Cancel(string reason)
         {
-
+            DefaultHandleTaskCancel(reason);
         }
 
         public virtual void ForceFail(string errorInfo)
@@ -97,14 +101,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         protected void Complete()
         {
-            if (Status != TaskStatus.Enabled && Status != TaskStatus.Selected) throw new Exception("Invalid task status");
-            Status = TaskStatus.Completed;
-            Context.NotifyTaskEvent(new TaskCompleted
-            {
-                InstanceId = this.InstanceId,
-                ParentTaskInstanceId = this.ParentTaskInstanceId,
-                OutputData = this.GetOutputData()
-            });
+            DefaultHandleTaskCompletion(null);
         }
 
 
@@ -124,6 +121,59 @@ namespace NGinnBPM.Runtime.Tasks
                 }
             }
             return ret;
+        }
+
+        protected virtual void DefaultHandleTaskCompletion(Dictionary<string, object> updateData)
+        {
+            if (Status != TaskStatus.Enabled && Status != TaskStatus.Selected) throw new Exception("Invalid task status");
+            if (updateData != null)
+            {
+                foreach (string gk in updateData.Keys)
+                {
+                    TaskData[gk] = updateData[gk];
+                }
+            }
+            Status = TaskStatus.Completed;
+            Context.NotifyTaskEvent(new TaskCompleted
+            {
+                InstanceId = this.InstanceId,
+                ParentTaskInstanceId = this.ParentTaskInstanceId,
+                OutputData = this.GetOutputData()
+            });
+        }
+
+        /// <summary>
+        /// Default cancellation handler.Override it to add custom cancellation logic.
+        /// </summary>
+        /// <param name="reason"></param>
+        protected virtual void DefaultHandleTaskCancel(string reason)
+        {
+            Status = TaskStatus.Cancelled;
+            StatusInfo = reason;
+            Context.NotifyTaskEvent(new TaskCancelled
+            {
+                InstanceId = this.InstanceId,
+                ParentTaskInstanceId = this.ParentTaskInstanceId,
+                CorrelationId = null
+            });
+        }
+
+        /// <summary>
+        /// Default task failure handler. Override it to provide custom logic.
+        /// </summary>
+        /// <param name="errorInfo"></param>
+        /// <param name="failureIntended"></param>
+        protected virtual void DefaultHandleTaskFailure(string errorInfo, bool failureIntended)
+        {
+            Status = TaskStatus.Failed;
+            StatusInfo = errorInfo;
+            Context.NotifyTaskEvent(new TaskFailed
+            {
+                InstanceId = this.InstanceId,
+                ParentTaskInstanceId = this.ParentTaskInstanceId,
+                IsExpected = failureIntended,
+                ErrorInfo = errorInfo
+            });
         }
 
     }

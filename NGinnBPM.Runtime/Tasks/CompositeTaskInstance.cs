@@ -5,6 +5,7 @@ using System.Text;
 using NGinnBPM.ProcessModel.Data;
 using NGinnBPM.MessageBus;
 using NGinnBPM.ProcessModel.Exceptions;
+using NGinnBPM.ProcessModel.Util;
 using System.Collections;
 using System.Diagnostics;
 using System.Runtime.Serialization;
@@ -273,13 +274,13 @@ namespace NGinnBPM.Runtime.Tasks
             log.Info("Composite task finished!");
             if (Status == TaskStatus.Cancelling)
             {
-                DefaultHandleTaskCancelled();
+                DefaultHandleTaskCancel(null);
                 Debug.Assert(Status == TaskStatus.Cancelled);
                 return;
             }
             else if (Status == TaskStatus.Enabled || Status == TaskStatus.Selected)
             {
-                DefaultHandleTaskFinished(GetOutputData());
+                DefaultHandleTaskCompletion(null);
                 Debug.Assert(Status == TaskStatus.Completed);
                 return;
             }
@@ -532,7 +533,7 @@ namespace NGinnBPM.Runtime.Tasks
             }
             else
             {
-                log.Warn("Child task {0} ({1}) started, but current transition status is {2}. Ignoring the notification - status inconsistent", tse.SourceTaskInstanceId, ti.TaskId, ti.Status);
+                log.Warn("Child task {0} ({1}) started, but current transition status is {2}. Ignoring the notification - status inconsistent", tse.InstanceId, ti.TaskId, ti.Status);
                 return;
             }
             //else throw new Exception("Invalid transition status");
@@ -606,7 +607,7 @@ namespace NGinnBPM.Runtime.Tasks
                     else
                     {
                         bool isErrorTask = tfe.IsExpected;
-                        TaskDef tsk = ProcessDefinition.GetTask(ti.TaskId);
+                        TaskDef tsk = MyTask.GetTask(ti.TaskId);
                         //if the task is already failed or it has error handlers set up
                         if (isErrorTask || ti.Status == TransitionStatus.FailedActive ||
                             MyTask.GetFlowsForPortOut(TaskOutPortType.Error).FirstOrDefault() != null)
@@ -725,7 +726,7 @@ namespace NGinnBPM.Runtime.Tasks
             lock (this)
             {
                 int n = GetNumFreeTokens(placeId);
-                foreach (Task tsk in ParentProcess.GetPlace(placeId).NodesOut)
+                foreach (TaskDef tsk in MyTask.GetPlace(placeId).NodesOut)
                 {
                     TransitionInfo ti = GetActiveInstanceOfTask(tsk.Id);
                     if (ti != null && (ti.Status == TransitionStatus.Started || ti.Status == TransitionStatus.FailedActive))
@@ -803,7 +804,7 @@ namespace NGinnBPM.Runtime.Tasks
                 ///these places.
                 foreach (string plid in tsk.ORJoinChecklist)
                 {
-                    Place pl = ParentProcess.GetPlace(plid);
+                    PlaceDef pl = MyTask.GetPlace(plid);
                     if (tsk.NodesIn.Contains(pl)) continue;
                     if (GetTotalTokens(plid) > 0)
                     {
@@ -931,7 +932,7 @@ namespace NGinnBPM.Runtime.Tasks
                             }
                         }
                         else
-                            log.Warn("NULL flow input condition in XOR split. Flow: {0} in {1}", fl.ToString(), ParentProcess.DefinitionId);
+                            log.Warn("NULL flow input condition in XOR split. Flow: {0} in {1}", fl.ToString(), ProcessDefinition.DefinitionId);
                     }
                     if (!b)
                     {

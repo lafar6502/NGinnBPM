@@ -14,7 +14,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         public QuackTaskDataWrapper(Dictionary<string, object> data)
         {
-            _getter = k => data[k];
+            _getter = k => data.ContainsKey(k) ? data[k] : null;
             _setter = delegate(string k, object v)
             {
                 data[k] = v;

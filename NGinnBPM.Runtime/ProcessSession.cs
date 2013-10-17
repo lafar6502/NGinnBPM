@@ -74,10 +74,7 @@ namespace NGinnBPM.Runtime
             _persisterSession.Update(ti);
         }
 
-        public void AddNewTaskInstance(TaskInstance ti)
-        {
-            _persisterSession.SaveNew(ti);
-        }
+        
 
         private Dictionary<string, object> _sessionData = new Dictionary<string, object>();
 

@@ -216,7 +216,44 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         public void ExecuteChildTaskOutputDataBinding(CompositeTaskInstance ti, TaskDef childTask, Dictionary<string, object> childOutputData, ITaskExecutionContext ctx)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(ti.InstanceId) ||
+                string.IsNullOrEmpty(ti.TaskId) ||
+                string.IsNullOrEmpty(ti.ProcessDefinitionId) ||
+                string.IsNullOrEmpty(ti.ProcessInstanceId))
+                throw new Exception("Task not inited properly");
+            _pd.SetTaskInstanceInfo(ti, ctx);
+            _pd.SetOutputData(childOutputData);
+            var ctd = childTask.Parent;
+            if (childTask.AutoBindVariables && ctd.Variables != null)
+            {
+                foreach (var vd in ctd.Variables)
+                {
+                    if (childOutputData.ContainsKey(vd.Name))
+                    {
+                        ti.TaskData[vd.Name] = childOutputData[vd.Name];
+                    }
+                }
+            }
+            if (childTask.OutputDataBindings != null)
+            {
+                foreach (var bd in childTask.OutputDataBindings)
+                {
+                    switch (bd.BindType)
+                    {
+                        case DataBindingType.CopyVar:
+                            ti.TaskData[bd.Target] = childOutputData[bd.Source];
+                            break;
+                        case DataBindingType.Literal:
+                            ti.TaskData[bd.Target] = bd.Source;
+                            break;
+                        case DataBindingType.Expr:
+                            string k = DslUtil.TaskVarOutBindingKey(childTask.Id, bd.Target);
+                            if (!_pd._variableBinds.ContainsKey(k)) throw new Exception("!");
+                            ti.TaskData[bd.Target] = _pd._variableBinds[k]();
+                            break;
+                    }
+                }
+            }
         }
     }
 }

@@ -51,9 +51,10 @@ namespace NGinnBPM.Runtime
                     TaskId = pd.Body.Id
                 };
                 pi.Activate(ps, pd, pscript);
+                ps.PersisterSession.SaveNew(pi);
                 pi.Enable(inputData);
                 pi.Deactivate();
-                ps.PersisterSession.SaveNew(pi);
+                ps.PersisterSession.Update(pi); 
                 ret = pi.InstanceId;
             });
             return ret;
@@ -61,28 +62,59 @@ namespace NGinnBPM.Runtime
 
         public void UpdateTaskData(string instanceId, Dictionary<string, object> updatedData)
         {
-            throw new NotImplementedException();
+            UpdateTask(instanceId, ti =>
+            {
+                foreach (string k in updatedData.Keys)
+                {
+                    ti.TaskData[k] = updatedData[k];
+                }
+            });
         }
 
+        protected void UpdateTask(string instanceId, Action<TaskInstance> act)
+        {
+            RunProcessTransaction(ps =>
+            {
+                var ti = ps.PersisterSession.GetForUpdate(instanceId);
+                var pd = this.GetProcessDef(ti.ProcessDefinitionId);
+                var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
+                ti.Activate(ps, pd, pscript);
+                act(ti);
+                ti.Deactivate();
+                ps.PersisterSession.Update(ti);
+            });
+        }
+        
         public void CancelTask(string instanceId, string reason)
         {
-            throw new NotImplementedException();
+            UpdateTask(instanceId, ti =>
+            {
+                ti.Cancel(reason);
+            });
         }
 
         public void SelectTask(string instanceId)
         {
-            throw new NotImplementedException();
+            UpdateTask(instanceId, ti =>
+            {
+                ti.Select();
+            });
         }
 
         public void ForceCompleteTask(string instanceId, Dictionary<string, object> updatedData)
         {
-            throw new NotImplementedException();
-
+            UpdateTask(instanceId, ti =>
+            {
+                ti.ForceComplete(updatedData);
+            });
         }
 
         public void ForceFailTask(string instanceId, string reason)
         {
-            throw new NotImplementedException();
+            UpdateTask(instanceId, ti =>
+            {
+                ti.ForceFail(reason);
+            });
         }
 
         protected ProcessDef GetProcessDef(string definitionId)
@@ -164,14 +196,14 @@ namespace NGinnBPM.Runtime
 
         internal void DeliverTaskExecEvent(TaskExecEvent ev)
         {
-            RunProcessTransaction(ps =>
+            if (string.IsNullOrEmpty(ev.ParentTaskInstanceId))
             {
-                if (string.IsNullOrEmpty(ev.ParentTaskInstanceId))
-                {
-                    log.Info("event has no parent: {0}", ev);
-                    return; //TODO handle process-level events
-                }
-                var cti = (CompositeTaskInstance) ps.PersisterSession.GetForUpdate(ev.ParentTaskInstanceId);
+                log.Info("event has no parent: {0}", ev);
+                return; //TODO handle process-level events
+            }
+            UpdateTask(ev.ParentTaskInstanceId, ti =>
+            {
+                var cti = ti as CompositeTaskInstance;
                 cti.HandleChildTaskEvent(ev);
             });
         }
@@ -210,10 +242,11 @@ namespace NGinnBPM.Runtime
             ti.InstanceId = string.IsNullOrEmpty(msg.CorrelationId) ? null : msg.CorrelationId;
             ti.ProcessDefinitionId = msg.ProcessDefinitionId;
             ti.TaskId = msg.TaskId;
-            ps.AddNewTaskInstance(ti);
+            ps.PersisterSession.SaveNew(ti);
             ti.Activate(ps, pd, pscript);
             ti.Enable(msg.InputData);
             ti.Deactivate();
+            ps.PersisterSession.Update(ti);
             return ti.InstanceId;
         }
 

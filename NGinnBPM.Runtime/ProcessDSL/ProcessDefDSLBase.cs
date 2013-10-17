@@ -411,5 +411,33 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _currentCompositeTask.AddPlace(pl);
         }
         #endregion places
+
+
+        /// <summary>
+        /// Setting extension properties
+        /// TODO finish
+        /// </summary>
+        /// <param name="options"></param>
+        protected void metadata(SC.IDictionary options)
+        {
+            if (_curFlow != null)
+            {
+            }
+            else if (_curVar != null)
+            {
+            }
+            else if (_curStructDef != null)
+            {
+            }
+            else if (_curTask != null)
+            {
+            }
+            else if (_currentCompositeTask != null)
+            {
+            }
+            else if (_curProcessDef != null)
+            {
+            }
+        }
     }
 }

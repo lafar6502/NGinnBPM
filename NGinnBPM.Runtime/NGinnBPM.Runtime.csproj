@@ -96,6 +96,7 @@
     <Compile Include="Services\ITaskInstanceSerializer.cs" />
     <Compile Include="Services\SqlDbSessionFactory.cs" />
     <Compile Include="Services\SqlTaskInstancePersister.cs" />
+    <Compile Include="Services\SqlUtil.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlMessage.cs" />
     <Compile Include="TaskExecutionEvents\TaskEvent.cs" />
     <Compile Include="TaskStatus.cs" />

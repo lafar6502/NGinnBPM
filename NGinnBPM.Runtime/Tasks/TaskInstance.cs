@@ -36,6 +36,10 @@ namespace NGinnBPM.Runtime.Tasks
         [DataMember]
         [JsonConverter(typeof(TaskDataJsonConverter))]
         public Dictionary<string, object> TaskData { get; set; }
+        [DataMember]
+        public DateTime EnabledDate { get; set; }
+        [DataMember]
+        public DateTime? FinishedDate { get; set; }
 
         [IgnoreDataMember]
         protected ITaskExecutionContext Context { get; set; }

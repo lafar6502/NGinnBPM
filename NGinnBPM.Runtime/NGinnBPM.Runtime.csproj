@@ -103,9 +103,11 @@
     <Compile Include="TaskStatus.cs" />
     <Compile Include="Tasks\AtomicTaskInstance.cs" />
     <Compile Include="Tasks\CompositeTaskInstance.cs" />
+    <Compile Include="Tasks\DebugTaskInstance.cs" />
     <Compile Include="Tasks\EmptyTaskInstance.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Tasks\MultiTaskInstance.cs" />
     <Compile Include="Tasks\ProcessInstance.cs" />
     <Compile Include="Tasks\TaskInstance.cs" />
   </ItemGroup>

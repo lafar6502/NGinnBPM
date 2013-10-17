@@ -91,6 +91,7 @@
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\AsyncProcessControlMessageHandler.cs" />
     <Compile Include="Services\IDbSessionFactory.cs" />
     <Compile Include="Services\ITaskInstancePersister.cs" />
     <Compile Include="Services\ITaskInstanceSerializer.cs" />

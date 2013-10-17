@@ -5,24 +5,36 @@ using System.Text;
 using NGinnBPM.Runtime.TaskExecutionEvents;
 using NGinnBPM.ProcessModel;
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using NGinnBPM.ProcessModel.Util;
 
 namespace NGinnBPM.Runtime.Tasks
 {
+    [DataContract]
     public abstract class TaskInstance
     {
+        [DataMember]
         public virtual string InstanceId { get; set; }
+        [DataMember]
         public string ParentTaskInstanceId { get; set; }
+        [DataMember]
         public string ProcessInstanceId { get; set; }
+        [DataMember]
         public string TaskId { get; set; }
+        [DataMember]
         public string ProcessDefinitionId { get; set; }
+        [DataMember]
         public TaskStatus Status { get; set; }
         /// <summary>
         /// Additional information in case of failure or cancel
         /// </summary>
+        [DataMember]
         public string StatusInfo { get; set; }
         /// <summary>
         /// Current task data
         /// </summary>
+        [DataMember]
+        [JsonConverter(typeof(TaskDataJsonConverter))]
         public Dictionary<string, object> TaskData { get; set; }
 
         [IgnoreDataMember]

@@ -21,10 +21,11 @@ namespace NGinnBPM.Runtime.Services
         public JsonTaskInstanceSerializer()
         {
             JsonSerializerSettings s = new JsonSerializerSettings();
-            s.TypeNameHandling = TypeNameHandling.Auto;
+            s.TypeNameHandling = TypeNameHandling.Objects;
             s.DateFormatHandling = DateFormatHandling.IsoDateFormat;
             s.NullValueHandling = NullValueHandling.Ignore;
             s.MissingMemberHandling = MissingMemberHandling.Ignore;
+            s.Converters.Add(new Newtonsoft.Json.Converters.StringEnumConverter());
             _ser = JsonSerializer.Create(s);
         }
 

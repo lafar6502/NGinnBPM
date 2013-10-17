@@ -1406,7 +1406,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// Handle child task enabled message
         /// </summary>
         /// <param name="message"></param>
-        public void Handle(TaskEnabled message)
+        protected void Handle(TaskEnabled message)
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId)
@@ -1441,7 +1441,32 @@ namespace NGinnBPM.Runtime.Tasks
             if (ev.ParentTaskInstanceId != this.InstanceId) throw new Exception("invalid instance id");
             var ti = GetTransitionInfo(ev.InstanceId);
             if (ti == null) throw new Exception("Child transition not found: " + ev.InstanceId);
-            
+            if (ev is TaskEnabled)
+            {
+                Handle((TaskEnabled)ev);
+                return;
+            }
+            else if (ev is TaskCancelled)
+            {
+                Handle((TaskCancelled)ev);
+                return;
+            }
+            else if (ev is TaskCompleted)
+            {
+                Handle((TaskCompleted)ev);
+                return;
+            }
+            else if (ev is TaskFailed)
+            {
+                Handle((TaskFailed)ev);
+                return;
+            }
+            else if (ev is TaskSelected)
+            {
+                Handle((TaskSelected)ev);
+                return;
+            }
+            else throw new Exception();
         }
         
         /// <summary>

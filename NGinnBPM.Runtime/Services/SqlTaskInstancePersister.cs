@@ -46,6 +46,7 @@ namespace NGinnBPM.Runtime.Services
                 int pcnt = 0;
                 foreach (var th in records)
                 {
+                    if (string.IsNullOrEmpty(th.TaskData)) throw new Exception("Task not serialized!");
                     int ov = string.IsNullOrEmpty(th.DbVersion) ? 1 : Int32.Parse(th.DbVersion);
                     if (th.State == RecordState.New)
                     {

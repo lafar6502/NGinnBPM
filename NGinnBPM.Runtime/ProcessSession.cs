@@ -22,18 +22,49 @@ namespace NGinnBPM.Runtime
         protected TaskPersisterSession _persisterSession;
         protected ProcessRunner _runner;
 
-        private Queue<TaskExecEvent> _eventQ = new Queue<TaskExecEvent>();
-        private Queue<TaskControlMessage> _controlQ = new Queue<TaskControlMessage>();
-
-
-        void ITaskExecutionContext.NotifyTaskEvent(TaskExecutionEvents.TaskExecEvent ev)
+        public void ScheduleTaskEvent(TaskExecutionEvents.TaskExecEvent ev, DateTime deliveryDate)
         {
-            _eventQ.Enqueue(ev);
+            _runner.MessageBus.NotifyAt(deliveryDate, ev);
         }
 
-        void ITaskExecutionContext.SendTaskControlMessage(TaskExecutionEvents.TaskControlMessage msg)
+        public void NotifyTaskEvent(TaskExecutionEvents.TaskExecEvent ev)
         {
-            _controlQ.Enqueue(msg);
+            SendProcessMessage(ev, false);
+        }
+
+        public void SendTaskControlMessage(TaskExecutionEvents.TaskControlMessage msg)
+        {
+            SendProcessMessage(msg, false);
+        }
+
+        public bool IsPersistent
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        private Queue<ProcessMessage> _asyncQueue = new Queue<ProcessMessage>();
+        private Queue<ProcessMessage> _syncQueue = new Queue<ProcessMessage>();
+
+        protected void SendProcessMessage(ProcessMessage pm, bool separateTransaction)
+        {
+            if (separateTransaction)
+            {
+                if (IsPersistent)
+                {
+                    _runner.MessageBus.Notify(pm);
+                }
+                else
+                {
+                    _asyncQueue.Enqueue(pm);
+                }
+            }
+            else
+            {
+                _syncQueue.Enqueue(pm);
+            }
         }
 
         
@@ -145,18 +176,28 @@ namespace NGinnBPM.Runtime
 
         public void PumpMessages()
         {
-            do
+            while (_syncQueue.Count > 0)
             {
-                while(_eventQ.Count > 0)
+                var m = _syncQueue.Dequeue();
+                switch (m.Mode)
                 {
-                    DeliverEvent(_eventQ.Dequeue());
-                }
-                while(_controlQ.Count > 0)
-                {
-                    DeliverControlMessage(_controlQ.Dequeue());
+                    case MessageHandlingMode.AnotherTransaction:
+                        _runner.MessageBus.Notify(m);
+                        break;
+                    case MessageHandlingMode.SameTransaction:
+                        if (m is TaskExecEvent)
+                        {
+                            DeliverEvent((TaskExecEvent)m);
+                        }
+                        else if (m is TaskControlMessage)
+                        {
+                            DeliverControlMessage((TaskControlMessage)m);
+                        }
+                        break;
+                    default:
+                        throw new Exception();
                 }
             }
-            while (_controlQ.Count + _eventQ.Count > 0);
         }
     }
 }

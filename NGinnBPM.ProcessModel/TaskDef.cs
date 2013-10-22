@@ -132,5 +132,22 @@ namespace NGinnBPM.ProcessModel
             }
             return sd;
         }
+
+        /// <summary>
+        /// True if synchronous execution is allowed
+        /// By default, all tasks are allowed to execute synchronously
+        /// we run async if a task has an error handler attached
+        /// </summary>
+        public virtual bool AllowSynchronousExec
+        {
+            get
+            {
+                if (this.FlowsOut.Any(x => x.SourcePortType == TaskOutPortType.Error))
+                {
+                    return false;
+                }
+                return true;
+            }
+        }
     }
 }

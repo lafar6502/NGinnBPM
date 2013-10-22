@@ -5,12 +5,9 @@ using System.Text;
 
 namespace NGinnBPM.Runtime.TaskExecutionEvents
 {
-    public class TaskControlMessage
+    public class TaskControlMessage : ProcessMessage
     {
-        public string FromProcessInstanceId { get; set; }
-        public string FromTaskInstanceId { get; set; }
         public string ToTaskInstanceId { get; set; }
-        public string CorrelationId { get; set; }
     }
 
     public class EnableChildTask : TaskControlMessage

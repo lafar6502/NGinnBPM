@@ -302,10 +302,16 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         protected void init_task(Action act)
         {
+            var tsk = _curTask == null ? (TaskDef)_currentCompositeTask : _curTask;
+            string k = DslUtil.TaskScriptKey(tsk.Id, "_paramInit");
+            _taskScripts[k] = act;
         }
 
         protected void prepare_output_data(Action act)
         {
+            var tsk = _curTask == null ? (TaskDef)_currentCompositeTask : _curTask;
+            string k = DslUtil.TaskScriptKey(tsk.Id, "_variableUpdateOnComplete");
+            _taskScripts[k] = act;
         }
 
         #endregion tasks

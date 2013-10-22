@@ -16,3 +16,65 @@ Poza enablowaniem, później nie ma już chyba takich sytuacji że musimy wszyst
 
 zaraz, jak zrobię enable na tasku synchronicznym to wszystkie child taski mi się enablują zanim
 głównego Enable() się zakończy. Czyli nie muszę trzymać w sesji komunikatów....
+
+3. Błędy
+
+Jak obsługiwać błędy???
+Bład moze wystapic podczas enablowania tasku. I co wtedy???
+Jesli poleci exception to cała transakcja wylatuje w powietrze i jesteśmy w punkcie wyjścia.
+Żaden handler błędu nie zadziała...
+Żeby zadziałał, możemy
+1. dodać do zadania flow do obsługi błędów. Wtedy zadanie ma złapać błąd i zakończyć się 'Failed'.
+
+Standardowo transakcja nie powinna w ogóle łapać błędów. Jeśli zadanie uzna że powinno obsłużyć błąd, niech go obsłuży i zwróci event 'Failed'
+do nadrzędnego.
+Jeśli którekolwiek z zadań ma handler błędów to błąd powinien być złapany i przekazywany w górę przez wszystkie
+composite taski!!! Niezależnie od tego czy pracujemy synchronicznie czy asynchronicznie!
+Nie! to nie działa - wyjątek w transakcji powinien skutkować rollbackiem tej transakcji bo mogła ona
+zostać 'uszkodzona', np przez powrzucanie do kolejek jakichś błędnych komunikatów.
+No to jak mamy obsługiwać błędy???
+Ano nie rzucać wyjątków, a jak już ktoś rzuci to nie łapać.
+
+propozycja 1.1
+Jeśli są handlery błędów to trzeba działać asynchronicznie.
+Gdzie niby mają być te handlery? No, te zadania co mogą spowodować błąd muszą być enablowane async.
+
+Uwaga: transakcja nginn.bpm wykonuje na bazie danych tylko dwie operacje: odczyt zadania oraz zapis zadania.
+Nie da się zepsuć transakcji wykonując te operacje.
+Transakcję może tylko zepsuć zadanie które wykonuje inne operacje na bazie.
+
+--------
+* Mamy operacje persistent i non-persistent. Ustalić w jaki sposób o tym decydujemy
+Persistent z kolei mogą być: tylko aktywne albo wszystkie zadania.
+* Jeśli zadanie nie ma error handlera to może być enablowane synchronicznie. W razie wyjątku złapiemy go
+w transakcji nadrzędnej (tj tej co robiła enable composite-a)
+* Jeśli zadanie ma error handlera to trzeba je enablować asyncrhonicznie, w innej transakcji.
+Jesli nasz composite jest non-persistent to wystarczy wysłać async komunikat do innej transakcji.
+Jeśli jest persistent to trzeba komunikat wysłać message busem.
+* na komunikat 'EnableChildTask' musi przyjść odpowiedź. W przypadku non-persistent gdy nie przyjdzie to nasz proces 
+zdechnie. Wtedy może jakiś timeout by się przydał???
+
+podsumowując, mamy 3 sposoby wysyłania komunikatów sterujących zadaniami:
+- w tej samej transakcji (prawie-synchroniczny, ten sam wątek)
+- w innej transakcji (ten sam lub inny wątek)
+   * w tym przypadku trzeba zapewnić że ta druga transakcja nie wykona się zanim ta pierwotna nie zostanie zapisana
+- w innej transakcji, persistent.
+   * czyli message busem.
+
+czy potrzebna jest kolejka async/w pamięci?
+Mozemy nie robić? czy kolejność komunikatów jest ważna? Raczej się nie odwrócą.
+Czy możemy mieć obsługę komunikatu X podczas obsługi Y?
+Tylko gdy będziemy je obsługiwać synchronicznie. Zakładam że nie będziemy.
+A gdyby? no to co z tego?
+---
+a co z eventami? Jak one mogą być dystrybuowane?
+
+
+
+
+4. Zakres transakcji (ile roboty możemy wykonać w jednej transakcji)
+a) tyle ile się da (dopóki jeszcze coś można zrobić synchronicznie to robimy to)
+b) tylko jedno zadanie (komunikaty dla innych zadań są kolejkowane)
+c) tylko zadanie i jego podzadania, do nadrzędnych kolejkujemy.
+
+

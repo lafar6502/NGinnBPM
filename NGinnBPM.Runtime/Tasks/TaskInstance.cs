@@ -75,6 +75,16 @@ namespace NGinnBPM.Runtime.Tasks
 
         }
 
+        [IgnoreDataMember]
+        public virtual bool IsAlive
+        {
+            get
+            {
+                return Status == TaskStatus.Enabled || Status == TaskStatus.Cancelling ||
+                    Status == TaskStatus.Selected || Status == TaskStatus.Enabling;
+            }
+        }
+
         /// <summary>
         /// Enable task.
         /// </summary>
@@ -88,10 +98,13 @@ namespace NGinnBPM.Runtime.Tasks
             this.OnTaskEnabled();
             if (this.Status == TaskStatus.Enabled)
             {
-                Context.NotifyTaskEvent(new TaskEnabled { InstanceId = this.InstanceId, ParentTaskInstanceId = this.ParentTaskInstanceId });
+                Context.NotifyTaskEvent(new TaskEnabled { FromTaskInstanceId = this.InstanceId, ParentTaskInstanceId = this.ParentTaskInstanceId });
             }
         }
 
+        /// <summary>
+        /// Override this to execute some custom 'enable' logic.
+        /// </summary>
         protected virtual void OnTaskEnabled()
         {
         }
@@ -152,7 +165,7 @@ namespace NGinnBPM.Runtime.Tasks
             Status = TaskStatus.Completed;
             Context.NotifyTaskEvent(new TaskCompleted
             {
-                InstanceId = this.InstanceId,
+                FromTaskInstanceId = this.InstanceId,
                 ParentTaskInstanceId = this.ParentTaskInstanceId,
                 OutputData = this.GetOutputData()
             });
@@ -168,7 +181,7 @@ namespace NGinnBPM.Runtime.Tasks
             StatusInfo = reason;
             Context.NotifyTaskEvent(new TaskCancelled
             {
-                InstanceId = this.InstanceId,
+                FromTaskInstanceId = this.InstanceId,
                 ParentTaskInstanceId = this.ParentTaskInstanceId,
                 CorrelationId = null
             });
@@ -185,11 +198,16 @@ namespace NGinnBPM.Runtime.Tasks
             StatusInfo = errorInfo;
             Context.NotifyTaskEvent(new TaskFailed
             {
-                InstanceId = this.InstanceId,
+                FromTaskInstanceId = this.InstanceId,
                 ParentTaskInstanceId = this.ParentTaskInstanceId,
                 IsExpected = failureIntended,
                 ErrorInfo = errorInfo
             });
+        }
+
+        public virtual void HandleTaskExecEvent(TaskExecEvent ev)
+        {
+            if (ev.ParentTaskInstanceId != this.InstanceId) throw new Exception("Invalid ParentTaskInstanceId");
         }
 
     }

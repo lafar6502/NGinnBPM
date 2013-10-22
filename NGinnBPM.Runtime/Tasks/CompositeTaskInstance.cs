@@ -415,10 +415,11 @@ namespace NGinnBPM.Runtime.Tasks
                 ti.InstanceId = AllocateNewTaskInstanceId(ti.TaskId);
                 EnableChildTask msg = new EnableChildTask
                 {
+                    Mode = tsk.AllowSynchronousExec ? MessageHandlingMode.SameTransaction : MessageHandlingMode.AnotherTransaction,
                     CorrelationId = ti.InstanceId,
                     FromTaskInstanceId = this.InstanceId,
                     FromProcessInstanceId = this.ProcessInstanceId,
-                    ToTaskInstanceId = null,
+                    ToTaskInstanceId = ti.InstanceId,
                     ProcessDefinitionId = ProcessDefinition.DefinitionId,
                     TaskId = tsk.Id
                 };
@@ -472,10 +473,10 @@ namespace NGinnBPM.Runtime.Tasks
         {
             if (tce.ParentTaskInstanceId != this.InstanceId)
                 throw new Exception("Parent task correlation id is incorrect");
-            TransitionInfo ti = GetTransitionInfo(tce.InstanceId);
+            TransitionInfo ti = GetTransitionInfo(tce.FromTaskInstanceId);
             if (ti == null)
                 throw new Exception("Child task not found");
-            log.Debug("Child task {0} cancelled. Current transition status: {1}", tce.InstanceId, ti.Status);
+            log.Debug("Child task {0} cancelled. Current transition status: {1}", tce.FromTaskInstanceId, ti.Status);
 
             if (ti.Status == TransitionStatus.Enabling)
             {
@@ -501,7 +502,7 @@ namespace NGinnBPM.Runtime.Tasks
             }
             else
             {
-                log.Warn("Child task {0} ({1}) cancelled, but current transition status is {2}. Ignoring the notification - status inconsistent", tce.InstanceId, ti.TaskId, ti.Status);
+                log.Warn("Child task {0} ({1}) cancelled, but current transition status is {2}. Ignoring the notification - status inconsistent", tce.FromTaskInstanceId, ti.TaskId, ti.Status);
                 return;
             }
             ti.Status = TransitionStatus.Cancelled;
@@ -520,20 +521,20 @@ namespace NGinnBPM.Runtime.Tasks
         {
             if (tse.ParentTaskInstanceId != this.InstanceId)
                 throw new TaskRuntimeException("Parent task correlation id is incorrect").SetInstanceId(InstanceId);
-            TransitionInfo ti = GetTransitionInfo(tse.InstanceId);
+            TransitionInfo ti = GetTransitionInfo(tse.FromTaskInstanceId);
             if (ti == null)
-                throw new TaskRuntimeException("Child task not found: " + tse.InstanceId).SetInstanceId(InstanceId);
+                throw new TaskRuntimeException("Child task not found: " + tse.FromTaskInstanceId).SetInstanceId(InstanceId);
             if (ti.Status == TransitionStatus.Started)
                 return;
             if (ti.Status == TransitionStatus.Enabling)
                 ti.Status = TransitionStatus.Enabled;
             if (ti.Status == TransitionStatus.Enabled)
             {
-                OnChildTaskStarted(tse.InstanceId);
+                OnChildTaskStarted(tse.FromTaskInstanceId);
             }
             else
             {
-                log.Warn("Child task {0} ({1}) started, but current transition status is {2}. Ignoring the notification - status inconsistent", tse.InstanceId, ti.TaskId, ti.Status);
+                log.Warn("Child task {0} ({1}) started, but current transition status is {2}. Ignoring the notification - status inconsistent", tse.FromTaskInstanceId, ti.TaskId, ti.Status);
                 return;
             }
             //else throw new Exception("Invalid transition status");
@@ -549,9 +550,9 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 if (tce.ParentTaskInstanceId != this.InstanceId)
                     throw new TaskRuntimeException("Parent task correlation id is incorrect").SetInstanceId(InstanceId);
-                TransitionInfo ti = GetTransitionInfo(tce.InstanceId);
+                TransitionInfo ti = GetTransitionInfo(tce.FromTaskInstanceId);
                 if (ti == null)
-                    throw new TaskRuntimeException("Child task not found: " + tce.InstanceId).SetInstanceId(InstanceId);
+                    throw new TaskRuntimeException("Child task not found: " + tce.FromTaskInstanceId).SetInstanceId(InstanceId);
                 if (ti.Status == TransitionStatus.Completed)
                     return;
                 if (ti.IsTransitionActive)
@@ -560,7 +561,7 @@ namespace NGinnBPM.Runtime.Tasks
                 }
                 else
                 {
-                    log.Warn("Child task {0} ({1}) completed, but current transition status is {2}. Ignoring the notification - status inconsistent.", tce.InstanceId, ti.TaskId, ti.Status);
+                    log.Warn("Child task {0} ({1}) completed, but current transition status is {2}. Ignoring the notification - status inconsistent.", tce.FromTaskInstanceId, ti.TaskId, ti.Status);
                     return;
                 }
                 //else throw new Exception("Invalid transition status");
@@ -583,10 +584,10 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 if (tfe.ParentTaskInstanceId != this.InstanceId)
                     throw new TaskRuntimeException("Parent task correlation id is incorrect").SetInstanceId(InstanceId);
-                TransitionInfo ti = GetTransitionInfo(tfe.InstanceId);
+                TransitionInfo ti = GetTransitionInfo(tfe.FromTaskInstanceId);
                 if (ti == null)
-                    throw new TaskInstanceNotFoundException(tfe.InstanceId);
-                log.Info("Child task {0} failed: {1}", tfe.InstanceId, tfe.ErrorInfo);
+                    throw new TaskInstanceNotFoundException(tfe.FromTaskInstanceId);
+                log.Info("Child task {0} failed: {1}", tfe.FromTaskInstanceId, tfe.ErrorInfo);
                 if (ti.Status == TransitionStatus.Failed)
                 {
                     return;
@@ -595,7 +596,7 @@ namespace NGinnBPM.Runtime.Tasks
                 {
                     if (ti.Status == TransitionStatus.Enabling)
                         ti.Status = TransitionStatus.Enabled;
-                    ConsumeTaskInputTokens(tfe.InstanceId);
+                    ConsumeTaskInputTokens(tfe.FromTaskInstanceId);
                     List<FlowDef> handlers = new List<FlowDef>(MyTask.GetTask(ti.TaskId).GetFlowsForPortOut(TaskOutPortType.Error));
                     if (handlers.Count > 0)
                     {
@@ -628,7 +629,7 @@ namespace NGinnBPM.Runtime.Tasks
                 }
                 else
                 {
-                    log.Warn("Child task {0} ({1}) failed, but current transition status is {2}. Ignoring the notification - status inconsistent", tfe.InstanceId, ti.TaskId, ti.Status);
+                    log.Warn("Child task {0} ({1}) failed, but current transition status is {2}. Ignoring the notification - status inconsistent", tfe.FromTaskInstanceId, ti.TaskId, ti.Status);
                     return;
                 }
                     //throw new Exception("Invalid task status!");
@@ -971,8 +972,8 @@ namespace NGinnBPM.Runtime.Tasks
         /// <param name="tce"></param>
         private void OnChildTaskCompleted(TaskCompleted tce)
         {
-            log.Debug("Child task completed: {0}", tce.InstanceId);
-            TransitionInfo ti = GetTransitionInfo(tce.InstanceId);
+            log.Debug("Child task completed: {0}", tce.FromTaskInstanceId);
+            TransitionInfo ti = GetTransitionInfo(tce.FromTaskInstanceId);
             TaskDef tsk = MyTask.GetTask(ti.TaskId);
             if (ti.Status == TransitionStatus.Enabling)
                 ti.Status = TransitionStatus.Enabled;
@@ -988,7 +989,7 @@ namespace NGinnBPM.Runtime.Tasks
                 }
             }
             //
-            ConsumeTaskInputTokens(tce.InstanceId);
+            ConsumeTaskInputTokens(tce.FromTaskInstanceId);
             ti.Status = TransitionStatus.Completed;
             ProduceTaskOutputTokens(ti.InstanceId);
         }
@@ -1413,18 +1414,18 @@ namespace NGinnBPM.Runtime.Tasks
                 throw new Exception("Parent task correlation id is incorrect");
             lock (this)
             {
-                string childId = string.IsNullOrEmpty(message.CorrelationId) ? message.InstanceId : message.CorrelationId;
+                string childId = string.IsNullOrEmpty(message.CorrelationId) ? message.FromTaskInstanceId : message.CorrelationId;
                 TransitionInfo ti = GetTransitionInfo(childId);
                 if (ti == null) throw new TaskRuntimeException(string.Format("Child transition not found: {0}", childId)).SetInstanceId(InstanceId);
                 if (ti.Status == TransitionStatus.Enabling)
                 {
                     ti.Status = TransitionStatus.Enabled;
-                    if (ti.InstanceId != message.InstanceId)
+                    if (ti.InstanceId != message.FromTaskInstanceId)
                     {
                         //TODO: what if we don't get TaskEnabled, but TaskCompleted as the first event?
                         //we need to handle InstanceId change too!!
-                        log.Info("New task instance ID changed {0}->{1}", ti.InstanceId, message.InstanceId);
-                        ti.InstanceId = message.InstanceId;
+                        log.Info("New task instance ID changed {0}->{1}", ti.InstanceId, message.FromTaskInstanceId);
+                        ti.InstanceId = message.FromTaskInstanceId;
                     }
                 }
                 else
@@ -1439,8 +1440,8 @@ namespace NGinnBPM.Runtime.Tasks
         public void HandleChildTaskEvent(TaskExecEvent ev)
         {
             if (ev.ParentTaskInstanceId != this.InstanceId) throw new Exception("invalid instance id");
-            var ti = GetTransitionInfo(ev.InstanceId);
-            if (ti == null) throw new Exception("Child transition not found: " + ev.InstanceId);
+            var ti = GetTransitionInfo(ev.FromTaskInstanceId);
+            if (ti == null) throw new Exception("Child transition not found: " + ev.FromTaskInstanceId);
             if (ev is TaskEnabled)
             {
                 Handle((TaskEnabled)ev);

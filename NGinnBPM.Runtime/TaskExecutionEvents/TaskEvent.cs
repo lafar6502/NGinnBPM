@@ -9,11 +9,10 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
     /// Task execution events, delivered synchronously in a task execution context
     /// to parent task instances
     /// </summary>
-    public class TaskExecEvent
+    public class TaskExecEvent : ProcessMessage
     {
-        public string InstanceId { get; set; }
+
         public string ParentTaskInstanceId { get; set; }
-        public string CorrelationId { get; set; }
     }
 
     /// <summary>
@@ -33,6 +32,10 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
         public Dictionary<string, object> OutputData { get; set; }
     }
 
+    /// <summary>
+    /// This message will be reported if a task fails and there's an error handler anywhere up to the process root
+    /// task.
+    /// </summary>
     public class TaskFailed : TaskExecEvent
     {
         public string ErrorInfo { get; set; }

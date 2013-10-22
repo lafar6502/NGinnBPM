@@ -40,6 +40,7 @@ namespace NGinnBPM.Runtime.Services
 
         protected override void WriteRecords(IEnumerable<TaskPersisterSession.TaskHolder> records)
         {
+            
             var sb = new StringBuilder();
             using (var cmd = _ses.Connection.CreateCommand())
             {

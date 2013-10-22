@@ -37,7 +37,11 @@ namespace NGinnBPM.Runtime.Services
         public TaskPersisterSession(ITaskInstanceSerializer ser)
         {
             _ser = ser;
+            PersistenceMode = TaskPersistenceMode.PersistAliveTasksOnly;
         }
+
+        public TaskPersistenceMode PersistenceMode { get; set; }
+        
 
         public virtual TaskInstance GetForRead(string instanceId)
         {
@@ -118,9 +122,14 @@ namespace NGinnBPM.Runtime.Services
         
         public virtual void SaveChanges()
         {
-            var l = _cache.Where(kv => kv.Value.State == RecordState.Modified || kv.Value.State == RecordState.New)
-                .Select(kv => kv.Value);
-            WriteRecords(l);
+            if (PersistenceMode == TaskPersistenceMode.DontPersistAnything) return;
+            var l = _cache.Where(kv => kv.Value.State == RecordState.Modified || kv.Value.State == RecordState.New);
+            if (PersistenceMode == TaskPersistenceMode.PersistAliveTasksOnly)
+            {
+                l = l.Where(kv => kv.Value.State == RecordState.Modified || (kv.Value.State == RecordState.New && kv.Value.Deserialized.IsAlive));
+            }
+            if (l.Count() == 0) return;
+            WriteRecords(l.Select(kv => kv.Value));
         }
 
         protected abstract TaskHolder LoadTaskRecord(string instanceId, bool forUpdate);

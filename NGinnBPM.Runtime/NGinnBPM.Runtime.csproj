@@ -93,13 +93,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AsyncProcessControlMessageHandler.cs" />
     <Compile Include="Services\IDbSessionFactory.cs" />
+    <Compile Include="Services\InMemoryTaskPersister.cs" />
     <Compile Include="Services\ITaskInstancePersister.cs" />
     <Compile Include="Services\ITaskInstanceSerializer.cs" />
     <Compile Include="Services\SqlDbSessionFactory.cs" />
     <Compile Include="Services\SqlTaskInstancePersister.cs" />
     <Compile Include="Services\SqlUtil.cs" />
+    <Compile Include="TaskExecutionEvents\ProcessMessage.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlMessage.cs" />
     <Compile Include="TaskExecutionEvents\TaskEvent.cs" />
+    <Compile Include="TaskExecutionEvents\TaskTimerEvent.cs" />
     <Compile Include="TaskStatus.cs" />
     <Compile Include="Tasks\AtomicTaskInstance.cs" />
     <Compile Include="Tasks\CompositeTaskInstance.cs" />
@@ -110,6 +113,7 @@
     <Compile Include="Tasks\MultiTaskInstance.cs" />
     <Compile Include="Tasks\ProcessInstance.cs" />
     <Compile Include="Tasks\TaskInstance.cs" />
+    <Compile Include="Tasks\TimerTaskInstance.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Execution.txt" />

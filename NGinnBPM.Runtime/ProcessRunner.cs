@@ -8,16 +8,26 @@ using NGinnBPM.ProcessModel;
 using NGinnBPM.Runtime.Tasks;
 using NLog;
 using NGinnBPM.MessageBus;
+using System.Threading;
 
 namespace NGinnBPM.Runtime
 {
     /// <summary>
     /// 
     /// </summary>
-    public enum ProcessStateSaveStrategy
+    public enum TaskPersistenceMode
     {
+        /// <summary>
+        /// Don't persist task state at all
+        /// </summary>
         DontPersistAnything = 0,
+        /// <summary>
+        /// Persist tasks only if they didn't complete in a single transaction.
+        /// </summary>
         PersistAliveTasksOnly = 1,
+        /// <summary>
+        /// Persist everything.
+        /// </summary>
         PersistAll = 2
     };
 
@@ -34,10 +44,18 @@ namespace NGinnBPM.Runtime
         public IMessageBus MessageBus { get; set; }
         private static Logger log = LogManager.GetCurrentClassLogger();
 
+        public TaskPersistenceMode DefaultPersistenceMode { get; set; }
+
+        public ProcessRunner()
+        {
+            DefaultPersistenceMode = TaskPersistenceMode.PersistAliveTasksOnly;
+        }
+
         public string StartProcess(string definitionId, Dictionary<string, object> inputData)
         {
+            
             string ret = null;
-            RunProcessTransaction(ps =>
+            RunProcessTransaction(this.DefaultPersistenceMode, ps =>
             {
                 var pd = this.GetProcessDef(definitionId);
                 var pscript = this.GetProcessScriptRuntime(definitionId);
@@ -73,7 +91,7 @@ namespace NGinnBPM.Runtime
 
         protected void UpdateTask(string instanceId, Action<TaskInstance> act)
         {
-            RunProcessTransaction(ps =>
+            RunProcessTransaction(this.DefaultPersistenceMode, ps =>
             {
                 var ti = ps.PersisterSession.GetForUpdate(instanceId);
                 var pd = this.GetProcessDef(ti.ProcessDefinitionId);
@@ -164,7 +182,7 @@ namespace NGinnBPM.Runtime
             }
         }
 
-        protected void RunProcessTransaction(Action<ProcessSession> act)
+        protected void RunProcessTransaction(TaskPersistenceMode persMode, Action<ProcessSession> act)
         {
             if (ProcessSession.Current != null)
             {
@@ -178,6 +196,7 @@ namespace NGinnBPM.Runtime
                 {
                     using (var pess = TaskPersister.OpenSession(dbs))
                     {
+                        pess.PersistenceMode = persMode;
                         Services.TaskPersisterSession.Current = pess;
                         using (var ps = ProcessSession.CreateNew(this, pess))
                         {
@@ -210,7 +229,7 @@ namespace NGinnBPM.Runtime
 
         internal void DeliverTaskControlMessage(TaskControlMessage tcm)
         {
-            RunProcessTransaction(ps =>
+            RunProcessTransaction(this.DefaultPersistenceMode,ps =>
             {
                 if (tcm is EnableChildTask)
                 {
@@ -220,6 +239,8 @@ namespace NGinnBPM.Runtime
                 throw new NotImplementedException();
             });
         }
+
+        
 
         protected string EnableChildTask(EnableChildTask msg)
         {
@@ -232,6 +253,7 @@ namespace NGinnBPM.Runtime
             {
                 if (!td.IsMultiInstance) throw new Exception("Task is not multi-instance: " + td.Id);
                 ti = CreateTaskInstance(td); //TODO: multi, multi!
+                throw new NotImplementedException();
             }
             else
             {
@@ -247,6 +269,7 @@ namespace NGinnBPM.Runtime
             ti.Enable(msg.InputData);
             ti.Deactivate();
             ps.PersisterSession.Update(ti);
+            
             return ti.InstanceId;
         }
 
@@ -258,10 +281,15 @@ namespace NGinnBPM.Runtime
             {
                 case NGinnTaskType.Empty:
                     return new EmptyTaskInstance();
+                case NGinnTaskType.Timer:
+                    return new TimerTaskInstance();
                 default:
                     return new EmptyTaskInstance();
             }
         }
         #endregion
+
+
+        
     }
 }

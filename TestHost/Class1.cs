@@ -18,7 +18,7 @@ namespace TestHost.cs
             var c = ConfigureNGinnBPM();
 
             var pr = c.GetInstance<ProcessRunner>();
-            var proc = pr.StartProcess("Test2.TestProcess.1", new Dictionary<string,object> {});
+            var proc = pr.StartProcess("Test2.TimerTest.1", new Dictionary<string,object> {});
 
         }
 

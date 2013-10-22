@@ -101,7 +101,7 @@ namespace NGinnBPM.Runtime.Tasks
             EnabledDate = DateTime.Now;
             Context.NotifyTaskEvent(new TaskEnabled
             {
-                InstanceId = this.InstanceId,
+                FromTaskInstanceId = this.InstanceId,
                 ParentTaskInstanceId = this.ParentTaskInstanceId
             });
         }
@@ -249,10 +249,10 @@ namespace NGinnBPM.Runtime.Tasks
             if (ti.Status == TransitionStatus.Enabling)
             {
                 ti.Status = TransitionStatus.Enabled;
-                if (ti.InstanceId != message.InstanceId)
+                if (ti.InstanceId != message.FromTaskInstanceId)
                 {
-                    log.Info("Child task instance id changed {0}->{1}", ti.InstanceId, message.InstanceId);
-                    ti.InstanceId = message.InstanceId;
+                    log.Info("Child task instance id changed {0}->{1}", ti.InstanceId, message.FromTaskInstanceId);
+                    ti.InstanceId = message.FromTaskInstanceId;
                 }
             }
             else
@@ -271,7 +271,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId) throw new Exception();
-            TransitionInfo ti = GetTransition(message.InstanceId);
+            TransitionInfo ti = GetTransition(message.FromTaskInstanceId);
             if (ti == null) throw new Exception();
             lock (this)
             {
@@ -296,7 +296,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId) throw new Exception();
-            TransitionInfo ti = GetTransition(message.InstanceId);
+            TransitionInfo ti = GetTransition(message.FromTaskInstanceId);
             if (ti == null) throw new Exception();
             lock (this)
             {
@@ -328,7 +328,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId) throw new Exception();
-            TransitionInfo ti = GetTransition(message.InstanceId);
+            TransitionInfo ti = GetTransition(message.FromTaskInstanceId);
             if (ti == null) throw new Exception();
             lock (this)
             {
@@ -354,7 +354,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId) throw new Exception();
-            TransitionInfo ti = GetTransition(message.InstanceId);
+            TransitionInfo ti = GetTransition(message.FromTaskInstanceId);
             if (ti == null) throw new Exception();
             lock (this)
             {

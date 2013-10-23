@@ -145,7 +145,6 @@ namespace NGinnBPM.Runtime.Tasks
     public class CompositeTaskInstance : TaskInstance
     {
         protected List<TransitionInfo> _taskRecords = new List<TransitionInfo>();
-        private bool? _canContinue = null;
         private static Logger log = LogManager.GetCurrentClassLogger();
 
         public CompositeTaskInstance()
@@ -223,20 +222,7 @@ namespace NGinnBPM.Runtime.Tasks
         public Dictionary<string, int> Marking {get;set;}
         
 
-        [IgnoreDataMember]
-        public bool CanContinue
-        {
-            get
-            {
-                if (Status == TaskStatus.Completed || Status == TaskStatus.Failed || Status == TaskStatus.Cancelled)
-                    return false;
-                if (!_canContinue.HasValue)
-                {
-                    _canContinue = CheckIfCanContinue(false);
-                }
-                return _canContinue.Value;
-            }
-        }
+       
 
         public override void Deactivate()
         {
@@ -247,9 +233,63 @@ namespace NGinnBPM.Runtime.Tasks
             Marking = nm;
             
         }
-        
 
-        private void OnInternalStatusChanged()
+        /// <summary>
+        /// Continue composite task execution until no more operations are possible in current transaction.
+        /// </summary>
+        private void ContinueTaskExecution()
+        {
+            if (Status != TaskStatus.Enabled && Status != TaskStatus.Selected && Status != TaskStatus.Cancelling)
+            {
+                //nothing to do here.
+                return;
+            }
+
+            bool cont;
+            while ((cont = CheckIfCanContinue(true)))
+            {
+                foreach (TaskDef tsk in MyTask.Tasks)
+                {
+                    EnableTaskIfPossible(tsk.Id);
+                }
+            }
+
+            if (ActiveTasks.Count > 0)
+            {
+                return; //we have active tasks so let's wait until they execute
+            }
+            bool hasCompleted = true;
+            //no active tasks, let's do deadlock detection
+            foreach (PlaceDef pl in MyTask.Places)
+            {
+                int n = GetMarkingOfPlace(pl.Id);
+                if (n > 0 && pl.PlaceType != PlaceTypes.End)
+                {
+                    log.Warn("Deadlock detected. Token in place {0} cannot be consumed", pl.Id);
+                    hasCompleted = false;
+                    break;
+                }
+            }
+            if (!hasCompleted)
+            {
+                return;
+            }
+            log.Info("Composite task finished!");
+            if (Status == TaskStatus.Cancelling)
+            {
+                DefaultHandleTaskCancel(null);
+                Debug.Assert(Status == TaskStatus.Cancelled);
+                return;
+            }
+            else if (Status == TaskStatus.Enabled || Status == TaskStatus.Selected)
+            {
+                DefaultHandleTaskCompletion(null);
+                Debug.Assert(Status == TaskStatus.Completed);
+                return;
+            }
+        }
+
+        /*private void OnInternalStatusChanged()
         {
             if (Status != TaskStatus.Enabled && Status != TaskStatus.Selected && Status != TaskStatus.Cancelling)
             {
@@ -285,7 +325,7 @@ namespace NGinnBPM.Runtime.Tasks
                 return;
             }
             else throw new Exception();
-        }
+        }*/
 
         /// <summary>
         /// Detect if task has been completed and handle completion.
@@ -373,7 +413,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// Do a single step of task execution
         /// Does not automatically persist task state
         /// </summary>
-        public void DoOneStep()
+        /*public void DoOneStep()
         {
             bool enabled = false;
             log.Debug("[DoOneStep start]");
@@ -391,11 +431,10 @@ namespace NGinnBPM.Runtime.Tasks
             
             if (!enabled)
             {
-                OnInternalStatusChanged();
-                //DetectTaskCompletion();
+                ContinueTaskExecution();
             }
             log.Debug("[KickTokens end. Returning {0}]", enabled);
-        }
+        }*/
 
         /// <summary>
         /// Enable specified transition
@@ -441,16 +480,7 @@ namespace NGinnBPM.Runtime.Tasks
 
 
 
-        /// <summary>
-        /// Continue task execution until further step not possible
-        /// Persists task status between steps
-        /// </summary>
-        public void DoContinue()
-        {
-            while (CanContinue)
-                DoOneStep();
-        }
-
+        
         protected TransitionInfo GetTransitionInfo(string corrId)
         {
             foreach (TransitionInfo ti in _taskRecords)
@@ -510,7 +540,8 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 ProduceTaskOutputTokens(ti.InstanceId);
             }
-            OnInternalStatusChanged();
+            ContinueTaskExecution();
+            //OnInternalStatusChanged();
             //DetectTaskCompletion();
         }
         /// <summary>
@@ -565,8 +596,6 @@ namespace NGinnBPM.Runtime.Tasks
                     return;
                 }
                 //else throw new Exception("Invalid transition status");
-                //DetectTaskCompletion();
-                OnInternalStatusChanged();
             }
         }
 
@@ -603,7 +632,6 @@ namespace NGinnBPM.Runtime.Tasks
                         ti.Status = TransitionStatus.Failed;
                         log.Info("Continuing with {0} error handlers", ti.TaskId);
                         ProduceTaskOutputTokens(ti.InstanceId);
-                        OnInternalStatusChanged();
                     }
                     else
                     {
@@ -676,12 +704,12 @@ namespace NGinnBPM.Runtime.Tasks
 
         protected virtual void OnTokenAdded(string placeId)
         {
-            _canContinue = null;
+            
         }
 
         protected virtual void OnTokenRemoved(string placeId)
         {
-            _canContinue = null;
+            
         }
 
         [IgnoreDataMember]
@@ -694,16 +722,12 @@ namespace NGinnBPM.Runtime.Tasks
             }
         }
 
-        public override void Enable(Dictionary<string, object> inputData)
+        protected override void OnTaskEnabled()
         {
-            if (this.Status != TaskStatus.Enabling)
-                throw new InvalidTaskStatusException("Invalid status").SetInstanceId(InstanceId);
+            base.OnTaskEnabled();
             AddToken(MyTask.StartPlace.Id);
-            base.Enable(inputData);
-            Status = TaskStatus.Enabled;
-            DoContinue();
+            ContinueTaskExecution();
         }
-
         
         /// <summary>
         /// Return number of free (unallocated) tokens in given place
@@ -1226,8 +1250,10 @@ namespace NGinnBPM.Runtime.Tasks
                         CancelTransition1(ti.InstanceId); //todo: no need to put timeout for each cancellation here
                     //CancelTransition(ti.InstanceId, false);
                 }
+                throw new NotImplementedException(); //TODO: start compensation instead of cleaning up the marking
                 Marking = new Dictionary<string, int>();
-                _canContinue = false;
+                
+                ContinueTaskExecution();
                 
                 //DefaultHandleTaskCancelled();
             }
@@ -1255,7 +1281,7 @@ namespace NGinnBPM.Runtime.Tasks
                 //CancelTransition(ti.InstanceId, false);
             }
             Marking = new Dictionary<string, int>();
-            OnInternalStatusChanged();    
+            ContinueTaskExecution();    
         }
 
         /// <summary>
@@ -1277,7 +1303,7 @@ namespace NGinnBPM.Runtime.Tasks
                     //CancelTransition(ti.InstanceId, false);
                 }
                 Marking = new Dictionary<string, int>();
-                _canContinue = false;
+                throw new NotImplementedException(); //TODO: implement cancellation/compensation here
                 DefaultHandleTaskFailure(errorInformation, true);
             }
         }
@@ -1312,7 +1338,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<TaskStartedEvent> Members
 
-        public void Handle(TaskSelected message)
+        private void Handle(TaskSelected message)
         {
             HandleChildTaskStarted(message);
         }
@@ -1321,7 +1347,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<TaskFailedEvent> Members
 
-        public void Handle(TaskFailed message)
+        private void Handle(TaskFailed message)
         {
             HandleChildTaskFailed(message);
         }
@@ -1330,7 +1356,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<TaskCompletedEvent> Members
 
-        public void Handle(TaskCompleted message)
+        private void Handle(TaskCompleted message)
         {
             HandleChildTaskCompleted(message);
         }
@@ -1339,7 +1365,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<TaskCancelled> Members
 
-        public void Handle(TaskCancelled message)
+        private void Handle(TaskCancelled message)
         {
             HandleChildTaskCancelled(message);
         }
@@ -1407,7 +1433,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// Handle child task enabled message
         /// </summary>
         /// <param name="message"></param>
-        protected void Handle(TaskEnabled message)
+        private void Handle(TaskEnabled message)
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId)
@@ -1441,6 +1467,7 @@ namespace NGinnBPM.Runtime.Tasks
         {
             base.HandleTaskExecEvent(ev);
             HandleChildTaskEvent(ev);
+            ContinueTaskExecution();
         }
 
         protected void HandleChildTaskEvent(TaskExecEvent ev)

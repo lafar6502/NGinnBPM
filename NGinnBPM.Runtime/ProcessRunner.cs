@@ -190,6 +190,7 @@ namespace NGinnBPM.Runtime
                 return;
             }
 
+            IEnumerable<ProcessMessage> outgoing = null;
             InSystemTransaction(() =>
             {
                 InDbTransaction(dbs =>
@@ -203,12 +204,42 @@ namespace NGinnBPM.Runtime
                             ProcessSession.Current = ps;
                             act(ps);
                             ps.PumpMessages();
+                            outgoing = ps.GetOutgoingAsyncMessages();
                         }
                         pess.SaveChanges();
                         Services.TaskPersisterSession.Current = null;
                     }
                 });
             });
+            if (outgoing != null)
+            {
+                foreach (var pm in outgoing)
+                {
+                    SendLocalAsyncMessage(pm);
+                }
+            }
+        }
+
+        protected void SendLocalAsyncMessage(ProcessMessage pm)
+        {
+            System.Threading.Tasks.Task.Factory.StartNew((q) =>
+            {
+                ProcessMessage m = q as ProcessMessage;
+                try
+                {
+                    log.Warn("Handling async message {0} from {1}", m.GetType().Name, m.FromTaskInstanceId);
+                    HandleLocalAsyncMessage(pm);
+                }
+                catch (Exception ex)
+                {
+                    //TODO: some error handling here, for example report 'TaskFailed' for EnableTask
+                    log.Error("Error handling local async message {0} from {1}: {2}", m.GetType().Name, m.FromTaskInstanceId);
+                }
+            }, pm);
+        }
+
+        protected void HandleLocalAsyncMessage(ProcessMessage pm)
+        {
         }
 
         #region internals, event handlers
@@ -226,7 +257,7 @@ namespace NGinnBPM.Runtime
             });
         }
 
-        internal void DeliverTaskControlMessage(TaskControlMessage tcm)
+        internal void DeliverTaskControlMessage(TaskControlCommand tcm)
         {
             RunProcessTransaction(this.DefaultPersistenceMode,ps =>
             {
@@ -287,6 +318,8 @@ namespace NGinnBPM.Runtime
                     return new EmptyTaskInstance();
                 case NGinnTaskType.Timer:
                     return new TimerTaskInstance();
+                case NGinnTaskType.Debug:
+                    return new DebugTaskInstance();
                 default:
                     return new EmptyTaskInstance();
             }

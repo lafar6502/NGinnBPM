@@ -5,12 +5,12 @@ using System.Text;
 
 namespace NGinnBPM.Runtime.TaskExecutionEvents
 {
-    public class TaskControlMessage : ProcessMessage
+    public class TaskControlCommand : ProcessMessage
     {
         public string ToTaskInstanceId { get; set; }
     }
 
-    public class EnableChildTask : TaskControlMessage
+    public class EnableChildTask : TaskControlCommand
     {
         public string ProcessDefinitionId { get; set; }
         public string TaskId { get; set; }
@@ -21,13 +21,13 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
         public List<Dictionary<string, object>> MultiInputData { get; set; }
     }
 
-    public class StartProcess : TaskControlMessage
+    public class StartProcess : TaskControlCommand
     {
         public string ProcessDefinitionId { get; set; }
         public Dictionary<string, object> InputData { get; set; }
     }
 
-    public class CancelTask : TaskControlMessage
+    public class CancelTask : TaskControlCommand
     {
         public string Reason { get; set; }
     }

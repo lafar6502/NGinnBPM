@@ -32,7 +32,7 @@ namespace NGinnBPM.Runtime
             SendProcessMessage(ev, false);
         }
 
-        public void SendTaskControlMessage(TaskExecutionEvents.TaskControlMessage msg)
+        public void SendTaskControlMessage(TaskExecutionEvents.TaskControlCommand msg)
         {
             SendProcessMessage(msg, false);
         }
@@ -160,7 +160,7 @@ namespace NGinnBPM.Runtime
             _runner.DeliverTaskExecEvent(ev);
         }
 
-        protected void DeliverControlMessage(TaskControlMessage msg)
+        protected void DeliverControlMessage(TaskControlCommand msg)
         {
             _runner.DeliverTaskControlMessage(msg);
         }
@@ -189,15 +189,20 @@ namespace NGinnBPM.Runtime
                         {
                             DeliverEvent((TaskExecEvent)m);
                         }
-                        else if (m is TaskControlMessage)
+                        else if (m is TaskControlCommand)
                         {
-                            DeliverControlMessage((TaskControlMessage)m);
+                            DeliverControlMessage((TaskControlCommand)m);
                         }
                         break;
                     default:
                         throw new Exception();
                 }
             }
+        }
+
+        public IEnumerable<ProcessMessage> GetOutgoingAsyncMessages()
+        {
+            return _asyncQueue;
         }
     }
 }

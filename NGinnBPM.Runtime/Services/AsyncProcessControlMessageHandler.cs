@@ -14,7 +14,7 @@ namespace NGinnBPM.Runtime.Services
     /// </summary>
     public class AsyncProcessControlMessageHandler : 
         IMessageConsumer<TaskExecEvent>,
-        IMessageConsumer<TaskControlMessage>
+        IMessageConsumer<TaskControlCommand>
     {
         private ProcessRunner _pr;
         private static Logger log = LogManager.GetCurrentClassLogger();
@@ -28,12 +28,12 @@ namespace NGinnBPM.Runtime.Services
 
         public void Handle(TaskExecEvent message)
         {
-            _pr.DeliverTaskExecEvent(message);
+            MessageBusUtil.ShareDbConnection(DbSessionFactory, () => _pr.DeliverTaskExecEvent(message));
         }
 
-        public void Handle(TaskControlMessage message)
+        public void Handle(TaskControlCommand message)
         {
-            _pr.DeliverTaskControlMessage(message);
+            MessageBusUtil.ShareDbConnection(DbSessionFactory, () => _pr.DeliverTaskControlMessage(message));
         }
     }
 }

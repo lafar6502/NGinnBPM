@@ -59,6 +59,7 @@ namespace NGinnBPM.ProcessModel
         Timer,
         Notification,
         XmlHttp,
-        Composite
+        Composite,
+        Debug
     }
 }

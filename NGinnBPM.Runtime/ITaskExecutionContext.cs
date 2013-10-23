@@ -19,7 +19,7 @@ namespace NGinnBPM.Runtime
         /// will be rolled back, so you don't really have to worry about messages failing.
         /// </summary>
         /// <param name="msg"></param>
-        void SendTaskControlMessage(TaskExecutionEvents.TaskControlMessage msg);
+        void SendTaskControlMessage(TaskExecutionEvents.TaskControlCommand msg);
         void ScheduleTaskEvent(TaskExecutionEvents.TaskExecEvent ev, DateTime deliveryDate);
         
 

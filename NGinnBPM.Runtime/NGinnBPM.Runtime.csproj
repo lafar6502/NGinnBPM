@@ -96,10 +96,12 @@
     <Compile Include="Services\InMemoryTaskPersister.cs" />
     <Compile Include="Services\ITaskInstancePersister.cs" />
     <Compile Include="Services\ITaskInstanceSerializer.cs" />
+    <Compile Include="Services\MessageBusUtil.cs" />
     <Compile Include="Services\SqlDbSessionFactory.cs" />
     <Compile Include="Services\SqlTaskInstancePersister.cs" />
     <Compile Include="Services\SqlUtil.cs" />
     <Compile Include="TaskExecutionEvents\ProcessMessage.cs" />
+    <Compile Include="TaskExecutionEvents\TaskControlCommandFailed.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlMessage.cs" />
     <Compile Include="TaskExecutionEvents\TaskEvent.cs" />
     <Compile Include="TaskExecutionEvents\TaskTimerEvent.cs" />

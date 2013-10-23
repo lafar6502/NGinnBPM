@@ -24,7 +24,14 @@ namespace NGinnBPM.Runtime.ProcessDSL
             "System",
             "System.Data.SqlTypes",
             "System.IO",
-            "System.Text"
+            "System.Text",
+            "NGinnBPM.ProcessModel",
+            "NGinnBPM.ProcessModel.Data",
+            "NGinnBPM.Runtime.Tasks",
+            "NGinnBPM.Runtime.TaskExecutionEvents",
+            "NGinnBPM.Runtime.Services",
+            "NGinnBPM.MessageBus",
+            "NLog"
         };
 
         public string[] Namespaces

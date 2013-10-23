@@ -122,6 +122,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         public virtual void ForceFail(string errorInfo)
         {
+            DefaultHandleTaskFailure(errorInfo, true);
         }
 
         public virtual void Select()
@@ -142,6 +143,7 @@ namespace NGinnBPM.Runtime.Tasks
         protected Dictionary<string, object> GetOutputData()
         {
             Dictionary<string, object> ret = new Dictionary<string, object>();
+            if (TaskDefinition.Variables == null) return ret;
             foreach (var vd in TaskDefinition.Variables)
             {
                 if (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.Out ||
@@ -195,6 +197,9 @@ namespace NGinnBPM.Runtime.Tasks
         /// <param name="failureIntended"></param>
         protected virtual void DefaultHandleTaskFailure(string errorInfo, bool failureIntended)
         {
+            if (Status != TaskStatus.Enabled && Status != TaskStatus.Enabling &&
+                Status != TaskStatus.Selected && Status != TaskStatus.Cancelling)
+                throw new Exception("Invalid status");
             Status = TaskStatus.Failed;
             StatusInfo = errorInfo;
             Context.NotifyTaskEvent(new TaskFailed

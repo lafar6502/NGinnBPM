@@ -9,12 +9,19 @@ namespace NGinnBPM.Runtime.Tasks
     /// <summary>
     /// Task instance for debugging purposes. Must be manually completed and logs all activity.
     /// </summary>
-    [Serializable]
     [DataContract]
     public class DebugTaskInstance : AtomicTaskInstance
     {
-        
+        [DataMember]
+        public bool DoFail { get; set; }
 
+        protected override void OnTaskEnabled()
+        {
+            if (DoFail)
+            {
+                this.ForceFail("testing the failure");
+            }
+        }
         
     }
 }

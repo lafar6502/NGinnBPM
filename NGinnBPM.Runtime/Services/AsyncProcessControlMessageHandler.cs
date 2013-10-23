@@ -19,6 +19,8 @@ namespace NGinnBPM.Runtime.Services
         private ProcessRunner _pr;
         private static Logger log = LogManager.GetCurrentClassLogger();
 
+        public IDbSessionFactory DbSessionFactory { get; set; }
+
         public AsyncProcessControlMessageHandler(ProcessRunner pr)
         {
             _pr = pr;

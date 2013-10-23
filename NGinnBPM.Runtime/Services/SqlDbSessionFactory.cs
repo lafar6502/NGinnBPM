@@ -40,6 +40,7 @@ namespace NGinnBPM.Runtime.Services
     {
         public string ConnectionString { get; set; }
 
+        
         public DbSession OpenSession()
         {
             if (string.IsNullOrEmpty(ConnectionString)) throw new Exception("ConnectionString");
@@ -49,6 +50,22 @@ namespace NGinnBPM.Runtime.Services
             conn.ConnectionString = cs == null ? this.ConnectionString : cs.ConnectionString;
             conn.Open();
             return new SqlSession(conn, true);
+        }
+
+        public DbSession OpenSession(object connection)
+        {
+            DbConnection c = connection as DbConnection;
+            if (c == null) throw new Exception("DbConnection expected");
+            var cse = ConfigurationManager.ConnectionStrings[this.ConnectionString];
+            string cs = cse == null ? this.ConnectionString : cse.ConnectionString;
+            if (!SqlUtil.IsSameDatabaseConnection(cs, c.ConnectionString))
+            {
+                return OpenSession();
+            }
+            else
+            {
+                return new SqlSession(c, false);
+            }
         }
     }
 }

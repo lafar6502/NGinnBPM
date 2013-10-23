@@ -25,7 +25,7 @@ namespace NGinnBPM.Runtime.Services
             var th = new TaskHolder { State = RecordState.Unmodified };
             using (var cmd = _ses.Connection.CreateCommand())
             {
-                cmd.CommandText = string.Format("select instance_id, task_data, task_type, version from TaskInstance {1} where instance_id='{0}'", instanceId, forUpdate ? "with(updlock)" : "");
+                cmd.CommandText = string.Format("select instance_id, task_data, task_type, version from TaskInstance {1} where instance_id='{0}'", instanceId, forUpdate ? "with(updlock,rowlock)" : "with(rowlock)");
                 using (var dr = cmd.ExecuteReader())
                 {
                     if (!dr.Read()) return null;

@@ -19,6 +19,7 @@ namespace TestHost.cs
 
             var pr = c.GetInstance<ProcessRunner>();
             var proc = pr.StartProcess("Test2.TimerTest.1", new Dictionary<string,object> {});
+            Console.ReadLine();
 
         }
 

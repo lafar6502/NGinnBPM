@@ -222,8 +222,7 @@ namespace NGinnBPM.Runtime
             }
             UpdateTask(ev.ParentTaskInstanceId, ti =>
             {
-                var cti = ti as CompositeTaskInstance;
-                cti.HandleChildTaskEvent(ev);
+                ti.HandleTaskExecEvent(ev);
             });
         }
 
@@ -236,7 +235,12 @@ namespace NGinnBPM.Runtime
                     EnableChildTask(tcm as EnableChildTask);
                     return;
                 }
-                throw new NotImplementedException();
+                else if (tcm is CancelTask)
+                {
+                    CancelTask(tcm.ToTaskInstanceId, "");
+                    return;
+                }
+                else throw new NotImplementedException(tcm.GetType().Name);
             });
         }
 

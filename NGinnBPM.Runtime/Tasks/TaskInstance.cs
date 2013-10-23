@@ -95,6 +95,7 @@ namespace NGinnBPM.Runtime.Tasks
             this.TaskData = new Dictionary<string, object>();
             ScriptRuntime.InitializeNewTask(this, inputData, Context);
             this.Status = TaskStatus.Enabled;
+            EnabledDate = DateTime.Now;
             this.OnTaskEnabled();
             if (this.Status == TaskStatus.Enabled)
             {

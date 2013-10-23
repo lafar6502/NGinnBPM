@@ -1437,7 +1437,13 @@ namespace NGinnBPM.Runtime.Tasks
 
         #endregion
 
-        public void HandleChildTaskEvent(TaskExecEvent ev)
+        public override void HandleTaskExecEvent(TaskExecEvent ev)
+        {
+            base.HandleTaskExecEvent(ev);
+            HandleChildTaskEvent(ev);
+        }
+
+        protected void HandleChildTaskEvent(TaskExecEvent ev)
         {
             if (ev.ParentTaskInstanceId != this.InstanceId) throw new Exception("invalid instance id");
             var ti = GetTransitionInfo(ev.FromTaskInstanceId);

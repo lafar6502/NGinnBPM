@@ -259,6 +259,38 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _curTask = null;
         }
 
+        protected void custom_task(string id, Type taskType, Action act)
+        {
+            task(id, "custom", () =>
+            {
+                implementation_class(taskType);
+                act();
+            });
+        }
+
+        /// <summary>
+        /// Task instance class
+        /// </summary>
+        /// <param name="t"></param>
+        protected void implementation_class(Type t)
+        {
+            _curTask.ImplementationClass = t.FullName;
+        }
+
+        /// <summary>
+        /// Task instance class
+        /// </summary>
+        /// <param name="t"></param>
+        protected void implementation_class(string t)
+        {
+            _curTask.ImplementationClass = t;
+        }
+
+        /// <summary>
+        /// Composite task definition
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="act"></param>
         protected void composite_task(string id, Action act)
         {
             var p = _currentCompositeTask;

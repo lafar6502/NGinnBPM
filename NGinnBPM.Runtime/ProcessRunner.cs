@@ -320,6 +320,11 @@ namespace NGinnBPM.Runtime
                     return new TimerTaskInstance();
                 case NGinnTaskType.Debug:
                     return new DebugTaskInstance();
+                case NGinnTaskType.Custom:
+                    if (string.IsNullOrEmpty(td.ImplementationClass)) throw new Exception("ImplementationClass missing");
+                    Type t = Type.GetType(td.ImplementationClass);
+                    var ti = (TaskInstance)Activator.CreateInstance(t);
+                    return ti;
                 default:
                     return new EmptyTaskInstance();
             }

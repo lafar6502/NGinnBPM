@@ -144,26 +144,22 @@ namespace NGinnBPM.Runtime.Tasks
     [DataContract]
     public class CompositeTaskInstance : TaskInstance
     {
-        protected List<TransitionInfo> _taskRecords = new List<TransitionInfo>();
         private static Logger log = LogManager.GetCurrentClassLogger();
 
         public CompositeTaskInstance()
         {
             Marking = new Dictionary<string, int>();
+            AllTasks = new List<TransitionInfo>();
         }
         /// <summary>
         /// Return list of currently active tasks
         /// </summary>
         [IgnoreDataMember]
-        public IList<TransitionInfo> ActiveTasks
+        public IEnumerable<TransitionInfo> ActiveTasks
         {
             get 
             {
-                List<TransitionInfo> lst = new List<TransitionInfo>();
-                foreach (TransitionInfo ti in _taskRecords)
-                    if (ti.IsTransitionActive)
-                        lst.Add(ti);
-                return lst;
+                return AllTasks.Where(ti => ti.IsTransitionActive);
             }
         }
 
@@ -203,7 +199,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// <returns></returns>
         public TransitionInfo GetActiveInstanceOfTask(string taskId)
         {
-            return _taskRecords.FirstOrDefault(x => x.TaskId == taskId && x.IsTransitionActive);
+            return AllTasks.FirstOrDefault(x => x.TaskId == taskId && x.IsTransitionActive);
         }
 
         /// <summary>
@@ -211,12 +207,8 @@ namespace NGinnBPM.Runtime.Tasks
         /// of composite task
         /// </summary>
         [DataMember(IsRequired=false)]
-        public IList<TransitionInfo> AllTasks
-        {
-            get { return _taskRecords; }
-            set { _taskRecords = new List<TransitionInfo>(value); }
-        }
-
+        public List<TransitionInfo> AllTasks { get;set;}
+        
         [DataMember(IsRequired=true)]
         [JsonConverter(typeof(NoTypeJsonConverter))]
         public Dictionary<string, int> Marking {get;set;}
@@ -254,7 +246,7 @@ namespace NGinnBPM.Runtime.Tasks
                 }
             }
 
-            if (ActiveTasks.Count > 0)
+            if (ActiveTasks.FirstOrDefault() != null)
             {
                 return; //we have active tasks so let's wait until they execute
             }
@@ -470,7 +462,7 @@ namespace NGinnBPM.Runtime.Tasks
                 {
                     msg.InputData = ScriptRuntime.PrepareChildTaskInputData(this, tsk, Context);
                 }
-                _taskRecords.Add(ti);
+                AllTasks.Add(ti);
                 Context.SendTaskControlMessage(msg);
                 log.Info("Child task {0} created: {1}", taskId, ti.InstanceId);
                 return ti.InstanceId;
@@ -483,9 +475,7 @@ namespace NGinnBPM.Runtime.Tasks
         
         protected TransitionInfo GetTransitionInfo(string corrId)
         {
-            foreach (TransitionInfo ti in _taskRecords)
-                if (ti.InstanceId == corrId) return ti;
-            return null;
+            return AllTasks.FirstOrDefault(x => x.InstanceId == corrId);
         }
 
         
@@ -886,6 +876,32 @@ namespace NGinnBPM.Runtime.Tasks
         }
 
         /// <summary>
+        /// Starts compensation run by producing tokens on the 'compensate' output of 
+        /// all completed tasks.
+        /// </summary>
+        private void StartCompensationOfCompletedTasks()
+        {
+            if (this.Status != TaskStatus.Cancelling) throw new Exception();
+            
+            var completedTasks = AllTasks.Where(ti => ti.Status == TransitionStatus.Completed).Select(ti => ti.TaskId).Distinct();
+            foreach (string id in completedTasks)
+            {
+                TaskDef td = MyTask.GetTask(id);
+                foreach (FlowDef fd in td.GetFlowsForPortOut(TaskOutPortType.Compensate))
+                {
+                    if (fd.IsCancelling)
+                    {
+                        RemoveAllTokensInPlace(fd.To);
+                    }
+                    else
+                    {
+                        AddToken(fd.To);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
         /// Handle task completion - no matter if its a normal completion,
         /// failure or cancellation. Execute appropriate output flows.
         /// </summary>
@@ -1250,12 +1266,10 @@ namespace NGinnBPM.Runtime.Tasks
                         CancelTransition1(ti.InstanceId); //todo: no need to put timeout for each cancellation here
                     //CancelTransition(ti.InstanceId, false);
                 }
-                throw new NotImplementedException(); //TODO: start compensation instead of cleaning up the marking
+                //now remove all tokens and start compensating flow
                 Marking = new Dictionary<string, int>();
-                
+                StartCompensationOfCompletedTasks();
                 ContinueTaskExecution();
-                
-                //DefaultHandleTaskCancelled();
             }
         }
 

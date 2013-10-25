@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SC = System.Collections;
 using System.Linq;
 using System.Text;
 using NGinnBPM.Runtime;
@@ -97,7 +98,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
             string ks = DslUtil.TaskScriptKey(ti.TaskId, "_variableUpdateOnComplete");
             if (_pd._taskScripts.ContainsKey(ks)) _pd._taskScripts[ks]();
             var td = _def.GetRequiredTask(ti.TaskId);
-
+            
             foreach (var bd in td.OutputParameterBindings)
             {
                 string k = DslUtil.TaskParamOutBindingKey(td.Id, bd.Target);
@@ -116,6 +117,13 @@ namespace NGinnBPM.Runtime.ProcessDSL
                     ti.TaskData[bd.Target] = bd.Source; //todo: type convert
                 }
                 else throw new Exception();
+            }
+            
+            string k2 = DslUtil.TaskOutputDataBindingKey(td.Id);
+            if (_pd._variableBinds.ContainsKey(k2))
+            {
+                SC.IDictionary dic = (SC.IDictionary)_pd._variableBinds[k2]();
+                return ToTaskData(dic);
             }
             Dictionary<string, object> ret = new Dictionary<string, object>();
             foreach (var vd in td.Variables.Where(x => x.VariableDir == ProcessModel.Data.VariableDef.Dir.Out || x.VariableDir == ProcessModel.Data.VariableDef.Dir.InOut))
@@ -145,6 +153,15 @@ namespace NGinnBPM.Runtime.ProcessDSL
         public Dictionary<string, object> PrepareChildTaskInputData(CompositeTaskInstance cti, TaskDef childTask, ITaskExecutionContext ctx)
         {
             _pd.SetTaskInstanceInfo(cti, ctx);
+            
+            string k1 = DslUtil.TaskInputDataBindingKey(childTask.Id);
+            if (_pd._variableBinds.ContainsKey(k1))
+            {
+                //get full data record
+                SC.IDictionary dic = (SC.IDictionary)_pd._variableBinds[k1]();
+                return ToTaskData(dic);
+            }
+
             Dictionary<string, object> ret = new Dictionary<string, object>();
             if (childTask.Variables != null)
             {
@@ -184,8 +201,46 @@ namespace NGinnBPM.Runtime.ProcessDSL
             return ret;
         }
 
+        private Dictionary<string, object> ToTaskData(SC.IDictionary dic)
+        {
+            Dictionary<string, object> ret = new Dictionary<string, object>();
+            foreach (string k in dic.Keys)
+            {
+                object v = dic[k];
+                if (v is SC.IDictionary) v = ToTaskData((SC.IDictionary)v);
+                ret[k] = v;
+            }
+            return ret;
+        }
+
         public IEnumerable<Dictionary<string, object>> PrepareMultiInstanceTaskInputData(CompositeTaskInstance cti, TaskDef childTask, ITaskExecutionContext ctx)
         {
+            if (!childTask.IsMultiInstance) throw new Exception();
+            var k = DslUtil.TaskMultiInstanceSplitKey(childTask.Id);
+            Func<object> fun = _pd._variableBinds[k];
+            if (fun == null) throw new Exception();
+            _pd.SetTaskInstanceInfo(cti, ctx);
+            SC.IEnumerable enu;
+            var val = fun();
+            enu = val is SC.IEnumerable ? (SC.IEnumerable) val : new object[] { val };
+            List<Dictionary<string, object>> ret = new List<Dictionary<string, object>>();
+            foreach (object item in enu)
+            {
+                if (item is Dictionary<string, object>) 
+                {
+                    ret.Add((Dictionary<string, object>) item);
+                }
+                else if (item is SC.IDictionary)
+                {
+                    ret.Add(ToTaskData((SC.IDictionary)item));
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
+            return ret;
+            
             /*
             ITaskScript scr = Context.ScriptManager.GetTaskScript(this.ParentProcess, taskId);
             Task tsk = MyTask.RequireTask(taskId);

@@ -33,6 +33,14 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
     }
 
     /// <summary>
+    /// Multi-instance task has completed
+    /// </summary>
+    public class MultiTaskCompleted : TaskCompleted
+    {
+        public List<Dictionary<string, object>> MultiOutputData { get; set; }
+    }
+
+    /// <summary>
     /// This message will be reported if a task fails and there's an error handler anywhere up to the process root
     /// task.
     /// </summary>

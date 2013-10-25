@@ -15,6 +15,11 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
         public string ProcessDefinitionId { get; set; }
         public string TaskId { get; set; }
         public Dictionary<string, object> InputData { get; set; }
+        
+    }
+
+    public class EnableMultiChildTask : EnableChildTask
+    {
         /// <summary>
         /// Used for multi-instance tasks
         /// </summary>

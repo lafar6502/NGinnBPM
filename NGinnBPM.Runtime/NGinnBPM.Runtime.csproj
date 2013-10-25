@@ -102,6 +102,7 @@
     <Compile Include="Services\SqlTaskInstancePersister.cs" />
     <Compile Include="Services\SqlUtil.cs" />
     <Compile Include="TaskExecutionEvents\ProcessMessage.cs" />
+    <Compile Include="TaskExecutionEvents\StartSubProcess.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlCommandFailed.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlMessage.cs" />
     <Compile Include="TaskExecutionEvents\TaskEvent.cs" />

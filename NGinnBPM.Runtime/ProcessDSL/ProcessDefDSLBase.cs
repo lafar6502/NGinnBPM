@@ -40,22 +40,45 @@ namespace NGinnBPM.Runtime.ProcessDSL
         }
 
         protected static readonly string required = "required";
-        protected static readonly string array = "array";
+        protected static readonly string isArray = "array";
         protected static readonly string dir = "dir";
         protected static VariableDef.Dir input = VariableDef.Dir.In;
         protected static VariableDef.Dir output = VariableDef.Dir.Out;
         protected static VariableDef.Dir local = VariableDef.Dir.Local;
         protected static VariableDef.Dir in_out = VariableDef.Dir.InOut;
 
+        /// <summary>
+        /// Task input data, set when enabling the task.
+        /// </summary>
         protected BL.IQuackFu InputData { get; set; }
+        /// <summary>
+        /// current task's data
+        /// </summary>
         protected BL.IQuackFu TaskData { get; set; }
+        /// <summary>
+        /// Output data contains task output data when binding to parent task variables
+        /// (it is set on task completion only)
+        /// </summary>
         protected BL.IQuackFu OutputData { get; set; }
+        /// <summary>
+        /// Item contains a data record when iterating multi-instance input data
+        /// </summary>
+        protected BL.IQuackFu Item { get; set; }
+        /// <summary>
+        /// ParentData is an alias for TaskData
+        /// </summary>
         protected BL.IQuackFu ParentData
         {
             get { return TaskData; }
         }
         [BL.DuckTyped]
         protected TaskInstance Task { get; set; }
+        /// <summary>
+        /// Task's document (actual type depends on document repository provided)
+        /// </summary>
+        [BL.DuckTyped]
+        protected object Document { get; set; }
+
         protected ITaskExecutionContext Context { get; set; }
         internal Dictionary<string, Func<bool>> _flowConditions = new Dictionary<string, Func<bool>>();
         internal Dictionary<string, Func<object>> _variableBinds = new Dictionary<string, Func<object>>();
@@ -80,6 +103,24 @@ namespace NGinnBPM.Runtime.ProcessDSL
         public void SetOutputData(Dictionary<string, object> data)
         {
             OutputData = new QuackTaskDataWrapper(data);
+        }
+
+        public void SetItem(object v)
+        {
+            if (v is SC.IDictionary)
+            {
+                Item = new QuackTaskDataWrapper((SC.IDictionary)v);
+            }
+            else if (v is Dictionary<string, object>)
+            {
+                Item = new QuackTaskDataWrapper((Dictionary<string, object>)v);
+            }
+            else 
+            {
+                Item = new QuackTaskDataWrapper(new Dictionary<string, object> {
+                    {"Value", v}
+                });
+            }
         }
 
 
@@ -174,6 +215,48 @@ namespace NGinnBPM.Runtime.ProcessDSL
             return new AST.MethodInvocationExpression(new AST.ReferenceExpression("variable_default"), condition, new AST.StringLiteralExpression(expr.ToCodeString()));
         }
 
+        protected void input_bindings_code(Func<SC.IDictionary> fun, string codeStr)
+        {
+            TaskDef tsk = _curTask != null ? _curTask : (TaskDef)_currentCompositeTask;
+            string k = DslUtil.TaskInputDataBindingKey(tsk.Id);
+            _variableBinds[k] = fun;
+        }
+
+        protected void output_bindings_code(Func<SC.IDictionary> fun, string codeStr)
+        {
+            TaskDef tsk = _curTask != null ? _curTask : (TaskDef)_currentCompositeTask;
+            string k = DslUtil.TaskOutputDataBindingKey(tsk.Id);
+            _variableBinds[k] = fun;
+        }
+        
+        /// <summary>
+        /// Complete binding of task input data
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        [BL.Meta]
+        protected static  AST.Expression task_input_data(AST.Expression expr)
+        {
+            AST.BlockExpression condition = new AST.BlockExpression();
+            condition.Body.Add(new AST.ReturnStatement(expr));
+            return new AST.MethodInvocationExpression(new AST.ReferenceExpression("input_bindings_code"), condition, new AST.StringLiteralExpression(expr.ToCodeString()));
+        }
+
+        /// <summary>
+        /// Complete binding of task output data
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        [BL.Meta]
+        protected static AST.Expression task_output_data(AST.Expression expr)
+        {
+            AST.BlockExpression condition = new AST.BlockExpression();
+            condition.Body.Add(new AST.ReturnStatement(expr));
+            return new AST.MethodInvocationExpression(new AST.ReferenceExpression("output_bindings_code"), condition, new AST.StringLiteralExpression(expr.ToCodeString()));
+        }
+
+        
+
         protected void variable_input_binding(Func<object> f, string codeString)
         {
             if (_curVar == null) throw new Exception("input_binding only in variable def");
@@ -258,6 +341,29 @@ namespace NGinnBPM.Runtime.ProcessDSL
             _currentCompositeTask.AddTask(_curTask);
             _curTask = null;
         }
+
+        protected void multi_instance_split_expression(Func<object> dataSplitQuery, string code)
+        {
+            TaskDef tsk = _curTask != null ? _curTask : (TaskDef) _currentCompositeTask;
+            string k = DslUtil.TaskMultiInstanceSplitKey(tsk.Id);
+            tsk.MultiInstanceSplitExpression = string.IsNullOrEmpty(code) ? "# compiled code block" : code;
+            _variableBinds[k] = dataSplitQuery;
+        }
+
+        /// <summary>
+        /// Multi-instance split expression
+        /// This function is used for defining multi-instance tasks
+        /// </summary>
+        /// <param name="expr"></param>
+        /// <returns></returns>
+        [BL.Meta]
+        protected static AST.Expression multi_instance_split(AST.Expression expr)
+        {
+            AST.BlockExpression condition = new AST.BlockExpression();
+            condition.Body.Add(new AST.ReturnStatement(expr));
+            return new AST.MethodInvocationExpression(new AST.ReferenceExpression("multi_instance_split_expression"), condition, new AST.StringLiteralExpression(expr.ToCodeString()));
+        }
+
 
         protected void custom_task(string id, Type taskType, Action act)
         {
@@ -409,7 +515,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
             else if (_curVar != null)
             {
                 _curVar.IsRequired = GetOption(options, required, _curVar.IsRequired);
-                _curVar.IsArray = GetOption(options, array, _curVar.IsArray);
+                _curVar.IsArray = GetOption(options, isArray, _curVar.IsArray);
                 _curVar.VariableDir = GetOption(options, dir, _curVar.VariableDir);
                 _curVar.DefaultValueExpr = GetOption(options, "defaultValue", _curVar.DefaultValueExpr);
             }

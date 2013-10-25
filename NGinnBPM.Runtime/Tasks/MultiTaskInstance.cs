@@ -32,7 +32,6 @@ namespace NGinnBPM.Runtime.Tasks
         /// If true, some of them can fail.
         /// </summary>
         [DataMember]
-        //[TaskParameter(IsInput=true, Required=false)]
         public bool AllowChildTaskFailures { get; set; }
 
         [DataMember(IsRequired=true)]
@@ -45,34 +44,17 @@ namespace NGinnBPM.Runtime.Tasks
 
         public TransitionInfo GetTransitionInfo(string instanceId)
         {
-            foreach (TransitionInfo ti in ChildTransitions)
-            {
-                if (ti.InstanceId == instanceId)
-                    return ti;
-            }
-            return null;
+            return ChildTransitions.FirstOrDefault(x => x.InstanceId == instanceId);
         }
 
         public override void Enable(Dictionary<string, object> inputData)
         {
-            List<Dictionary<string, object>> lst = new List<Dictionary<string, object>>();
-            lst.Add(new Dictionary<string, object>(inputData));
-            Enable(lst);
+            throw new NotImplementedException();
         }
 
        
 
         /// <summary>
-        /// Do we have a race condition here?
-        /// When enabling, the task is not yet persisted. So if it enables child tasks,
-        /// we cannot accept messages from them until we are persisted as well...
-        /// How to handle this???
-        /// Current approach is to set a lock on instance ID so incoming child events will  have to wait
-        /// until the lock is released...
-        /// Problem: current task is not saved when enabling child tasks, however we are giving them parent
-        /// id. Their parent is not in database, so they cannot access parent task instance...
-        /// Solution - do it in async way........ not very performant, however. At least unless we use
-        /// better messaging
         /// </summary>
         /// <param name="inputData"></param>
         public void Enable(ICollection<Dictionary<string, object>> inputData)
@@ -81,29 +63,25 @@ namespace NGinnBPM.Runtime.Tasks
             //TODO: validate the data
             if (inputData.Count == 0)
                 throw new TaskDataInvalidException(TaskId, InstanceId, "No input data for multi-instance task");
-
+            this.Status = TaskStatus.Enabling;
             foreach (Dictionary<string, object> dob in inputData)
             {
                 TransitionInfo ti = new TransitionInfo();
                 ti.Status = TransitionStatus.Enabling;
                 ti.InstanceId = AllocateNewTaskInstanceId(TaskId);
                 ChildTransitions.Add(ti);
+                
                 Context.SendTaskControlMessage(new EnableChildTask {
+                    Mode = MessageHandlingMode.SameTransaction,
                     CorrelationId = ti.InstanceId,
                     FromProcessInstanceId = this.ProcessInstanceId,
                     FromTaskInstanceId = this.InstanceId,
+                    ToTaskInstanceId = ti.InstanceId,
                     InputData = dob,
                     ProcessDefinitionId = this.ProcessDefinitionId,
                     TaskId = this.TaskId
                 });
             }
-            this.Status = TaskStatus.Enabled;
-            EnabledDate = DateTime.Now;
-            Context.NotifyTaskEvent(new TaskEnabled
-            {
-                FromTaskInstanceId = this.InstanceId,
-                ParentTaskInstanceId = this.ParentTaskInstanceId
-            });
         }
 
         
@@ -117,6 +95,22 @@ namespace NGinnBPM.Runtime.Tasks
 
         protected void OnTransitionStatusChanged(string transitionId)
         {
+            if (Status == TaskStatus.Enabling)
+            {
+                if (ChildTransitions.Any(x => x.Status == TransitionStatus.Enabled ||
+                    x.Status == TransitionStatus.Started ||
+                    x.Status == TransitionStatus.Completed))
+                {
+                    this.Status = TaskStatus.Enabled;
+                    EnabledDate = DateTime.Now;
+                    Context.NotifyTaskEvent(new TaskEnabled {
+                        FromTaskInstanceId = this.InstanceId,
+                        ParentTaskInstanceId = this.ParentTaskInstanceId,
+                        FromProcessInstanceId = this.ProcessInstanceId
+                    });
+                }
+            }
+
             if (IsAnyTransitionActiveYet())
             {
                 return;
@@ -143,9 +137,14 @@ namespace NGinnBPM.Runtime.Tasks
                         log.Info("Skipping failed or cancelled child task: {0}", ti);
                     }
                 }
-                Dictionary<string, object> dob2 = new Dictionary<string, object>();
-                dob2["multiInstanceResults"] = lst;
-                DefaultHandleTaskCompletion(dob2);
+                
+                Status = TaskStatus.Completed;
+                Context.NotifyTaskEvent(new MultiTaskCompleted
+                {
+                    FromTaskInstanceId = this.InstanceId,
+                    ParentTaskInstanceId = this.ParentTaskInstanceId,
+                    MultiOutputData = lst
+                });
             }
         }
 
@@ -186,11 +185,13 @@ namespace NGinnBPM.Runtime.Tasks
                 CancelRemainingActiveChildTasks();
                 if (!IsAnyTransitionActiveYet())
                 {
+                    //we can just report cancellation
                     base.DefaultHandleTaskCancel(reason);
                     Debug.Assert(Status == TaskStatus.Cancelled);
                 }
                 else
                 {
+                    //wait for all subtasks to cancel
                     Status = TaskStatus.Cancelling;
                 }
             }
@@ -198,15 +199,12 @@ namespace NGinnBPM.Runtime.Tasks
 
         private bool IsAnyTransitionActiveYet()
         {
-            foreach (TransitionInfo ti in ChildTransitions)
-            {
-                if (ti.IsTransitionActive) return true;
-            }
-            return false;
+            return ChildTransitions.Any(x => x.IsTransitionActive);
         }
 
         public override void ForceFail(string errorInformation)
         {
+            //cancel all subtasks without waiting for cancellation to complete
             CancelRemainingActiveChildTasks();
             this.DefaultHandleTaskFailure(errorInformation, true);
         }
@@ -241,24 +239,28 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<TaskEnabledMessage> Members
 
-        public void Handle(TaskEnabled message)
+        private void Handle(TaskEnabled message)
         {
             RequireActivation(true);
-            TransitionInfo ti = GetTransition(message.CorrelationId);
+            TransitionInfo ti = GetTransition(message.FromTaskInstanceId);
+            if (ti == null) ti = GetTransition(message.CorrelationId);
             if (ti == null) throw new TaskRuntimeException("Child transition not found: " + message.CorrelationId).SetInstanceId(InstanceId);
             if (ti.Status == TransitionStatus.Enabling)
             {
+                log.Info("MT Child transition {0} has been enabled", ti.InstanceId);
                 ti.Status = TransitionStatus.Enabled;
                 if (ti.InstanceId != message.FromTaskInstanceId)
                 {
                     log.Info("Child task instance id changed {0}->{1}", ti.InstanceId, message.FromTaskInstanceId);
                     ti.InstanceId = message.FromTaskInstanceId;
                 }
+                OnTransitionStatusChanged(ti.InstanceId);
             }
             else
             {
                 log.Debug("Ignoring message: {0}", message);
             }
+            
         }
 
         #endregion
@@ -267,7 +269,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<TaskSelected> Members
 
-        public void Handle(TaskSelected message)
+        private void Handle(TaskSelected message)
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId) throw new Exception();
@@ -292,39 +294,38 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<TaskCompleted> Members
 
-        public void Handle(TaskCompleted message)
+        private void Handle(TaskCompleted message)
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId) throw new Exception();
+            if (message is MultiTaskCompleted) throw new Exception();
             TransitionInfo ti = GetTransition(message.FromTaskInstanceId);
             if (ti == null) throw new Exception();
-            lock (this)
+            log.Info("MT Child task {0} has completed", ti.InstanceId);
+            if (ti.Status == TransitionStatus.Completed)
+                return;
+            if (!ti.IsTransitionActive)
             {
-                log.Info("Child task {0} has been completed", ti.InstanceId);
-                if (ti.Status == TransitionStatus.Completed)
-                    return;
-                if (!ti.IsTransitionActive)
-                {
-                    log.Warn("Transition {0} ({1}) is not active: {2}", ti.InstanceId, ti.TaskId, ti.Status);
-                    return;
-                }
-                ti.Status = TransitionStatus.Completed;
-                ti.OutputData = message.OutputData;
-                if (ti.OutputData == null)
-                {
-                    log.Info("No output data returned from child task {0}", ti.InstanceId);
-                    ti.OutputData = new Dictionary<string, object>();
-                }
-                OnTransitionStatusChanged(ti.InstanceId);
+                log.Warn("Transition {0} ({1}) is not active: {2}", ti.InstanceId, ti.TaskId, ti.Status);
                 return;
             }
+            ti.Status = TransitionStatus.Completed;
+            ti.OutputData = message.OutputData;
+            if (ti.OutputData == null)
+            {
+                log.Info("No output data returned from child task {0}", ti.InstanceId);
+                ti.OutputData = new Dictionary<string, object>();
+            }
+            OnTransitionStatusChanged(ti.InstanceId);
+            return;
+            
         }
 
         #endregion
 
         #region IMessageConsumer<TaskCancelled> Members
 
-        public void Handle(TaskCancelled message)
+        private void Handle(TaskCancelled message)
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId) throw new Exception();
@@ -350,7 +351,7 @@ namespace NGinnBPM.Runtime.Tasks
 
         #region IMessageConsumer<TaskFailed> Members
 
-        public void Handle(TaskFailed message)
+        private void Handle(TaskFailed message)
         {
             RequireActivation(true);
             if (message.ParentTaskInstanceId != this.InstanceId) throw new Exception();
@@ -386,32 +387,31 @@ namespace NGinnBPM.Runtime.Tasks
 
         #endregion
 
-        
-        #region IMessageConsumer<CancelTaskTimeout> Members
-
-        /*public void Handle(CancelTaskTimeout message)
+        public override void HandleTaskExecEvent(TaskExecEvent ev)
         {
-            RequireActivation(true);
-            if (Status != TaskStatus.Cancelling)
+            base.HandleTaskExecEvent(ev);
+            if (ev is TaskEnabled)
             {
-                log.Info("Ignoring cancel timeout.");
-                return;
+                Handle((TaskEnabled)ev);
             }
-            if (IsAnyTransitionActiveYet())
+            else if (ev is TaskSelected)
             {
-                log.Warn("Task {0} cancellation timeout. Ignoring child transitions that haven't yet cancelled and forcing the cancellation", InstanceId);
-                DefaultHandleTaskCancelled();
-                Debug.Assert(Status == TaskStatus.Cancelled);
+                Handle((TaskSelected)ev);
             }
-            else
+            else if (ev is TaskCompleted)
             {
-                //we should not be cancelling anymore - a bug!!!
-                log.Error("Task {0}: cancellation timeout, but there are no active transitions. Task should have cancelled");
-                Debug.Assert(false);
-                DefaultHandleTaskCancelled();
+                Handle((TaskCompleted)ev);
             }
-        }*/
-
-        #endregion
+            else if (ev is TaskFailed)
+            {
+                Handle((TaskFailed)ev);
+            }
+            else if (ev is TaskCancelled)
+            {
+                Handle((TaskCancelled)ev);
+            }
+            else throw new Exception();
+        }
+        
     }
 }

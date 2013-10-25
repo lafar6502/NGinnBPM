@@ -284,11 +284,10 @@ namespace NGinnBPM.Runtime
             var pscript = this.GetProcessScriptRuntime(msg.ProcessDefinitionId);
             var td = pd.GetRequiredTask(msg.TaskId);
             TaskInstance ti;
-            if (msg.MultiInputData != null)
+            if (msg is EnableMultiChildTask)
             {
                 if (!td.IsMultiInstance) throw new Exception("Task is not multi-instance: " + td.Id);
-                ti = CreateTaskInstance(td); //TODO: multi, multi!
-                throw new NotImplementedException();
+                ti = new MultiTaskInstance();
             }
             else
             {
@@ -301,7 +300,14 @@ namespace NGinnBPM.Runtime
             ti.TaskId = msg.TaskId;
             ps.PersisterSession.SaveNew(ti);
             ti.Activate(ps, pd, pscript);
-            ti.Enable(msg.InputData);
+            if (msg is EnableMultiChildTask)
+            {
+                ((MultiTaskInstance)ti).Enable(((EnableMultiChildTask)msg).MultiInputData);
+            }
+            else
+            {
+                ti.Enable(msg.InputData);
+            }
             ti.Deactivate();
             ps.PersisterSession.Update(ti);
             

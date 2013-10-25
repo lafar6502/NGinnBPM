@@ -444,24 +444,31 @@ namespace NGinnBPM.Runtime.Tasks
                 ti.Status = TransitionStatus.Enabling;
                 ti.TaskId = taskId;
                 ti.InstanceId = AllocateNewTaskInstanceId(ti.TaskId);
-                EnableChildTask msg = new EnableChildTask
-                {
-                    Mode = tsk.AllowSynchronousExec ? MessageHandlingMode.SameTransaction : MessageHandlingMode.AnotherTransaction,
-                    CorrelationId = ti.InstanceId,
-                    FromTaskInstanceId = this.InstanceId,
-                    FromProcessInstanceId = this.ProcessInstanceId,
-                    ToTaskInstanceId = ti.InstanceId,
-                    ProcessDefinitionId = ProcessDefinition.DefinitionId,
-                    TaskId = tsk.Id
-                };
+                //TODO: think about automatic handling of enable task timeout 
+                //this should be handled by the framework so we don't have to do it here.
+                EnableChildTask msg;
                 if (tsk.IsMultiInstance)
                 {
-                    msg.MultiInputData = new List<Dictionary<string, object>>(ScriptRuntime.PrepareMultiInstanceTaskInputData(this, tsk, Context));
+                    var data = new List<Dictionary<string, object>>(ScriptRuntime.PrepareMultiInstanceTaskInputData(this, tsk, Context));
+                    msg = new EnableMultiChildTask {
+                        MultiInputData = data
+                    };
                 }
                 else
                 {
-                    msg.InputData = ScriptRuntime.PrepareChildTaskInputData(this, tsk, Context);
+                    msg = new EnableChildTask {
+                        InputData = ScriptRuntime.PrepareChildTaskInputData(this, tsk, Context)
+                    };
                 }
+
+                msg.Mode = tsk.AllowSynchronousExec ? MessageHandlingMode.SameTransaction : MessageHandlingMode.AnotherTransaction;
+                msg.CorrelationId = ti.InstanceId;
+                msg.FromTaskInstanceId = this.InstanceId;
+                msg.FromProcessInstanceId = this.ProcessInstanceId;
+                msg.ToTaskInstanceId = ti.InstanceId;
+                msg.ProcessDefinitionId = ProcessDefinition.DefinitionId;
+                msg.TaskId = tsk.Id;
+            
                 AllTasks.Add(ti);
                 Context.SendTaskControlMessage(msg);
                 log.Info("Child task {0} created: {1}", taskId, ti.InstanceId);
@@ -1017,17 +1024,20 @@ namespace NGinnBPM.Runtime.Tasks
             TaskDef tsk = MyTask.GetTask(ti.TaskId);
             if (ti.Status == TransitionStatus.Enabling)
                 ti.Status = TransitionStatus.Enabled;
-            if (tce.OutputData != null)
+            if (tce is MultiTaskCompleted)
             {
-                if (tsk.IsMultiInstance)
-                {
-                    throw new NotImplementedException(); //ten przypadek jeszcze nie dziala
-                }
-                else
+                MultiTaskCompleted mce = (MultiTaskCompleted)tce;
+                
+                
+            }
+            else 
+            {
+                if (tce.OutputData != null)
                 {
                     ScriptRuntime.ExecuteChildTaskOutputDataBinding(this, tsk, tce.OutputData, Context);
                 }
             }
+
             //
             ConsumeTaskInputTokens(tce.FromTaskInstanceId);
             ti.Status = TransitionStatus.Completed;
@@ -1300,6 +1310,8 @@ namespace NGinnBPM.Runtime.Tasks
 
         /// <summary>
         /// Force-fail composite task
+        /// Warning: this will cancel all currently active subtasks without producing tokens on their 
+        /// cancellation handlers. Compensation logic won't be run too. We just kill the task ignoring process logic.
         /// </summary>
         /// <param name="errorInformation"></param>
         public override void ForceFail(string errorInformation)
@@ -1312,12 +1324,9 @@ namespace NGinnBPM.Runtime.Tasks
 
                 foreach (TransitionInfo ti in this.ActiveTasks)
                 {
-                    if (ti.Status != TransitionStatus.Cancelling)
-                        CancelTransition1(ti.InstanceId);
-                    //CancelTransition(ti.InstanceId, false);
+                    if (ti.Status != TransitionStatus.Cancelling) CancelTransition1(ti.InstanceId);
                 }
                 Marking = new Dictionary<string, int>();
-                throw new NotImplementedException(); //TODO: implement cancellation/compensation here
                 DefaultHandleTaskFailure(errorInformation, true);
             }
         }

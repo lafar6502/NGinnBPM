@@ -41,10 +41,16 @@ namespace NGinnBPM.ProcessModel
         /// </summary>
         [DataMember]
         public bool AutoBindVariables { get; set; }
+        /// <summary>
+        /// enumerable expression (or an array variable name)
+        /// to get input data for each task
+        /// </summary>
         [DataMember]
         public string MultiInstanceSplitExpression { get; set; }
-        [DataMember]
-        public string MultiInstanceItemAlias { get; set; }
+        /// <summary>
+        /// Multi-instance task results are copied into an array variable.
+        /// This is the name of that variable. If not specified no data is copied.
+        /// </summary>
         [DataMember]
         public string MultiInstanceResultsBinding { get; set; }
         [DataMember]

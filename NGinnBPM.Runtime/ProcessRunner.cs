@@ -93,13 +93,22 @@ namespace NGinnBPM.Runtime
         {
             RunProcessTransaction(this.DefaultPersistenceMode, ps =>
             {
-                var ti = ps.PersisterSession.GetForUpdate(instanceId);
-                var pd = this.GetProcessDef(ti.ProcessDefinitionId);
-                var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
-                ti.Activate(ps, pd, pscript);
-                act(ti);
-                ti.Deactivate();
-                ps.PersisterSession.Update(ti);
+                string ol = MappedDiagnosticsContext.Get("NG_TaskInstanceId");
+                try
+                {
+                    MappedDiagnosticsContext.Set("NG_TaskInstanceId", instanceId);
+                    var ti = ps.PersisterSession.GetForUpdate(instanceId);
+                    var pd = this.GetProcessDef(ti.ProcessDefinitionId);
+                    var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
+                    ti.Activate(ps, pd, pscript);
+                    act(ti);
+                    ti.Deactivate();
+                    ps.PersisterSession.Update(ti);
+                }
+                finally
+                {
+                    MappedDiagnosticsContext.Set("NG_TaskInstanceId", ol);
+                }
             });
         }
         

@@ -21,10 +21,20 @@ namespace TestHost.cs
            // var proc = pr.StartProcess("Test2.TimerTest.1", new Dictionary<string,object> {});
 
             //var proc = pr.StartProcess("Test2.ErrorHandlerTest.1", new Dictionary<string, object> { });
-            var proc = pr.StartProcess("Test2.MultiInstance.1", new Dictionary<string, object> { });
-            
+            //var proc = pr.StartProcess("Test2.MultiInstance.1", new Dictionary<string, object> { });
+            TestCompensation(pr);
             Console.ReadLine();
 
+        }
+
+        public static void TestCompensation(ProcessRunner pr)
+        {
+            var proc = pr.StartProcess("Test2.Compensation.1", new Dictionary<string, object> { });
+            Console.WriteLine("Enter to cancel the process {0}", proc);
+            Console.ReadLine();
+            pr.CancelTask(proc, "Testing");
+            Console.WriteLine("Cancelling");
+            Console.ReadLine();
         }
 
         public static void TestPackageRepo()

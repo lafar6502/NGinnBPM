@@ -1027,8 +1027,10 @@ namespace NGinnBPM.Runtime.Tasks
             if (tce is MultiTaskCompleted)
             {
                 MultiTaskCompleted mce = (MultiTaskCompleted)tce;
-                
-                
+                if (!string.IsNullOrEmpty(tsk.MultiInstanceResultsBinding) && mce.MultiOutputData != null)
+                {
+                    TaskData[tsk.MultiInstanceResultsBinding] = mce.MultiOutputData;
+                }
             }
             else 
             {

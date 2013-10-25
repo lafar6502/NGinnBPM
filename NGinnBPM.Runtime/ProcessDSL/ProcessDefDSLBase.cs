@@ -46,7 +46,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
         protected static VariableDef.Dir output = VariableDef.Dir.Out;
         protected static VariableDef.Dir local = VariableDef.Dir.Local;
         protected static VariableDef.Dir in_out = VariableDef.Dir.InOut;
-
+        protected static NLog.Logger log = NLog.LogManager.GetCurrentClassLogger();
         /// <summary>
         /// Task input data, set when enabling the task.
         /// </summary>

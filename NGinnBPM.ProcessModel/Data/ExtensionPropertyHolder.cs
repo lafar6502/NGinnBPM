@@ -21,40 +21,28 @@ namespace NGinnBPM.ProcessModel.Data
 
         #region IHaveExtensionProperties Members
 
-        public static IEnumerable<string> GetExtensionProperties(IDictionary<string, string> props, string ns)
+        public static Dictionary<string, string> GetExtensionProperties(IDictionary<string, Dictionary<string, string>> props, string ns)
         {
-            List<string> lst = new List<string>();
-            if (props == null) return lst;
-            string s = ns + ":";
-            foreach (string k in props.Keys)
+            Dictionary<string, string> ret;
+            return props != null && props.TryGetValue(ns, out ret) ? ret : new Dictionary<string, string>();
+        }
+
+        public static string GetExtensionProperty(IDictionary<string, Dictionary<string, string>> props, string ns, string name)
+        {
+            Dictionary<string, string> r;
+            return props != null && props.TryGetValue(ns, out r) ? r.ContainsKey(name) ? r[name] : null : null;
+        }
+
+        public static void SetExtensionProperty(IDictionary<string, Dictionary<string, string>> props, string ns, string name, string value)
+        {
+            Dictionary<string, string> r;
+            if (!props.TryGetValue(ns, out r))
             {
-                if (k.StartsWith(s))
-                    lst.Add(k);
+                r = new Dictionary<string, string>();
+                props[ns] = r;
             }
-            return lst;
-        }
-
-        public static string GetExtensionProperty(IDictionary<string, string> props, string ns, string name)
-        {
-            string s = string.Format("{0}:{1}", ns, name);
-            return GetExtensionProperty(props, s);
-        }
-
-        public static string GetExtensionProperty(IDictionary<string, string> props, string fullName)
-        {
-            if (props == null) return null;
-            return props.ContainsKey(fullName) ? props[fullName] : null;
-        }
-
-        public static void SetExtensionProperty(IDictionary<string, string> props, string ns, string name, string value)
-        {
-            string s = string.Format("{0}:{1}", ns, name);
-            lock (props)
-            {
-                if (props.ContainsKey(s))
-                    props.Remove(s);
-                props[s] = value;
-            }
+            r.Remove(name);
+            r[name] = value;
         }
 
         #endregion

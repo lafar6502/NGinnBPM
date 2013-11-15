@@ -11,9 +11,8 @@ namespace NGinnBPM.ProcessModel
     /// </summary>
     public interface IHaveExtensionProperties
     {
-        IEnumerable<string> GetExtensionProperties(string ns);
+        Dictionary<string, string> GetExtensionProperties(string ns);
         string GetExtensionProperty(string ns, string name);
-        string GetExtensionProperty(string fullName);
         void SetExtensionProperty(string ns, string name, string value);
     }
 }

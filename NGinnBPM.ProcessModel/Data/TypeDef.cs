@@ -50,12 +50,9 @@ namespace NGinnBPM.ProcessModel.Data
         #region IHaveExtensionProperties Members
 
         [DataMember(IsRequired = false, EmitDefaultValue = false)]
-        public Dictionary<string, string> ExtensionProperties { get; set; }
+        public Dictionary<string, Dictionary<string, string>> ExtensionProperties { get; set; }
 
-        public IEnumerable<string> GetExtensionProperties(string xmlns)
-        {
-            return ExtensionPropertyHelper.GetExtensionProperties(ExtensionProperties, xmlns);
-        }
+        
 
         public string GetExtensionProperty(string xmlns, string name)
         {
@@ -64,16 +61,18 @@ namespace NGinnBPM.ProcessModel.Data
 
         public void SetExtensionProperty(string xmlns, string name, string value)
         {
-            if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, string>();
+            if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, Dictionary<string, string>>();
             ExtensionPropertyHelper.SetExtensionProperty(ExtensionProperties, xmlns, name, value);
         }
 
-        public string GetExtensionProperty(string fullName)
-        {
-            return ExtensionPropertyHelper.GetExtensionProperty(ExtensionProperties, fullName);
-        }
+        
 
         #endregion
+
+        Dictionary<string, string> IHaveExtensionProperties.GetExtensionProperties(string ns)
+        {
+            return ExtensionPropertyHelper.GetExtensionProperties(ExtensionProperties, ns);
+        }
     }
 
 }

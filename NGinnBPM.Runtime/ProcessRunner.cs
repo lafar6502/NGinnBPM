@@ -42,6 +42,7 @@ namespace NGinnBPM.Runtime
         public Services.IDbSessionFactory SessionFactory { get; set; }
         public IProcessPackageRepo PackageRepository { get; set; }
         public IMessageBus MessageBus { get; set; }
+        public IServiceResolver ServiceResolver { get; set; }
         private static Logger log = LogManager.GetCurrentClassLogger();
 
         public TaskPersistenceMode DefaultPersistenceMode { get; set; }
@@ -280,6 +281,21 @@ namespace NGinnBPM.Runtime
                     CancelTask(tcm.ToTaskInstanceId, "");
                     return;
                 }
+                else if (tcm is SelectTask)
+                {
+                    SelectTask(tcm.ToTaskInstanceId);
+                    return;
+                }
+                else if (tcm is FailTask)
+                {
+                    this.ForceFailTask(tcm.ToTaskInstanceId, ((FailTask)tcm).ErrorInfo);
+                    return;
+                }
+                else if (tcm is ForceCompleteTask)
+                {
+                    this.ForceCompleteTask(tcm.ToTaskInstanceId, ((ForceCompleteTask)tcm).UpdateData);
+                    return;
+                }
                 else throw new NotImplementedException(tcm.GetType().Name);
             });
         }
@@ -335,6 +351,12 @@ namespace NGinnBPM.Runtime
                     return new TimerTaskInstance();
                 case NGinnTaskType.Debug:
                     return new DebugTaskInstance();
+                case NGinnTaskType.Manual:
+                    return new ManualTaskInstance();
+                case NGinnTaskType.SendMessage:
+                    return new SendMessageTaskInstance();
+                case NGinnTaskType.ReceiveMessage:
+                    return new AwaitMessageTaskInstance();
                 case NGinnTaskType.Custom:
                     if (string.IsNullOrEmpty(td.ImplementationClass)) throw new Exception("ImplementationClass missing");
                     Type t = Type.GetType(td.ImplementationClass);

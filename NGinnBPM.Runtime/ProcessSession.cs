@@ -204,5 +204,16 @@ namespace NGinnBPM.Runtime
         {
             return _asyncQueue;
         }
+
+
+        public T GetService<T>()
+        {
+            return _runner.ServiceResolver.GetInstance<T>();
+        }
+
+        public T GetService<T>(string name)
+        {
+            return _runner.ServiceResolver.GetInstance<T>(name);
+        }
     }
 }

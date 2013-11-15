@@ -78,3 +78,17 @@ b) tylko jedno zadanie (komunikaty dla innych zadań są kolejkowane)
 c) tylko zadanie i jego podzadania, do nadrzędnych kolejkujemy.
 
 
+=========================================
+Komunikaty
+Wyślij komunikat 
+Odbierz komunikat
+
+message:
+from task instance
+to a destination (mailbox)
+
+signal:
+from task instance
+signal ID
+
+to jest to samo, z tym że signal ma 'multicast' na mailboxie

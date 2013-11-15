@@ -26,15 +26,25 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
         public List<Dictionary<string, object>> MultiInputData { get; set; }
     }
 
-    public class StartProcess : TaskControlCommand
-    {
-        public string ProcessDefinitionId { get; set; }
-        public Dictionary<string, object> InputData { get; set; }
-    }
+  
 
     public class CancelTask : TaskControlCommand
     {
         public string Reason { get; set; }
+    }
+
+    public class SelectTask : TaskControlCommand
+    {
+    }
+
+    public class FailTask : TaskControlCommand
+    {
+        public string ErrorInfo { get; set; }
+    }
+
+    public class ForceCompleteTask : TaskControlCommand
+    {
+        public Dictionary<string, object> UpdateData { get; set; }
     }
 
 

@@ -21,15 +21,8 @@ namespace NGinnBPM.Runtime
         /// <param name="msg"></param>
         void SendTaskControlMessage(TaskExecutionEvents.TaskControlCommand msg);
         void ScheduleTaskEvent(TaskExecutionEvents.TaskExecEvent ev, DateTime deliveryDate);
-        
-
-        /// <summary>
-        /// Retrieve task output data by executing output variable/parameter bindings
-        /// </summary>
-        /// <param name="ti"></param>
-        /// <returns></returns>
-        Dictionary<string, object> GetTaskOutputDataHelper(TaskInstance ti);
-
+        T GetService<T>();
+        T GetService<T>(string name);
         
     }
 }

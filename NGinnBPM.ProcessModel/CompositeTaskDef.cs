@@ -23,9 +23,27 @@ namespace NGinnBPM.ProcessModel
         [DataMember]
         public List<FlowDef> Flows { get; set; }
 
-        public override bool Validate(List<string> problemsFound)
+        public override bool Validate(List<string> msgs)
         {
-            return true;
+            int si = msgs.Count;
+            if (StartPlace == null)
+            {
+                msgs.Add("No start place in composite task " + Id);
+            }
+            if (EndPlace == null)
+            {
+                msgs.Add("No end place in " + Id);
+            }
+
+            foreach (PlaceDef pd in Places)
+            {
+                pd.Validate(msgs);
+            }
+            foreach (TaskDef td in Tasks)
+            {
+                td.Validate(msgs);
+            }
+            return msgs.Count - si == 0;
         }
 
         public void AddTask(TaskDef td)

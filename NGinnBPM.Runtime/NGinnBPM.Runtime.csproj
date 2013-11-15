@@ -101,6 +101,7 @@
     <Compile Include="Services\SqlDbSessionFactory.cs" />
     <Compile Include="Services\SqlTaskInstancePersister.cs" />
     <Compile Include="Services\SqlUtil.cs" />
+    <Compile Include="TaskExecutionEvents\InterTaskMessage.cs" />
     <Compile Include="TaskExecutionEvents\ProcessMessage.cs" />
     <Compile Include="TaskExecutionEvents\StartSubProcess.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlCommandFailed.cs" />
@@ -110,6 +111,9 @@
     <Compile Include="TaskStatus.cs" />
     <Compile Include="Tasks\AtomicTaskInstance.cs" />
     <Compile Include="Tasks\CompositeTaskInstance.cs" />
+    <Compile Include="Tasks\AwaitMessageTaskInstance.cs" />
+    <Compile Include="Tasks\ManualTaskInstance.cs" />
+    <Compile Include="Tasks\SendMessageTaskInstance.cs" />
     <Compile Include="Tasks\DebugTaskInstance.cs" />
     <Compile Include="Tasks\EmptyTaskInstance.cs">
       <SubType>Code</SubType>
@@ -126,6 +130,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NGinnBPM.Lib\NGinnBPM.Lib.csproj">
+      <Project>{45e7d838-0412-477b-86ee-ae8dbad4ad7e}</Project>
+      <Name>NGinnBPM.Lib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NGinnBPM.ProcessModel\NGinnBPM.ProcessModel.csproj">
       <Project>{06c887f0-0cb6-4b05-8a53-628ada7bb969}</Project>
       <Name>NGinnBPM.ProcessModel</Name>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Runtime.Serialization;
+using NGinnBPM.ProcessModel.Data;
 
 namespace NGinnBPM.ProcessModel
 {
@@ -15,8 +16,7 @@ namespace NGinnBPM.ProcessModel
         public string Label { get; set; }
         [DataMember]
         public string Description { get; set; }
-        [DataMember]
-        public Dictionary<string, string> ExtensionProperties { get; set; }
+        
         
         [IgnoreDataMember]
         public CompositeTaskDef Parent { get; set; }
@@ -28,24 +28,24 @@ namespace NGinnBPM.ProcessModel
 
         #region IHaveExtensionProperties Members
 
-        public IEnumerable<string> GetExtensionProperties(string xmlns)
-        {
-            throw new NotImplementedException();
-        }
 
+        [DataMember(IsRequired = false, EmitDefaultValue = false)]
+        public Dictionary<string, Dictionary<string, string>> ExtensionProperties { get; set; }
+        
         public string GetExtensionProperty(string xmlns, string name)
         {
-            throw new NotImplementedException();
-        }
-
-        public string GetExtensionProperty(string fullName)
-        {
-            throw new NotImplementedException();
+            return ExtensionPropertyHelper.GetExtensionProperty(ExtensionProperties, xmlns, name);
         }
 
         public void SetExtensionProperty(string xmlns, string name, string value)
         {
-            ExtensionProperties[xmlns + ":" + name] = value;
+            if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, Dictionary<string, string>>();
+            ExtensionPropertyHelper.SetExtensionProperty(ExtensionProperties, xmlns, name, value);
+        }
+
+        public Dictionary<string, string> GetExtensionProperties(string ns)
+        {
+            return ExtensionPropertyHelper.GetExtensionProperties(ExtensionProperties, ns);
         }
 
         #endregion
@@ -87,5 +87,7 @@ namespace NGinnBPM.ProcessModel
             }
         }
 
+
+        
     }
 }

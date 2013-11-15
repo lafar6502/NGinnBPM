@@ -38,9 +38,7 @@ namespace NGinnBPM.ProcessModel.Data
         [DataMember(IsRequired = false, EmitDefaultValue = false)]
         public bool IsRequired { get; set; }
 
-        [DataMember(IsRequired=false, EmitDefaultValue=false)]
-        public Dictionary<string, string> ExtensionProperties { get; set; }
-
+        
         public virtual void LoadFromXml(XmlElement el, XmlNamespaceManager nsmgr)
         {
             Name = el.GetAttribute("name");
@@ -83,10 +81,10 @@ namespace NGinnBPM.ProcessModel.Data
 
         #region IHaveExtensionProperties Members
 
-        public IEnumerable<string> GetExtensionProperties(string xmlns)
-        {
-            return ExtensionPropertyHelper.GetExtensionProperties(ExtensionProperties, xmlns);
-        }
+        
+
+        [DataMember(IsRequired=false, EmitDefaultValue=false)]
+        public Dictionary<string, Dictionary<string, string>> ExtensionProperties { get; set; }
 
         public string GetExtensionProperty(string xmlns, string name)
         {
@@ -95,15 +93,21 @@ namespace NGinnBPM.ProcessModel.Data
 
         public void SetExtensionProperty(string xmlns, string name, string value)
         {
-            if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, string>();
+            if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, Dictionary<string, string>>();
             ExtensionPropertyHelper.SetExtensionProperty(ExtensionProperties, xmlns, name, value);
         }
 
-        public string GetExtensionProperty(string fullName)
+        public Dictionary<string, string> GetExtensionProperties(string ns)
         {
-            return ExtensionPropertyHelper.GetExtensionProperty(ExtensionProperties, fullName);
+            return ExtensionPropertyHelper.GetExtensionProperties(ExtensionProperties, ns);
         }
 
         #endregion
+
+
+        Dictionary<string, string> IHaveExtensionProperties.GetExtensionProperties(string ns)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

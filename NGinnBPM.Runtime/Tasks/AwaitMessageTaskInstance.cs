@@ -10,6 +10,7 @@ namespace NGinnBPM.Runtime.Tasks
 {
     /// <summary>
     /// Waits for an inter-task message.
+#warning TODO : what about the message correlation registry???
     /// </summary>
     [DataContract]
     public class AwaitMessageTaskInstance : AtomicTaskInstance

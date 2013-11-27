@@ -34,7 +34,8 @@ Key features
     
 *   Process model elements
     
-    Almost all constructs known in BPMN can be modeled in NGinn.BPM
+    Almost all constructs known in BPMN can be modeled in NGinn.BPM. Currently a custom language is used for
+    process description, but BPMN translation will be implemented.
 
 *   Data model
     
@@ -44,4 +45,19 @@ Key features
 *   SQL Server backend
     
     By default NGinn.BPM uses SQL Server backend, but it can be easily ported to other SQL databases. 
-    
+
+
+Roadmap
+-------
+Most important features yet to be implemented
+
+*   BPMN support. A tool that will translate BPMN/XPDL process description into NGinn.BPM process definition language
+
+*   GUI process designer. It should be possible to use one of free BPMN editors to define or customize processes in        NGinn.BPM
+
+*   Integration interfaces - automatically generated SOAP/Web services and RESTful http interfaces for interacting with     running processes
+
+*   Monitoring and management APIs for controlling process execution and performing common maintenance tasks
+
+*   Standard library of process components, eg sending and receiving email or SMS messages, common set of integration tools for popular corporate software (MS Exchange, Active Directory, LDAP, ERPs etc)
+

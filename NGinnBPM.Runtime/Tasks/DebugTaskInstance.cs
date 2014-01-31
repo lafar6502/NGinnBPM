@@ -17,7 +17,7 @@ namespace NGinnBPM.Runtime.Tasks
         public bool DoFail { get; set; }
         [DataMember]
         public bool Delay { get; set; }
-        protected override void OnTaskEnabled()
+        protected override void OnTaskEnabling()
         {
             if (Delay)
             {

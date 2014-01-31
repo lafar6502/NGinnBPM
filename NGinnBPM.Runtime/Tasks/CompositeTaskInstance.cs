@@ -719,9 +719,9 @@ namespace NGinnBPM.Runtime.Tasks
             }
         }
 
-        protected override void OnTaskEnabled()
+        protected override void OnTaskEnabling()
         {
-            base.OnTaskEnabled();
+            base.OnTaskEnabling();
             AddToken(MyTask.StartPlace.Id);
             ContinueTaskExecution();
         }

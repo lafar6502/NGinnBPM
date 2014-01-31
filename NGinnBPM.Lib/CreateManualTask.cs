@@ -26,6 +26,10 @@ namespace NGinnBPM.Lib
         public DateTime? PlannedStart { get; set; }
         public int? PlannedDurationMin { get; set; }
         public DateTime? Deadline { get; set; }
+        /// <summary>
+        /// SharedId is an identifier shared by several mutually exclusive tasks that are enabled 
+        /// together. Selecting any one of these tasks cancels all other tasks with same SharedId.
+        /// </summary>
         public string SharedId { get; set; }
         public Dictionary<string, object> TaskData { get; set; }
         public string TaskProfile { get; set; }
@@ -42,4 +46,6 @@ namespace NGinnBPM.Lib
     {
         public string InstanceId { get; set; }
     }
+
+
 }

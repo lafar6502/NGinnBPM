@@ -20,9 +20,9 @@ namespace NGinnBPM.Runtime.Tasks
         public DateTime ExpirationDate { get;set;}
 
 
-        protected override void OnTaskEnabled()
+        protected override void OnTaskEnabling()
         {
-            base.OnTaskEnabled();
+            base.OnTaskEnabling();
             if (ExpirationDate <= DateTime.Now)
             {
                 Complete();

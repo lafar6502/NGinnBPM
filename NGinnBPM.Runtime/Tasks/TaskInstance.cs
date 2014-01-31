@@ -96,7 +96,7 @@ namespace NGinnBPM.Runtime.Tasks
             ScriptRuntime.InitializeNewTask(this, inputData, Context);
             this.Status = TaskStatus.Enabled;
             EnabledDate = DateTime.Now;
-            this.OnTaskEnabled();
+            this.OnTaskEnabling();
             if (this.Status == TaskStatus.Enabled)
             {
                 Context.NotifyTaskEvent(new TaskEnabled { FromTaskInstanceId = this.InstanceId, ParentTaskInstanceId = this.ParentTaskInstanceId });
@@ -106,7 +106,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// <summary>
         /// Override this to execute some custom 'enable' logic.
         /// </summary>
-        protected virtual void OnTaskEnabled()
+        protected virtual void OnTaskEnabling()
         {
         }
 

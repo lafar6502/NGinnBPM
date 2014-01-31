@@ -18,7 +18,7 @@ namespace NGinnBPM.Runtime.Tasks
         [DataMember]
         public string Mailbox { get; set; }
         
-        protected override void OnTaskEnabled()
+        protected override void OnTaskEnabling()
         {
             //var srv = Context.GetService<IMessageCorrelationRegistry>();
             //srv.Subscribe(this.Mailbox, this.InstanceId);

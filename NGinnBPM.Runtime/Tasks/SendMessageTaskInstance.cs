@@ -26,7 +26,7 @@ namespace NGinnBPM.Runtime.Tasks
         [DataMember]
         public TimeSpan WaitTimeout { get; set; }
         
-        protected override void OnTaskEnabled()
+        protected override void OnTaskEnabling()
         {
             var mbus = Context.GetService<IMessageBus>();
             var msg = new InterTaskMessage

@@ -27,7 +27,7 @@ namespace NGinnBPM.Runtime.Tasks
         [DataMember]
         public string Profile { get; set; }
 
-        protected override void OnTaskEnabled()
+        protected override void OnTaskEnabling()
         {
             var msg = new NGinnBPM.Lib.CreateManualTask
             {
@@ -40,16 +40,35 @@ namespace NGinnBPM.Runtime.Tasks
                 TaskId = this.TaskId,
                 ProcessDefinition = this.ProcessDefinitionId
             };
-            if (Endpoint.StartsWith("http://") || Endpoint.StartsWith("https://"))
+            SendMessage(msg, Endpoint);
+        }
+
+        public override void Cancel(string reason)
+        {
+            if (Status == TaskStatus.Enabled ||
+                Status == TaskStatus.Selected)
             {
-                IServiceClient sc = ServiceClient.Create(Endpoint);
+                var msg = new NGinnBPM.Lib.CancelManualTask
+                {
+                    InstanceId = this.InstanceId,
+                    Reason = reason
+                };
+                SendMessage(msg, Endpoint);
+            }
+            DefaultHandleTaskCancel(reason);
+        }
+
+        protected void SendMessage(object msg, string endpoint)
+        {
+            if (endpoint.StartsWith("http://") || Endpoint.StartsWith("https://"))
+            {
+                IServiceClient sc = ServiceClient.Create(endpoint);
                 var rt = sc.CallService<object>(msg);
             }
-            else if (Endpoint.StartsWith("sql://"))
+            else if (endpoint.StartsWith("sql://"))
             {
-                this.Context.GetService<IMessageBus>().Send(Endpoint, msg);
+                this.Context.GetService<IMessageBus>().Send(endpoint, msg);
             }
-            else throw new NotImplementedException();
         }
     }
 }

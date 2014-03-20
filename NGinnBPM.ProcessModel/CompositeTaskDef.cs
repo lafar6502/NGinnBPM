@@ -159,6 +159,7 @@ namespace NGinnBPM.ProcessModel
             return Places.FirstOrDefault(x => x.Id == id);
         }
 
+        [IgnoreDataMember]
         public PlaceDef StartPlace
         {
             get
@@ -167,6 +168,7 @@ namespace NGinnBPM.ProcessModel
             }
         }
 
+        [IgnoreDataMember]
         public PlaceDef EndPlace
         {
             get

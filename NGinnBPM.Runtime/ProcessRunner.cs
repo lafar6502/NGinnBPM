@@ -368,6 +368,23 @@ namespace NGinnBPM.Runtime
         }
         #endregion
 
+        public CompositeTaskInstanceInfo GetTaskInstanceInfo(string instanceId)
+        {
+            CompositeTaskInstanceInfo ret = null;
+            RunProcessTransaction(this.DefaultPersistenceMode, ps =>
+            {
+                CompositeTaskInstance cti = (CompositeTaskInstance) ps.PersisterSession.GetForRead(instanceId);
+                CompositeTaskInstanceInfo rt = new CompositeTaskInstanceInfo();
+                rt.InstanceId = cti.InstanceId;
+                rt.TaskId = cti.TaskId;
+                rt.ProcessDefinitionId = cti.ProcessDefinitionId;
+                rt.ProcessInstanceId = cti.ProcessInstanceId;
+                rt.Marking = cti.Marking.Where(x => x.Value > 0).Select(x => x.Key).ToList();
+                rt.ActiveTasks = cti.ActiveTasks.Select(x => x.TaskId).ToList();
+                ret = rt;
+            });
+            return ret;
+        }
 
         
     }

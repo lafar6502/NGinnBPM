@@ -53,17 +53,17 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.5.0.8\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="NGinnBPM.MessageBus, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NGinnBPM.MessageBus, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\nginn-messagebus.1.1.0.1\lib\net40\NGinnBPM.MessageBus.dll</HintPath>
+      <HintPath>..\packages\nginn-messagebus.1.1.1.0\lib\net40\NGinnBPM.MessageBus.dll</HintPath>
     </Reference>
-    <Reference Include="NGinnBPM.MessageBus.Windsor, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NGinnBPM.MessageBus.Windsor, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\nginn-messagebus.1.1.0.1\lib\net40\NGinnBPM.MessageBus.Windsor.dll</HintPath>
+      <HintPath>..\packages\nginn-messagebus.1.1.1.0\lib\net40\NGinnBPM.MessageBus.Windsor.dll</HintPath>
     </Reference>
-    <Reference Include="NGinnBPM.ServiceHost, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="NGinnBPM.ServiceHost, Version=1.1.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\nginn-messagebus.1.1.0.1\lib\net40\NGinnBPM.ServiceHost.exe</HintPath>
+      <HintPath>..\packages\nginn-messagebus.1.1.1.0\lib\net40\NGinnBPM.ServiceHost.exe</HintPath>
     </Reference>
     <Reference Include="NLog, Version=2.1.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -85,7 +85,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+    <Compile Include="Configuration\WindsorConfigurator.cs" />
     <Compile Include="DbSession.cs" />
+    <Compile Include="Documents\IDocumentRepository.cs" />
     <Compile Include="ITaskExecutionContext.cs" />
     <Compile Include="ProcessDSL\BooDSLProcessPackage.cs" />
     <Compile Include="ProcessDSL\BooDslProcessRuntime.cs" />
@@ -94,6 +96,7 @@
     <Compile Include="ProcessDSL\ProcessDefDSLBase.cs" />
     <Compile Include="ProcessDSL\ProcessPackageRepository.cs" />
     <Compile Include="ProcessDSL\QuackDictionaryWrapper.cs" />
+    <Compile Include="ProcessInstanceInfo.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

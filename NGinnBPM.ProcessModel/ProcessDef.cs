@@ -8,7 +8,7 @@ using NGinnBPM.ProcessModel.Data;
 namespace NGinnBPM.ProcessModel
 {
     [DataContract(Name="Process")]
-    public class ProcessDef : IValidate
+    public class ProcessDef : IValidate, IHaveMetadata
     {
         [DataMember]
         public string ProcessName { get; set; }
@@ -18,15 +18,18 @@ namespace NGinnBPM.ProcessModel
         
         [DataMember]
         public string PackageName { get; set; }
+
+        [DataMember]
+        public string Description { get; set; }
+
+        [DataMember]
+        public string Comments { get; set; }
         
         [DataMember]
         public TypeSet DataTypes { get; set; }
 
         [DataMember]
         public CompositeTaskDef Body { get; set; }
-
-        [DataMember]
-        public List<KeyValue> ExtensionProperties { get; set; }
 
         [IgnoreDataMember]
         public PackageDef Package { get; set; }
@@ -77,5 +80,29 @@ namespace NGinnBPM.ProcessModel
             Body.Parent = null;
             Body.UpdateParentRefs();
         }
+
+        #region IHaveMetadata Members
+
+
+        [DataMember(IsRequired = false, EmitDefaultValue = false)]
+        public Dictionary<string, Dictionary<string, string>> ExtensionProperties { get; set; }
+
+        public string GetMetaValue(string xmlns, string name)
+        {
+            return ExtensionPropertyHelper.GetExtensionProperty(ExtensionProperties, xmlns, name);
+        }
+
+        public void SetMetaValue(string xmlns, string name, string value)
+        {
+            if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, Dictionary<string, string>>();
+            ExtensionPropertyHelper.SetExtensionProperty(ExtensionProperties, xmlns, name, value);
+        }
+
+        public Dictionary<string, string> GetMetadata(string ns)
+        {
+            return ExtensionPropertyHelper.GetExtensionProperties(ExtensionProperties, ns);
+        }
+
+        #endregion
     }
 }

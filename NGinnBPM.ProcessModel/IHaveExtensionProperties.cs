@@ -9,10 +9,10 @@ namespace NGinnBPM.ProcessModel
     /// Interface for accessing custom properties of process definition components.
     /// Custom properties can be used by external tools to specify additional information.
     /// </summary>
-    public interface IHaveExtensionProperties
+    public interface IHaveMetadata
     {
-        Dictionary<string, string> GetExtensionProperties(string ns);
-        string GetExtensionProperty(string ns, string name);
-        void SetExtensionProperty(string ns, string name, string value);
+        Dictionary<string, string> GetMetadata(string ns);
+        string GetMetaValue(string ns, string name);
+        void SetMetaValue(string ns, string name, string value);
     }
 }

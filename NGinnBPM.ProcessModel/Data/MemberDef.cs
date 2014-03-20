@@ -11,7 +11,7 @@ namespace NGinnBPM.ProcessModel.Data
     [Serializable]
     [DataContract]
     [KnownType(typeof(VariableDef))]
-    public class MemberDef : IHaveExtensionProperties
+    public class MemberDef : IHaveMetadata
     {
         public MemberDef()
         {
@@ -86,12 +86,12 @@ namespace NGinnBPM.ProcessModel.Data
         [DataMember(IsRequired=false, EmitDefaultValue=false)]
         public Dictionary<string, Dictionary<string, string>> ExtensionProperties { get; set; }
 
-        public string GetExtensionProperty(string xmlns, string name)
+        public string GetMetaValue(string xmlns, string name)
         {
             return ExtensionPropertyHelper.GetExtensionProperty(ExtensionProperties, xmlns, name);
         }
 
-        public void SetExtensionProperty(string xmlns, string name, string value)
+        public void SetMetaValue(string xmlns, string name, string value)
         {
             if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, Dictionary<string, string>>();
             ExtensionPropertyHelper.SetExtensionProperty(ExtensionProperties, xmlns, name, value);
@@ -105,7 +105,7 @@ namespace NGinnBPM.ProcessModel.Data
         #endregion
 
 
-        Dictionary<string, string> IHaveExtensionProperties.GetExtensionProperties(string ns)
+        Dictionary<string, string> IHaveMetadata.GetMetadata(string ns)
         {
             throw new NotImplementedException();
         }

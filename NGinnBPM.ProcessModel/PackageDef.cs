@@ -18,8 +18,7 @@ namespace NGinnBPM.ProcessModel
         public List<TypeSet> PackageTypeSets { get; set; }
         [DataMember]
         public List<string> ExternalResources { get; set; }
-        [DataMember]
-        public List<KeyValue> ExtensionProperties { get; set; }
+        
 
         #region IValidate Members
 

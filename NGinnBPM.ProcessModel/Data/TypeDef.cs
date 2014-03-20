@@ -13,7 +13,7 @@ namespace NGinnBPM.ProcessModel.Data
     [KnownType(typeof(SimpleTypeDef))]
     [KnownType(typeof(EnumDef))]
     [KnownType(typeof(StructDef))]
-    public abstract class TypeDef : IHaveExtensionProperties
+    public abstract class TypeDef : IHaveMetadata
     {
 
         [IgnoreDataMember]
@@ -54,12 +54,12 @@ namespace NGinnBPM.ProcessModel.Data
 
         
 
-        public string GetExtensionProperty(string xmlns, string name)
+        public string GetMetaValue(string xmlns, string name)
         {
             return ExtensionPropertyHelper.GetExtensionProperty(ExtensionProperties, xmlns, name);
         }
 
-        public void SetExtensionProperty(string xmlns, string name, string value)
+        public void SetMetaValue(string xmlns, string name, string value)
         {
             if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, Dictionary<string, string>>();
             ExtensionPropertyHelper.SetExtensionProperty(ExtensionProperties, xmlns, name, value);
@@ -69,7 +69,7 @@ namespace NGinnBPM.ProcessModel.Data
 
         #endregion
 
-        Dictionary<string, string> IHaveExtensionProperties.GetExtensionProperties(string ns)
+        Dictionary<string, string> IHaveMetadata.GetMetadata(string ns)
         {
             return ExtensionPropertyHelper.GetExtensionProperties(ExtensionProperties, ns);
         }

@@ -8,7 +8,7 @@ using NGinnBPM.ProcessModel.Data;
 namespace NGinnBPM.ProcessModel
 {
     [DataContract]
-    public abstract class NodeDef : IValidate, IHaveExtensionProperties
+    public abstract class NodeDef : IValidate, IHaveMetadata
     {
         [DataMember]
         public string Id { get; set; }
@@ -32,18 +32,18 @@ namespace NGinnBPM.ProcessModel
         [DataMember(IsRequired = false, EmitDefaultValue = false)]
         public Dictionary<string, Dictionary<string, string>> ExtensionProperties { get; set; }
         
-        public string GetExtensionProperty(string xmlns, string name)
+        public string GetMetaValue(string xmlns, string name)
         {
             return ExtensionPropertyHelper.GetExtensionProperty(ExtensionProperties, xmlns, name);
         }
 
-        public void SetExtensionProperty(string xmlns, string name, string value)
+        public void SetMetaValue(string xmlns, string name, string value)
         {
             if (ExtensionProperties == null) ExtensionProperties = new Dictionary<string, Dictionary<string, string>>();
             ExtensionPropertyHelper.SetExtensionProperty(ExtensionProperties, xmlns, name, value);
         }
 
-        public Dictionary<string, string> GetExtensionProperties(string ns)
+        public Dictionary<string, string> GetMetadata(string ns)
         {
             return ExtensionPropertyHelper.GetExtensionProperties(ExtensionProperties, ns);
         }

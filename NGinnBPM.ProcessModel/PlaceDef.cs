@@ -9,6 +9,11 @@ namespace NGinnBPM.ProcessModel
     [DataContract(Name="Place")]
     public class PlaceDef : NodeDef
     {
+        public PlaceDef()
+        {
+            this.PlaceType = PlaceTypes.Intermediate;
+        }
+
         [DataMember]
         public PlaceTypes PlaceType { get; set; }
         [DataMember]

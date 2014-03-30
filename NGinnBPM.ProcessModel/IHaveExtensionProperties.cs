@@ -11,8 +11,8 @@ namespace NGinnBPM.ProcessModel
     /// </summary>
     public interface IHaveMetadata
     {
-        Dictionary<string, string> GetMetadata(string ns);
-        string GetMetaValue(string ns, string name);
-        void SetMetaValue(string ns, string name, string value);
+        Dictionary<string, object> GetMetadata(string ns);
+        object GetMetaValue(string ns, string name);
+        void SetMetaValue(string ns, string name, object value);
     }
 }

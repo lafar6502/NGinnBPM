@@ -89,4 +89,15 @@ namespace NGinnBPM.Runtime
         /// <param name="ctx"></param>
         void ExecuteChildTaskOutputDataBinding(CompositeTaskInstance ti, TaskDef childTask, Dictionary<string, object> childOutputData, ITaskExecutionContext ctx);
     }
+
+    /// <summary>
+    /// For accessing and modifying process definitions
+    /// in a package
+    /// </summary>
+    public interface IModifyProcessPackage
+    {
+        ProcessDef GetProcessDefinition(string id);
+        void UpdateProcessDefinition(ProcessDef pd);
+        
+    }
 }

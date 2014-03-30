@@ -545,7 +545,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
         protected void place(string id, SC.IDictionary options)
         {
             if (_currentCompositeTask.Places.Any(x => x.Id == id)) throw new Exception("Place already defined: " + id);
-            var pl = new PlaceDef { Id = id, PlaceType = PlaceTypes.Internediate };
+            var pl = new PlaceDef { Id = id, PlaceType = PlaceTypes.Intermediate };
             if (options != null)
             {
                 pl.Label = GetOption(options, "label", "");
@@ -581,7 +581,9 @@ namespace NGinnBPM.Runtime.ProcessDSL
             }
             else if (_curProcessDef != null)
             {
+                throw new NotImplementedException();
             }
+            throw new NotImplementedException();
         }
     }
 }

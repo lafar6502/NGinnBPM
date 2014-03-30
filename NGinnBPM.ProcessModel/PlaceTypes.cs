@@ -8,7 +8,7 @@ namespace NGinnBPM.ProcessModel
     public enum PlaceTypes
     {
         Start,
-        Internediate,
+        Intermediate,
         End
     }
 }

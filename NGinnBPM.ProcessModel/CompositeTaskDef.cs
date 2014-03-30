@@ -80,6 +80,7 @@ namespace NGinnBPM.ProcessModel
                 TaskDef tq = q as TaskDef;
                 TaskDef tp = p as TaskDef;
                 PlaceDef ptran = new PlaceDef {Id = string.Format("{0}.-.{1}", tp.Id, tq.Id),
+                    PlaceType = PlaceTypes.Intermediate,
                     Implicit = true
                 };
                 AddPlace(ptran);

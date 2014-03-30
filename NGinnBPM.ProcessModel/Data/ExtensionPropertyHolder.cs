@@ -21,24 +21,24 @@ namespace NGinnBPM.ProcessModel.Data
 
         #region IHaveExtensionProperties Members
 
-        public static Dictionary<string, string> GetExtensionProperties(IDictionary<string, Dictionary<string, string>> props, string ns)
+        public static Dictionary<string, object> GetExtensionProperties(IDictionary<string, Dictionary<string, object>> props, string ns)
         {
-            Dictionary<string, string> ret;
-            return props != null && props.TryGetValue(ns, out ret) ? ret : new Dictionary<string, string>();
+            Dictionary<string, object> ret;
+            return props != null && props.TryGetValue(ns, out ret) ? ret : new Dictionary<string, object>();
         }
 
-        public static string GetExtensionProperty(IDictionary<string, Dictionary<string, string>> props, string ns, string name)
+        public static object GetExtensionProperty(IDictionary<string, Dictionary<string, object>> props, string ns, string name)
         {
-            Dictionary<string, string> r;
+            Dictionary<string, object> r;
             return props != null && props.TryGetValue(ns, out r) ? r.ContainsKey(name) ? r[name] : null : null;
         }
 
-        public static void SetExtensionProperty(IDictionary<string, Dictionary<string, string>> props, string ns, string name, string value)
+        public static void SetExtensionProperty(IDictionary<string, Dictionary<string, object>> props, string ns, string name, object value)
         {
-            Dictionary<string, string> r;
+            Dictionary<string, object> r;
             if (!props.TryGetValue(ns, out r))
             {
-                r = new Dictionary<string, string>();
+                r = new Dictionary<string, object>();
                 props[ns] = r;
             }
             r.Remove(name);

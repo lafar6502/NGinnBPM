@@ -9,7 +9,6 @@ using System.Runtime.Serialization;
 namespace NGinnBPM.ProcessModel.Data
 {
     
-    [Serializable]
     [DataContract]
     public class TypeSet
     {

@@ -22,9 +22,20 @@ namespace TestHost.cs
 
             //var proc = pr.StartProcess("Test2.ErrorHandlerTest.1", new Dictionary<string, object> { });
             //var proc = pr.StartProcess("Test2.MultiInstance.1", new Dictionary<string, object> { });
-            TestCompensation(pr);
+            //TestCompensation(pr);
+            TestProcessScriptGenerator(c);
             Console.ReadLine();
 
+        }
+
+        public static void TestProcessScriptGenerator(IServiceResolver sr)
+        {
+            var pr = sr.GetInstance<IProcessPackageRepo>();
+            var pdef = pr.GetProcessDef("Test2.Compensation.1");
+            var sw = new StringWriter();
+            NGinnBPM.Runtime.ProcessDSL.BooProcessScriptGenerator gen = new NGinnBPM.Runtime.ProcessDSL.BooProcessScriptGenerator(sw);
+            gen.GenerateScript(pdef);
+            Console.WriteLine(sw.ToString());
         }
 
         public static void TestCompensation(ProcessRunner pr)

@@ -10,6 +10,10 @@ using Newtonsoft.Json;
 
 namespace NGinnBPM.Runtime.ProcessDSL
 {
+    /// <summary>
+    /// Experiment in generating boo process definition script (DSL) from a process definition
+    /// object.
+    /// </summary>
     public class BooProcessScriptGenerator
     {
         private TextWriter _out = null;

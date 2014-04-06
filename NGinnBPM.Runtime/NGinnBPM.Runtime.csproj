@@ -93,9 +93,13 @@
     <Compile Include="DbSession.cs" />
     <Compile Include="Documents\IDocumentRepository.cs" />
     <Compile Include="ITaskExecutionContext.cs" />
+    <Compile Include="ProcessDSL2\MemScriptStorage.cs" />
+    <Compile Include="ProcessDSL2\ProcessBooScriptGenerator.cs" />
+    <Compile Include="ProcessDSL2\ProcessRuntimeDSLBase_API.cs" />
+    <Compile Include="ProcessDSL2\ProcessRuntimeDSLBase.cs" />
     <Compile Include="ProcessDSL\BooDSLProcessPackage.cs" />
     <Compile Include="ProcessDSL\BooDslProcessRuntime.cs" />
-    <Compile Include="ProcessDSL\BooProcessPackage.cs" />
+    <Compile Include="ProcessDSL2\BooProcessPackage.cs" />
     <Compile Include="ProcessDSL\BooProcessScriptGenerator.cs" />
     <Compile Include="ProcessDSL\DslUtil.cs" />
     <Compile Include="ProcessDSL\PackageDSLEngine.cs" />

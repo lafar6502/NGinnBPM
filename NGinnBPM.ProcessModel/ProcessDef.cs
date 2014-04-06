@@ -39,6 +39,12 @@ namespace NGinnBPM.ProcessModel
             get { return string.IsNullOrEmpty(PackageName) ? string.Format("{0}.{1}", ProcessName, Version) : string.Format("{0}.{1}.{2}", PackageName, ProcessName, Version); }
         }
 
+        [IgnoreDataMember]
+        public string ShortDefinitionId
+        {
+            get { return string.Format("{0}.{1}", ProcessName, Version); } 
+        }
+
         public PlaceDef GetPlace(string id)
         {
             return Body.FindPlace(id);

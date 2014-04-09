@@ -117,9 +117,9 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             {
                 GenStatement(DslUtil.TaskScriptKey(td.Id, "BeforeEnable"), td.BeforeEnableScript);
             }
-            if (!string.IsNullOrEmpty(td.BeforeCompleteScript))
+            if (!string.IsNullOrEmpty(td.AfterCompleteScript))
             {
-                GenStatement(DslUtil.TaskScriptKey(td.Id, "BeforeComplete"), td.BeforeCompleteScript);
+                GenStatement(DslUtil.TaskScriptKey(td.Id, "AfterComplete"), td.AfterCompleteScript);
             }
             if (!string.IsNullOrEmpty(td.AfterEnableScript))
             {

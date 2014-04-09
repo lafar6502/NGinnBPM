@@ -35,6 +35,7 @@ namespace NGinnBPM.Runtime
         PackageDef GetPackageDef();
         ProcessDef GetProcessDefinition(string definitionId);
         IProcessScriptRuntime GetScriptRuntime(string processDefinition);
+        bool ValidateAndSaveProcessDefinition(ProcessDef pd, bool save, out List<string> errors, out List<string> warnings);
     }
 
     public interface IProcessScriptRuntime
@@ -88,14 +89,5 @@ namespace NGinnBPM.Runtime
         void ExecuteChildTaskOutputDataBinding(CompositeTaskInstance ti, TaskDef childTask, Dictionary<string, object> childOutputData, ITaskExecutionContext ctx);
     }
 
-    /// <summary>
-    /// For accessing and modifying process definitions
-    /// in a package
-    /// </summary>
-    public interface IModifyProcessPackage
-    {
-        ProcessDef GetProcessDefinition(string id);
-        void UpdateProcessDefinition(ProcessDef pd);
-        
-    }
+    
 }

@@ -22,7 +22,7 @@ namespace NGinnBPM.Runtime
             {
                 NullValueHandling = NullValueHandling.Ignore,
                 MissingMemberHandling = MissingMemberHandling.Ignore,
-                DefaultValueHandling = DefaultValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Include,
                 Formatting = Formatting.Indented,
                 TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto,
                 DateFormatHandling = DateFormatHandling.IsoDateFormat

@@ -59,8 +59,12 @@ namespace NGinnBPM.ProcessModel
         public string BeforeEnableScript { get; set; }
         [DataMember]
         public string AfterEnableScript { get; set; }
+        /// <summary>
+        /// Optional script for mapping task parameter values to output data.
+        /// Executed when gathering task output data, after the task completes
+        /// </summary>
         [DataMember]
-        public string BeforeCompleteScript { get; set; }
+        public string AfterCompleteScript { get; set; }
         [DataMember]
         public string ImplementationClass { get; set; }
         /// <summary>

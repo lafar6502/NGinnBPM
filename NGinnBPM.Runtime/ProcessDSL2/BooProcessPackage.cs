@@ -30,7 +30,7 @@ namespace NGinnBPM.Runtime.ProcessDSL2
 
         private ProcessDslCompiler _dsl;
         private MemScriptStorage _storage;
-        private ConcurrentDictionary<string, PDCacheEntry> _processCache = new ConcurrentDictionary<string, PDCacheEntry>();
+        private ConcurrentDictionary<string, PDCacheEntry> _processCache = null;
 
         private class PDCacheEntry
         {
@@ -44,35 +44,48 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             public ProcessDslCompiler(RD.ISimpleScriptStorage st)
                 : base(st)
             {
+                base.WhitespaceAgnostic = true;
+                this.CompilationCallback((cc, urls) =>
+                {
+                    log.Info("Compilation of {0}: {1}", string.Join(",", urls), cc.Errors.ToString(false));
+                });
             }
 
-            protected override void CustomizeCompiler(Boo.Lang.Compiler.BooCompiler compiler, Boo.Lang.Compiler.CompilerPipeline pipeline, string[] urls)
-            {
-                base.CustomizeCompiler(compiler, pipeline, urls);
-                compiler.Parameters.WhiteSpaceAgnostic = true;
-            }
+            
         }
 
         public BooProcessPackage(string baseDir)
         {
             if (!Directory.Exists(baseDir)) throw new Exception("Directory does not exist: " + baseDir);
             this.BaseDir = baseDir;
-            InitializeIfNecessary();
-            InitialProcessLoad();
         }
 
-        protected void InitializeIfNecessary()
+        protected void EnsureProcessesLoaded()
         {
-            if (_dsl == null)
+            var pc = _processCache;
+            if (pc != null) return;
+            lock (this)
             {
-                var st = new MemScriptStorage(id =>
+                if (_processCache != null) return;
+                if (_dsl == null)
                 {
-                    throw new Exception("Script not found: " + id);
-                });
-                var dsl = new ProcessDslCompiler(st);
-                _storage = st;
-                _dsl = dsl;
+                    var st = new MemScriptStorage(id =>
+                    {
+                        throw new Exception("Script not found: " + id);
+                    });
+                    var dsl = new ProcessDslCompiler(st);
+                    _storage = st;
+                    _dsl = dsl;
+                }
+                var entries = InitialProcessLoad();
+                var cache = new ConcurrentDictionary<string, PDCacheEntry>();
+                foreach (var ent in entries)
+                {
+                    cache.TryAdd(ent.Process.ShortDefinitionId.ToLower(), ent);
+                }
+                _processCache = cache;
             }
+            
         }
         /// <summary>
         /// Attempts to update process definition. If the attempt fails current definition will not 
@@ -81,15 +94,18 @@ namespace NGinnBPM.Runtime.ProcessDSL2
         /// <param name="pd"></param>
         /// <param name="errors"></param>
         /// <returns></returns>
-        public bool TryUpdateProcess(ProcessDef pd, out IList<string> errors)
+        public bool TryUpdateProcess(ProcessDef pd)
         {
+            EnsureProcessesLoaded();
             var ce = TryReloadProcessDef(pd);
             string fn = Path.Combine(BaseDir, pd.ShortDefinitionId + ".npd");
+            log.Info("Saving process file {0}", fn);
             using (var sw = new StreamWriter(fn, false, Encoding.UTF8))
             {
                 ProcessDefJsonSerializer.Serialize(ce.Process, sw);
             }
-            errors = null;
+            ce.ReadDate = DateTime.Now;
+            _processCache.AddOrUpdate(ce.Process.ShortDefinitionId.ToLower(), ce, (id, oc) => ce);
             return true;
         }
 
@@ -104,7 +120,8 @@ namespace NGinnBPM.Runtime.ProcessDSL2
         {
             get 
             {
-                return Directory.GetFiles(BaseDir, "*.npd").Select(x => Path.GetFileNameWithoutExtension(x));
+                EnsureProcessesLoaded();
+                return _processCache.Where(x => x.Value.Process != null).Select(x => x.Value.Process.ShortDefinitionId);
             }
         }
 
@@ -119,16 +136,18 @@ namespace NGinnBPM.Runtime.ProcessDSL2
                 PackageTypeSets = new List<ProcessModel.Data.TypeSet>(),
                 ProcessDefinitions = new List<ProcessDef>()
             };
-            pd.ProcessDefinitions.AddRange(this._processCache.Values.Select(x => x.Process));
+            if (_processCache != null)
+            {
+                pd.ProcessDefinitions.AddRange(this._processCache.Values.Where(x => x.Process != null).Select(x => x.Process));
+            }
             return pd;
         }
 
-        private bool ValidateProcessDef(ProcessDef pd, List<string> errors)
+        private bool ValidateProcessDef(ProcessDef pd, List<string> errors = null, List<string> warnings = null)
         {
             if (!pd.Validate(errors)) return false;
-            List<string> warns = new List<string>();
             var script = ProcessBooScriptGenerator.GenerateScriptString(pd);
-            if (_dsl.CheckSyntax(script, errors, warns))
+            if (!_dsl.CheckSyntax(script, errors, warnings))
             {
                 return false;
             }
@@ -190,14 +209,14 @@ namespace NGinnBPM.Runtime.ProcessDSL2
 
         
 
-        protected void InitialProcessLoad()
+        private IEnumerable<PDCacheEntry> InitialProcessLoad()
         {
             List<PDCacheEntry> entries = new List<PDCacheEntry>();
-            foreach (string pr in ProcessNames)
+            foreach (string file in Directory.GetFiles(BaseDir, "*.npd"))
             {
-                string file = Path.Combine(BaseDir, pr + ".npd");
                 try
                 {
+                    log.Info("Loading process from {0}", file);
                     var pd = LoadPDFromFile(file);
                     var err = new List<string>();
                     if (!this.ValidateProcessDef(pd,err))
@@ -223,14 +242,12 @@ namespace NGinnBPM.Runtime.ProcessDSL2
                 }
             }
             var all = _dsl.CreateAll();
-            foreach (var ce in entries)
-            {
-                _processCache.TryAdd(ce.Process.ShortDefinitionId.ToLower(), ce);
-            }
+            return entries;
         }
 
         public ProcessDef GetProcessDefinition(string definitionId)
         {
+            EnsureProcessesLoaded();
             var did = definitionId.ToLower();
             var pe = _processCache.AddOrUpdate(did, 
             id =>
@@ -268,9 +285,28 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             var cd = _processCache[ckey];
             var sr = _dsl.Create(cd.ScriptUrl);
             sr.Initialize(pd, this);
-            return sr;
+            return new BooProcessScriptRuntime(sr);
         }
-        
+
+
+
+        public bool ValidateAndSaveProcessDefinition(ProcessDef pd, bool save, out List<string> errors, out List<string> warnings)
+        {
+            EnsureProcessesLoaded();
+            errors = new List<string>();
+            warnings = new List<string>();
+            if (!ValidateProcessDef(pd, errors, warnings)) {
+                return false;
+            }
+            if (save)
+            {
+                if (!TryUpdateProcess(pd))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
     

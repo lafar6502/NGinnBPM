@@ -67,5 +67,11 @@ namespace NGinnBPM.Runtime.ProcessDSL
         {
             throw new NotImplementedException();
         }
+
+
+        public bool ValidateAndSaveProcessDefinition(ProcessModel.ProcessDef pd, bool save, out List<string> errors, out List<string> warnings)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

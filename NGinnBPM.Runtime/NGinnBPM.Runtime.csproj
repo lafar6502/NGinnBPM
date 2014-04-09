@@ -72,9 +72,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NLog.2.1.0\lib\net40\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="Rhino.DSL, Version=0.0.0.0, Culture=neutral, PublicKeyToken=0b3305902db7183f, processorArchitecture=MSIL">
+    <Reference Include="Rhino.DSL, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\cdox\extlib\Rhino.DSL.dll</HintPath>
+      <HintPath>..\extlib\Rhino.DSL.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -94,6 +94,7 @@
     <Compile Include="Documents\IDocumentRepository.cs" />
     <Compile Include="ITaskExecutionContext.cs" />
     <Compile Include="ProcessDefJsonSerializer.cs" />
+    <Compile Include="ProcessDSL2\BooProcessScriptRuntime.cs" />
     <Compile Include="ProcessDSL2\MemScriptStorage.cs" />
     <Compile Include="ProcessDSL2\ProcessBooScriptGenerator.cs" />
     <Compile Include="ProcessDSL2\ProcessRuntimeDSLBase_API.cs" />

@@ -42,8 +42,9 @@ namespace TestHost.cs
 
             var pd = p.GetProcessDefinition("ErrorHandler.1");
             pd.Version = pd.Version + 1;
-            IList<string> errs;
-            p.TryUpdateProcess(pd, out errs);
+            List<string> errs;
+                List<string> warns;
+            p.ValidateAndSaveProcessDefinition(pd, true, out errs, out warns);
         }
 
         public static void TestProcessScriptGenerator(IServiceResolver sr)

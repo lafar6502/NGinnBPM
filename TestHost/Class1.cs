@@ -6,6 +6,7 @@ using NGinnBPM.Runtime.ProcessDSL;
 using System.IO;
 using NGinnBPM.MessageBus;
 using NGinnBPM.Runtime;
+using D2 = NGinnBPM.Runtime.ProcessDSL2;
 
 namespace TestHost.cs
 {
@@ -15,6 +16,8 @@ namespace TestHost.cs
         {
             //TestProcessDsl();
             //TestPackageRepo();
+            TestRepo2();
+            return;
             var c = ConfigureNGinnBPM();
 
             var pr = c.GetInstance<ProcessRunner>();
@@ -26,6 +29,21 @@ namespace TestHost.cs
             TestProcessScriptGenerator(c);
             Console.ReadLine();
 
+        }
+
+        public static void TestRepo2()
+        {
+            D2.BooProcessPackage p = new D2.BooProcessPackage("c:\\temp\\Test2");
+            foreach (string pn in p.ProcessNames)
+            {
+                Console.WriteLine(pn);
+                p.GetProcessDefinition(pn);
+            }
+
+            var pd = p.GetProcessDefinition("ErrorHandler.1");
+            pd.Version = pd.Version + 1;
+            IList<string> errs;
+            p.TryUpdateProcess(pd, out errs);
         }
 
         public static void TestProcessScriptGenerator(IServiceResolver sr)

@@ -10,8 +10,10 @@ namespace NGinnBPM.ProcessModel
     [DataContract(Name="Process")]
     public class ProcessDef : IValidate, IHaveMetadata
     {
+        private string _pname;
+
         [DataMember]
-        public string ProcessName { get; set; }
+        public string ProcessName { get;set;}
         
         [DataMember]
         public int Version { get; set; }
@@ -82,6 +84,7 @@ namespace NGinnBPM.ProcessModel
         public void FinishModelBuild()
         {
             if (Body == null) return;
+            Body.Id = this.ProcessName;
             Body.ParentProcess = this;
             Body.Parent = null;
             Body.UpdateParentRefs();

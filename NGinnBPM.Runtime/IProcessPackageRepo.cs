@@ -7,9 +7,7 @@ using NGinnBPM.Runtime.Tasks;
 
 namespace NGinnBPM.Runtime
 {
-    public class Class1
-    {
-    }
+    
 
     public interface IProcessPackageRepo
     {

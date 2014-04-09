@@ -12,6 +12,7 @@ namespace NGinnBPM.Runtime.ProcessDSL2
     public  abstract partial class ProcessRuntimeDSLBase : IProcessScriptRuntime
     {
         public ProcessDef ProcessDefinition { get;set;}
+        protected BooProcessPackage Package { get; set; }
 
         string IProcessScriptRuntime.ProcessDefinitionId
         {
@@ -51,9 +52,10 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             throw new NotImplementedException();
         }
 
-        public void Initialize(ProcessDef pd)
+        public void Initialize(ProcessDef pd, BooProcessPackage pp)
         {
             ProcessDefinition = pd;
+            Package = pp;
             Prepare();
         }
 

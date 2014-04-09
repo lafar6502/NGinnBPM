@@ -15,6 +15,8 @@ namespace NGinnBPM.Runtime.ProcessDSL2
 {
     /// <summary>
     /// This class stores processes as JSON documents, with script snippets dynamically compiled in Boo
+    /// TODO: initially all process definitions should be loaded at once and boo scripts compiled into one
+    /// assembly. Subsequent updates will rely on incremental recompilation. This way startup will be few times faster.
     /// </summary>
     public class BooProcessPackage : IProcessPackage
     {
@@ -26,10 +28,9 @@ namespace NGinnBPM.Runtime.ProcessDSL2
 
         private static Logger log = LogManager.GetCurrentClassLogger();
 
-        private RD.SimpleBaseClassDslCompiler<ProcessRuntimeDSLBase> _dsl;
+        private ProcessDslCompiler _dsl;
         private MemScriptStorage _storage;
         private ConcurrentDictionary<string, PDCacheEntry> _processCache = new ConcurrentDictionary<string, PDCacheEntry>();
-        private JsonSerializer _ser = null;
 
         private class PDCacheEntry
         {
@@ -38,19 +39,26 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             public string ScriptUrl { get; set; }
         }
 
+        protected class ProcessDslCompiler : RD.SimpleBaseClassDslCompiler<ProcessRuntimeDSLBase>
+        {
+            public ProcessDslCompiler(RD.ISimpleScriptStorage st)
+                : base(st)
+            {
+            }
+
+            protected override void CustomizeCompiler(Boo.Lang.Compiler.BooCompiler compiler, Boo.Lang.Compiler.CompilerPipeline pipeline, string[] urls)
+            {
+                base.CustomizeCompiler(compiler, pipeline, urls);
+                compiler.Parameters.WhiteSpaceAgnostic = true;
+            }
+        }
+
         public BooProcessPackage(string baseDir)
         {
+            if (!Directory.Exists(baseDir)) throw new Exception("Directory does not exist: " + baseDir);
             this.BaseDir = baseDir;
-            JsonSerializerSettings sett = new JsonSerializerSettings
-            {
-                DateFormatHandling = Newtonsoft.Json.DateFormatHandling.IsoDateFormat,
-                NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
-                MissingMemberHandling = Newtonsoft.Json.MissingMemberHandling.Ignore,
-                Formatting = Newtonsoft.Json.Formatting.Indented,
-                TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto
-            };
-            _ser = JsonSerializer.Create(sett);
             InitializeIfNecessary();
+            InitialProcessLoad();
         }
 
         protected void InitializeIfNecessary()
@@ -59,12 +67,9 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             {
                 var st = new MemScriptStorage(id =>
                 {
-                    var pd = GetProcessDefinition(id);
-                    var script = ProcessBooScriptGenerator.GenerateScriptString(pd);
-                    log.Debug("Generated script for process {0}: {1}", id, script);
-                    return script;
+                    throw new Exception("Script not found: " + id);
                 });
-                var dsl = new RD.SimpleBaseClassDslCompiler<ProcessRuntimeDSLBase>(st);
+                var dsl = new ProcessDslCompiler(st);
                 _storage = st;
                 _dsl = dsl;
             }
@@ -78,24 +83,21 @@ namespace NGinnBPM.Runtime.ProcessDSL2
         /// <returns></returns>
         public bool TryUpdateProcess(ProcessDef pd, out IList<string> errors)
         {
-            InitializeIfNecessary();
-            List<string> err = new List<string>();
-            List<string> warn = new List<string>();
-            var scr = ProcessBooScriptGenerator.GenerateScriptString(pd);
-            if (!_dsl.CheckSyntax(scr, err, warn))
+            var ce = TryReloadProcessDef(pd);
+            string fn = Path.Combine(BaseDir, pd.ShortDefinitionId + ".npd");
+            using (var sw = new StreamWriter(fn, false, Encoding.UTF8))
             {
-                errors = err;
-                return false;
+                ProcessDefJsonSerializer.Serialize(ce.Process, sw);
             }
-
-            throw new NotImplementedException();
+            errors = null;
+            return true;
         }
 
 
 
         public string Name
         {
-            get { return Path.GetDirectoryName(BaseDir); }
+            get { return Path.GetFileName(BaseDir);  }
         }
 
         public IEnumerable<string> ProcessNames
@@ -106,10 +108,19 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             }
         }
 
+        private PackageDef _pkgDef = null;
+
         public PackageDef GetPackageDef()
         {
-            InitializeIfNecessary();
-            throw new NotImplementedException();
+            var pd = new PackageDef
+            {
+                Name = this.Name,
+                ExternalResources = new List<string>(),
+                PackageTypeSets = new List<ProcessModel.Data.TypeSet>(),
+                ProcessDefinitions = new List<ProcessDef>()
+            };
+            pd.ProcessDefinitions.AddRange(this._processCache.Values.Select(x => x.Process));
+            return pd;
         }
 
         private bool ValidateProcessDef(ProcessDef pd, List<string> errors)
@@ -117,7 +128,7 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             if (!pd.Validate(errors)) return false;
             List<string> warns = new List<string>();
             var script = ProcessBooScriptGenerator.GenerateScriptString(pd);
-            if (!_dsl.CheckSyntax(script, errors, warns))
+            if (_dsl.CheckSyntax(script, errors, warns))
             {
                 return false;
             }
@@ -153,19 +164,75 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             }
         }
 
+        protected ProcessDef LoadPDFromFile(string fileName)
+        {
+            string did = Path.GetFileNameWithoutExtension(fileName);
+            string[] pts = did.Split('.');
+            if (pts.Length != 2) throw new Exception("Invalid file name format");
+            if (string.IsNullOrEmpty(pts[0].Trim())) throw new Exception("Invalid file name format");
+            int v;
+            if (!Int32.TryParse(pts[1], out v)) throw new Exception("Invalid file name format");
+            var pname = char.ToUpper(pts[0][0]) + pts[0].Substring(1).ToLower();
+            var pd = ProcessDefJsonSerializer.DeserializeFile(fileName);
+            pd.ProcessName = pname;
+            pd.Version = v;
+            pd.Package = this.GetPackageDef();
+            pd.FinishModelBuild();
+            return pd;
+        }
+
         private PDCacheEntry TryReloadProcessFile(string fileName)
         {
             log.Info("(Re) loading process file {0}", fileName);
-            using (var sr = new StreamReader(fileName, Encoding.UTF8))
+            var pd = LoadPDFromFile(fileName);
+            return TryReloadProcessDef(pd);
+        }
+
+        
+
+        protected void InitialProcessLoad()
+        {
+            List<PDCacheEntry> entries = new List<PDCacheEntry>();
+            foreach (string pr in ProcessNames)
             {
-                var pd = _ser.Deserialize<ProcessDef>(new JsonTextReader(sr));
-                return TryReloadProcessDef(pd);
+                string file = Path.Combine(BaseDir, pr + ".npd");
+                try
+                {
+                    var pd = LoadPDFromFile(file);
+                    var err = new List<string>();
+                    if (!this.ValidateProcessDef(pd,err))
+                    {
+                        log.Warn("Process {0} in {1} is invalid: {2}", pd.DefinitionId, file, string.Join("|", err));
+                        continue;
+                    }
+                    var script = ProcessBooScriptGenerator.GenerateScriptString(pd);
+                    string surl = "PScript_" + Guid.NewGuid().ToString("N");
+                    _storage.AddScript(surl, script);
+                    var cd = new PDCacheEntry
+                    {
+                        Process = pd,
+                        ReadDate = DateTime.Now,
+                        ScriptUrl = surl
+                    };
+                    entries.Add(cd);
+                }
+                catch (Exception ex)
+                {
+                    log.Warn("Error loading process file {0}: {1}", file, ex);
+                    continue;
+                }
+            }
+            var all = _dsl.CreateAll();
+            foreach (var ce in entries)
+            {
+                _processCache.TryAdd(ce.Process.ShortDefinitionId.ToLower(), ce);
             }
         }
 
         public ProcessDef GetProcessDefinition(string definitionId)
         {
-            var pe = _processCache.AddOrUpdate(definitionId, 
+            var did = definitionId.ToLower();
+            var pe = _processCache.AddOrUpdate(did, 
             id =>
             {
                 var file = Path.Combine(BaseDir, definitionId + ".npd");
@@ -200,7 +267,7 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             string ckey = pd.ShortDefinitionId.ToLower();
             var cd = _processCache[ckey];
             var sr = _dsl.Create(cd.ScriptUrl);
-            sr.Initialize(pd);
+            sr.Initialize(pd, this);
             return sr;
         }
         

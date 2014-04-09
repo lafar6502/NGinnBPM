@@ -74,25 +74,40 @@ namespace NGinnBPM.Runtime.ProcessDSL2
 
         protected void GenerateBaseTaskScripts(TaskDef td)
         {
-            foreach(var vd in td.Variables.Where(x => !string.IsNullOrEmpty(x.DefaultValueExpr)))
+            if (td.Variables != null)
             {
-                GenExpression(DslUtil.TaskVariableDefaultKey(td.Id, vd.Name), vd.DefaultValueExpr);
+                foreach (var vd in td.Variables.Where(x => !string.IsNullOrEmpty(x.DefaultValueExpr)))
+                {
+                    GenExpression(DslUtil.TaskVariableDefaultKey(td.Id, vd.Name), vd.DefaultValueExpr);
+                }
             }
-            foreach (var bnd in td.InputDataBindings.Where(x => x.BindType == DataBindingType.Expr))
+            if (td.InputDataBindings != null)
             {
-                GenExpression(DslUtil.TaskVarInBindingKey(td.Id, bnd.Target), bnd.Source);
+                foreach (var bnd in td.InputDataBindings.Where(x => x.BindType == DataBindingType.Expr))
+                {
+                    GenExpression(DslUtil.TaskVarInBindingKey(td.Id, bnd.Target), bnd.Source);
+                }
             }
-            foreach (var bnd in td.OutputDataBindings.Where(x => x.BindType == DataBindingType.Expr))
+            if (td.OutputDataBindings != null)
             {
-                GenExpression(DslUtil.TaskVarOutBindingKey(td.Id, bnd.Target), bnd.Source);
+                foreach (var bnd in td.OutputDataBindings.Where(x => x.BindType == DataBindingType.Expr))
+                {
+                    GenExpression(DslUtil.TaskVarOutBindingKey(td.Id, bnd.Target), bnd.Source);
+                }
             }
-            foreach (var bnd in td.InputParameterBindings.Where(x => x.BindType == DataBindingType.Expr))
+            if (td.InputParameterBindings != null)
             {
-                GenExpression(DslUtil.TaskParamInBindingKey(td.Id, bnd.Target), bnd.Source);
+                foreach (var bnd in td.InputParameterBindings.Where(x => x.BindType == DataBindingType.Expr))
+                {
+                    GenExpression(DslUtil.TaskParamInBindingKey(td.Id, bnd.Target), bnd.Source);
+                }
             }
-            foreach (var bnd in td.OutputParameterBindings.Where(x => x.BindType == DataBindingType.Expr))
+            if (td.OutputParameterBindings != null)
             {
-                GenExpression(DslUtil.TaskParamOutBindingKey(td.Id, bnd.Target), bnd.Source);
+                foreach (var bnd in td.OutputParameterBindings.Where(x => x.BindType == DataBindingType.Expr))
+                {
+                    GenExpression(DslUtil.TaskParamOutBindingKey(td.Id, bnd.Target), bnd.Source);
+                }
             }
             if (td.IsMultiInstance)
             {

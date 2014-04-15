@@ -25,6 +25,10 @@ The main design objectives of this project are:
 
     We pay great attention to I/O and memory efficiency of the engine
     
+
+![ProcessEditor](/wfedit.png)
+
+
 Key features
 ------------
 *   Operation modes

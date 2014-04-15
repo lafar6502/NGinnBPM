@@ -38,6 +38,18 @@ namespace NGinnBPM.Runtime.Configuration
             return this;
         }
 
+        public WindsorConfigurator UseJsonProcessRepository(string baseDir)
+        {
+            string bd = AppDomain.CurrentDomain.BaseDirectory;
+            bd = Path.IsPathRooted(baseDir) ? baseDir : Path.Combine(bd, baseDir);
+            _wc.Register(Component.For<IProcessPackageRepo>().ImplementedBy<NGinnBPM.Runtime.ProcessDSL2.ProcessPackageRepository>()
+                .DependsOn(new
+                {
+                    BaseDirectory = bd
+                }).LifeStyle.Singleton);
+            return this;
+        }
+
         public WindsorConfigurator UseSqlStorage(string connString)
         {
             var cs = ConfigurationManager.ConnectionStrings[connString];

@@ -97,6 +97,7 @@
     <Compile Include="ProcessDSL2\BooProcessScriptRuntime.cs" />
     <Compile Include="ProcessDSL2\MemScriptStorage.cs" />
     <Compile Include="ProcessDSL2\ProcessBooScriptGenerator.cs" />
+    <Compile Include="ProcessDSL2\ProcessPackageRepository.cs" />
     <Compile Include="ProcessDSL2\ProcessRuntimeDSLBase_API.cs" />
     <Compile Include="ProcessDSL2\ProcessRuntimeDSLBase.cs" />
     <Compile Include="ProcessDSL\BooDSLProcessPackage.cs" />

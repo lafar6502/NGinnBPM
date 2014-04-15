@@ -148,6 +148,9 @@ namespace NGinnBPM.Runtime.ProcessDSL2
         public void SetTaskScriptContext(TaskInstance task, Dictionary<string, object> inputData, Dictionary<string, object> outputData)
         {
             throw new NotImplementedException();
+            //_pd.SetTaskInstanceInfo(task, ctx);
+            _pd.SetInputData(inputData);
+            _pd.SetOutputData(outputData);
         }
 
 

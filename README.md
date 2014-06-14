@@ -26,7 +26,8 @@ The main design objectives of this project are:
     We pay great attention to I/O and memory efficiency of the engine
     
 
-![ProcessEditor](/wfedit.png)
+    
+
 
 
 Key features
@@ -38,8 +39,7 @@ Key features
     
 *   Process model elements
     
-    Almost all constructs known in BPMN can be modeled in NGinn.BPM. Currently a custom language is used for
-    process description, but BPMN translation will be implemented.
+    Almost all constructs known in BPMN can be modeled in NGinn.BPM. Process description language is text based and process model is serializable to JSON and XML. BPMN translation will be implemented. 
 
 *   Data model
     
@@ -50,7 +50,10 @@ Key features
     
     By default NGinn.BPM uses SQL Server backend, but it can be easily ported to other SQL databases. 
 
+*   GUI Designer
+    ![ProcessEditor](/nginn.png)
 
+    
 Roadmap
 -------
 Most important features yet to be implemented

@@ -51,8 +51,14 @@ Key features
     By default NGinn.BPM uses SQL Server backend, but it can be easily ported to other SQL databases. 
 
 *   GUI Designer
+    
     ![ProcessEditor](/nginn.png)
 
+    Process model will be fully editable in the designer GUI. Designer is web based, embeddable in applications. Process diagram visualization and editor are based on brilliant JointJS library. Currently it's a work in progress.
+    
+*   ESB backend
+
+    NGinn.BPM is built on top of asynchronous and transactional message bus which is a central mechanism for event-based communication between NGinn.BPM processes and application components.
     
 Roadmap
 -------

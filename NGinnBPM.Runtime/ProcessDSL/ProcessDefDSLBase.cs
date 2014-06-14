@@ -468,8 +468,8 @@ namespace NGinnBPM.Runtime.ProcessDSL
                 To = to,
                 IsCancelling = GetOption(options, "cancelling", false),
                 Label = GetOption(options, "label", (string)null),
-                SourcePortType = GetOption(options, "sourcePort", TaskOutPortType.Default),
-                TargetPortType = GetOption(options, "targetPort", TaskInPortType.Default),
+                SourcePortType = GetOption(options, "sourcePort", TaskOutPortType.Out),
+                TargetPortType = GetOption(options, "targetPort", TaskInPortType.In),
                 EvalOrder = GetOption(options, "evalOrder", 0)
             };
             _currentCompositeTask.AddFlow(fd);

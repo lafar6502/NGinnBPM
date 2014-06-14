@@ -20,7 +20,7 @@ namespace NGinnBPM.ProcessModel
     public enum TaskOutPortType
     {
         /// <summary>Standard output port</summary>
-        Default,
+        Out,
         /// <summary>Failure output port</summary>
         Error,
         /// <summary>Signal output port (unused yet)</summary>
@@ -42,7 +42,7 @@ namespace NGinnBPM.ProcessModel
     /// </summary>
     public enum TaskInPortType
     {
-        Default
+        In
     }
 
 

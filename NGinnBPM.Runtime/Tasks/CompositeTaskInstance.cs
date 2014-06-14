@@ -923,7 +923,7 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 List<FlowDef> normalFlows = new List<FlowDef>();
                 List<FlowDef> cancellingFlows = new List<FlowDef>();
-                foreach(FlowDef fl in tsk.GetFlowsForPortOut(TaskOutPortType.Default))
+                foreach(FlowDef fl in tsk.GetFlowsForPortOut(TaskOutPortType.Out))
                 {
                     if (fl.IsCancelling)
                         cancellingFlows.Add(fl);

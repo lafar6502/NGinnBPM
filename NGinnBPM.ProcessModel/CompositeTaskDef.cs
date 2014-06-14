@@ -67,7 +67,7 @@ namespace NGinnBPM.ProcessModel
             if (q == null) throw new Exception("Node not defined: " + t.To);
             t.Parent = this;
             
-            if (t.IsCancelling || t.SourcePortType != TaskOutPortType.Default)
+            if (t.IsCancelling || t.SourcePortType != TaskOutPortType.Out)
             {
                 if (t.InputCondition != null && t.InputCondition.Length > 0)
                     throw new NGinnBPM.ProcessModel.Exceptions.ProcessDefinitionException(this.ParentProcess.DefinitionId, t.From, "InputCondition not allowed");

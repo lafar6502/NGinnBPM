@@ -32,16 +32,37 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Boo.Lang">
-      <HintPath>..\extlib\Boo.Lang.dll</HintPath>
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\Boo.Lang.dll</HintPath>
     </Reference>
     <Reference Include="Boo.Lang.CodeDom">
-      <HintPath>..\extlib\Boo.Lang.CodeDom.dll</HintPath>
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\Boo.Lang.CodeDom.dll</HintPath>
     </Reference>
     <Reference Include="Boo.Lang.Compiler">
-      <HintPath>..\extlib\Boo.Lang.Compiler.dll</HintPath>
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\Boo.Lang.Compiler.dll</HintPath>
+    </Reference>
+    <Reference Include="Boo.Lang.Extensions">
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\Boo.Lang.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Boo.Lang.Interpreter">
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\Boo.Lang.Interpreter.dll</HintPath>
     </Reference>
     <Reference Include="Boo.Lang.Parser">
-      <HintPath>..\extlib\Boo.Lang.Parser.dll</HintPath>
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\Boo.Lang.Parser.dll</HintPath>
+    </Reference>
+    <Reference Include="Boo.Lang.PatternMatching">
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\Boo.Lang.PatternMatching.dll</HintPath>
+    </Reference>
+    <Reference Include="Boo.Lang.Useful">
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\Boo.Lang.Useful.dll</HintPath>
+    </Reference>
+    <Reference Include="booc">
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\booc.exe</HintPath>
+    </Reference>
+    <Reference Include="booi">
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\booi.exe</HintPath>
+    </Reference>
+    <Reference Include="booish">
+      <HintPath>..\packages\Boo_lang_rg.0.9.5.0\lib\net40\booish.exe</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>

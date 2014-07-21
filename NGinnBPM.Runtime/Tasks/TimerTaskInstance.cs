@@ -17,13 +17,13 @@ namespace NGinnBPM.Runtime.Tasks
     {
         
         [DataMember]
-        public DateTime ExpirationDate { get;set;}
+        public TimeSpan Delay { get;set;}
 
 
         protected override void OnTaskEnabling()
         {
             base.OnTaskEnabling();
-            if (ExpirationDate <= DateTime.Now)
+            if (Delay.TotalSeconds <= 1)
             {
                 Complete();
             }
@@ -34,7 +34,7 @@ namespace NGinnBPM.Runtime.Tasks
                     FromProcessInstanceId = this.ProcessInstanceId,
                     FromTaskInstanceId = this.InstanceId,
                     ParentTaskInstanceId = this.InstanceId
-                }, this.ExpirationDate);
+                }, DateTime.Now + this.Delay);
             }
         }
 
@@ -47,7 +47,7 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 if (this.Status == TaskStatus.Enabling || this.Status == TaskStatus.Enabled || this.Status == TaskStatus.Selected)
                 {
-                    if (this.ExpirationDate <= DateTime.Now)
+                    if (DateTime.Now + this.Delay <= DateTime.Now)
                     {
                         Complete();
                     }

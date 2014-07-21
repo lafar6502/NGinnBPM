@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using BL = Boo.Lang;
-using Rhino.DSL;
+using NGinnBPM.DSLServices;
 using NLog;
 using System.Reflection;
 

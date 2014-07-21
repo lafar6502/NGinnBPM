@@ -1,6 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
+# SharpDevelop 5.0
+VisualStudioVersion = 12.0.20827.3
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NGinnBPM.ProcessModel", "NGinnBPM.ProcessModel\NGinnBPM.ProcessModel.csproj", "{06C887F0-0CB6-4B05-8A53-628ADA7BB969}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NGinnBPM.Runtime", "NGinnBPM.Runtime\NGinnBPM.Runtime.csproj", "{1EAFF797-331D-4F67-BE8A-91C89B2E170B}"
@@ -15,6 +18,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{DB1DEB
 		.nuget\NuGet.exe = .nuget\NuGet.exe
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NGinnBPM.DSLServices", "NGinnBPM.DSLServices\NGinnBPM.DSLServices.csproj", "{5A301AD8-D905-4E5E-8149-1277E373CAE0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,11 +43,12 @@ Global
 		{45E7D838-0412-477B-86EE-AE8DBAD4AD7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{45E7D838-0412-477B-86EE-AE8DBAD4AD7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{45E7D838-0412-477B-86EE-AE8DBAD4AD7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A301AD8-D905-4E5E-8149-1277E373CAE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A301AD8-D905-4E5E-8149-1277E373CAE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A301AD8-D905-4E5E-8149-1277E373CAE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A301AD8-D905-4E5E-8149-1277E373CAE0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

@@ -18,6 +18,8 @@ namespace NGinnBPM.ProcessModel.Data
         public static readonly SimpleTypeDef TYPE_DATE = new SimpleTypeDef("date", typeof(DateTime));
         public static readonly SimpleTypeDef TYPE_DATETIME = new SimpleTypeDef("dateTime", typeof(DateTime));
         public static readonly SimpleTypeDef TYPE_BOOL = new SimpleTypeDef("bool", typeof(bool));
+        public static readonly SimpleTypeDef TYPE_DOCREF = new SimpleTypeDef("docref", typeof(string));
+        
         private static Dictionary<string, TypeDef> _builtInTypes;
         
         static TypeSet()

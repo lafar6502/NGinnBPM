@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Rhino.DSL;
+using NGinnBPM.DSLServices;
 using System.IO;
 
 namespace NGinnBPM.Runtime.ProcessDSL
@@ -13,15 +13,13 @@ namespace NGinnBPM.Runtime.ProcessDSL
     public class BooDSLProcessPackage : IProcessPackage
     {
         public string BaseDirectory { get; set; }
-        private DslFactory _dsl;
+        private SimpleBaseClassDslCompiler<ProcessDefDSLBase> _dsl;
 
-        protected DslFactory GetDSL()
+        protected SimpleBaseClassDslCompiler<ProcessDefDSLBase> GetDSL()
         {
             if (_dsl == null)
             {
-                _dsl = new DslFactory();
-                _dsl.BaseDirectory = BaseDirectory;
-                _dsl.Register<ProcessDefDSLBase>(new PackageDSLEngine(BaseDirectory));
+            	_dsl = new SimpleBaseClassDslCompiler<ProcessDefDSLBase>(new SimpleFSStorage(BaseDirectory, true));
             }
             return _dsl;
         }
@@ -57,7 +55,7 @@ namespace NGinnBPM.Runtime.ProcessDSL
         protected ProcessDefDSLBase GetProcessDsl(string definitionId)
         {
             string fn = definitionId.EndsWith(".boo") ? definitionId : definitionId + ".boo";
-            var pd = GetDSL().Create<ProcessDefDSLBase>(fn);
+            var pd = GetDSL().Create(fn);
             pd.Package = this;
             return pd;
         }

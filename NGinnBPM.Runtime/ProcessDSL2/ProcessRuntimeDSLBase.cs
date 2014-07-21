@@ -17,6 +17,7 @@ namespace NGinnBPM.Runtime.ProcessDSL2
     {
         public ProcessDef ProcessDefinition { get;set;}
         protected BooProcessPackage Package { get; set; }
+        [BL.DuckTyped]
         protected TaskInstance Task { get; set; }
         protected ITaskExecutionContext Context { get; set; }
         protected BL.IQuackFu InputData { get; set; }
@@ -24,7 +25,10 @@ namespace NGinnBPM.Runtime.ProcessDSL2
         protected BL.IQuackFu TaskData { get; set; }
         [BL.DuckTyped]
         protected object Item { get; set; }
- 
+        /// <summary>
+        /// Documents retrieved for each 'docref' input/local variable
+        /// </summary>
+        protected BL.IQuackFu Documents { get; set; }
         
 
         public void Initialize(ProcessDef pd, BooProcessPackage pp)

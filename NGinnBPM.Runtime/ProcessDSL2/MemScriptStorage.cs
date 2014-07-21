@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-using RD = Rhino.DSL;
+using RD = NGinnBPM.DSLServices;
 using BLC = Boo.Lang.Compiler;
 
 namespace NGinnBPM.Runtime.ProcessDSL2

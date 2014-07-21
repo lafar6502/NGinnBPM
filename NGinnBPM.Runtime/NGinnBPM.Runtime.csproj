@@ -70,10 +70,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\NLog.2.1.0\lib\net40\NLog.dll</HintPath>
     </Reference>
-    <Reference Include="Rhino.DSL, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\extlib\Rhino.DSL.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -103,7 +99,6 @@
     <Compile Include="ProcessDSL2\BooProcessPackage.cs" />
     <Compile Include="ProcessDSL\BooProcessScriptGenerator.cs" />
     <Compile Include="ProcessDSL\DslUtil.cs" />
-    <Compile Include="ProcessDSL\PackageDSLEngine.cs" />
     <Compile Include="ProcessDSL\ProcessDefDSLBase.cs" />
     <Compile Include="ProcessDSL\ProcessPackageRepository.cs" />
     <Compile Include="ProcessDSL\QuackDictionaryWrapper.cs" />
@@ -132,6 +127,7 @@
     <Compile Include="Tasks\AtomicTaskInstance.cs" />
     <Compile Include="Tasks\CompositeTaskInstance.cs" />
     <Compile Include="Tasks\AwaitMessageTaskInstance.cs" />
+    <Compile Include="Tasks\SubprocessTaskInstance.cs" />
     <Compile Include="Tasks\ManualTaskInstance.cs" />
     <Compile Include="Tasks\SendMessageTaskInstance.cs" />
     <Compile Include="Tasks\DebugTaskInstance.cs" />
@@ -151,6 +147,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NGinnBPM.DSLServices\NGinnBPM.DSLServices.csproj">
+      <Project>{5A301AD8-D905-4E5E-8149-1277E373CAE0}</Project>
+      <Name>NGinnBPM.DSLServices</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NGinnBPM.Lib\NGinnBPM.Lib.csproj">
       <Project>{45e7d838-0412-477b-86ee-ae8dbad4ad7e}</Project>
       <Name>NGinnBPM.Lib</Name>

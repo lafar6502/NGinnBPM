@@ -8,6 +8,10 @@ using NGinnBPM.Runtime.Services;
 
 namespace NGinnBPM.Runtime
 {
+    /// <summary>
+    /// Process session roughly equals to a transaction
+    /// 
+    /// </summary>
     public class ProcessSession : ITaskExecutionContext, IDisposable
     {
         [ThreadStatic]

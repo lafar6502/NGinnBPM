@@ -16,6 +16,11 @@ namespace NGinnBPM.Runtime
             set { _cur = value; }
         }
 
+        public virtual object Connection 
+        {
+            get { return null; }
+        }
+        
         public virtual void Dispose()
         {
             

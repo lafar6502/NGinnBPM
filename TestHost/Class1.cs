@@ -33,7 +33,7 @@ namespace TestHost.cs
 
         public static void TestRepo2()
         {
-            D2.BooProcessPackage p = new D2.BooProcessPackage("c:\\temp\\Test2");
+            D2.BooProcessPackage p = new D2.BooProcessPackage("..\\..\\..\\ProcessPackages\\Test2");
             foreach (string pn in p.ProcessNames)
             {
                 Console.WriteLine(pn);

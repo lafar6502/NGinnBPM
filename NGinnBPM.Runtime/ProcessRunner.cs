@@ -34,7 +34,30 @@ namespace NGinnBPM.Runtime
     /// <summary>
     /// Process runner does run the processes by pushing them forward in a transactional manner.
     /// A single process transaction does as much as it can, without bothering parent tasks (they don't get mixed into child task's transaction).
-    /// This way we can execute a whole process in a single transaction if we want.
+    /// This way we can execute a whole process in a single transaction if we want
+    /// 
+    /// 
+    /// Important! There's no need to keep ProcessRunner singleton AFAIK
+    /// We could also just create a single process runner for performing just one process update
+    /// (a single transaction) and ditch it as soon as the transaction is done.
+    /// This is even more reasonable approach as our process transactions are initiated either by request or
+    /// by a message from the message bus.
+    /// 
+    /// Process session: load process instance (initiate session) -> perform some operations -> save instance (close
+    /// session). In this regard, a process runner just operates on the process sesssion (performs some operations)
+    /// and this way the proccess runner is stateless -> all the state is in process session and in incoming request/message
+    /// The process session grows along the way -> it includes more task instances and maybe document instances,
+    /// it can also 'enlist' other transactions to be commited together.
+    /// As an alternative, you can enlist them in the ambient .Net transaction (we will be using ambient .Net transactions 
+    /// anyway).
+    /// So, the most important thing to do now is to think about process session initiation/commit
+    /// 1. create system transaction/transaction scope
+    /// 2. perform any other tasks/operations before initiating process session
+    /// 3. init process session (load task instance etc)
+    /// 4. update the task and handle all synchronous triggers
+    /// 5. save process session
+    /// 6. commit system transaction
+    /// We (the process runner) never initiate a system transaction!
     /// </summary>
     public class ProcessRunner 
     {

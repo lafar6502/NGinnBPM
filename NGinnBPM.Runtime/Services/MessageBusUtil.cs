@@ -4,6 +4,12 @@ using System.Linq;
 using System.Text;
 using NGinnBPM.MessageBus;
 
+/// <summary>
+/// session (process transaction) =
+/// document session +
+/// message bus tran
+/// and process session
+/// </summary>
 namespace NGinnBPM.Runtime.Services
 {
     public class MessageBusUtil

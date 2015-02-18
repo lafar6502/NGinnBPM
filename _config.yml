@@ -10,3 +10,4 @@ github_username:  lafar6502
 
 # Build settings
 markdown: kramdown
+paginate: 5

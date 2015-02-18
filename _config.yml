@@ -1,0 +1,12 @@
+# Site settings
+title: NGinn.BPM
+email: rafal.gwizdala@gmail.com
+description: > # this means to ignore newlines until "baseurl:"
+ BPM engine for the .Net framework with process modeling language and execution  framework. Goal: to provide powerful, BPMN 2.0 - compatible workflow engine for .net that can be used in real life projects without too much friction.
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "http://yourdomain.com" # the base hostname & protocol for your site
+twitter_username: 
+github_username:  lafar6502
+
+# Build settings
+markdown: kramdown

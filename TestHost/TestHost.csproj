@@ -84,6 +84,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\NGinnBPM.BPMNTools\NGinnBPM.BPMNTools.csproj">
+      <Project>{6fe3ea11-2147-4765-b863-395919ad19d5}</Project>
+      <Name>NGinnBPM.BPMNTools</Name>
+    </ProjectReference>
     <ProjectReference Include="..\NGinnBPM.ProcessModel\NGinnBPM.ProcessModel.csproj">
       <Project>{06c887f0-0cb6-4b05-8a53-628ada7bb969}</Project>
       <Name>NGinnBPM.ProcessModel</Name>

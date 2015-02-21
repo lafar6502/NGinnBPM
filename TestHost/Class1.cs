@@ -16,6 +16,7 @@ namespace TestHost.cs
         {
             //TestProcessDsl();
             //TestPackageRepo();
+            TestBpmn();
             TestRepo2();
             return;
             var c = ConfigureNGinnBPM();
@@ -29,6 +30,17 @@ namespace TestHost.cs
             TestProcessScriptGenerator(c);
             Console.ReadLine();
 
+        }
+
+        public static void TestBpmn()
+        {
+            //eclws\\activitiWF1\\MyProcess.bpmn
+            using (var sr = new StreamReader("C:\\temp\\diagram.bpmn", Encoding.UTF8))
+            {
+                var dfs = NGinnBPM.BPMNTools.Parser.BPMNParser.Parse(sr);
+                var x = dfs.rootElement;
+                Console.ReadLine();
+            }
         }
 
         public static void TestRepo2()

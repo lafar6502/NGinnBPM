@@ -1083,6 +1083,9 @@ namespace Org.Omg.BPMN20 {
         
         /// <uwagi/>
         [System.Xml.Serialization.XmlElementAttribute("resourceRole")]
+        [System.Xml.Serialization.XmlElementAttribute("performer",typeof(tHumanPerformer))]
+        [System.Xml.Serialization.XmlElementAttribute("potentialOwner",typeof(tPotentialOwner))]
+        
         public tResourceRole[] resourceRole {
             get {
                 return this.resourceRoleField;
@@ -1093,6 +1096,9 @@ namespace Org.Omg.BPMN20 {
         }
         
         /// <uwagi/>
+        /// 
+        [System.Xml.Serialization.XmlElementAttribute("standardLoopCharacteristics", typeof(tStandardLoopCharacteristics))]
+        [System.Xml.Serialization.XmlElementAttribute("multiInstanceLoopCharacteristics", typeof(tMultiInstanceLoopCharacteristics))]
         public tLoopCharacteristics loopCharacteristics {
             get {
                 return this.loopCharacteristicsField;
@@ -2527,7 +2533,38 @@ namespace Org.Omg.BPMN20 {
             }
         }
         
-        /// <uwagi/>
+        
+        [System.Xml.Serialization.XmlElementAttribute("adHocSubProcess", typeof(tAdHocSubProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("boundaryEvent", typeof(tBoundaryEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("businessRuleTask", typeof(tBusinessRuleTask))]
+        [System.Xml.Serialization.XmlElementAttribute("callActivity", typeof(tCallActivity))]
+        [System.Xml.Serialization.XmlElementAttribute("callChoreography", typeof(tCallChoreography))]
+        [System.Xml.Serialization.XmlElementAttribute("choreographyTask", typeof(tChoreographyTask))]
+        [System.Xml.Serialization.XmlElementAttribute("complexGateway", typeof(tComplexGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("dataObject", typeof(tDataObject))]
+        [System.Xml.Serialization.XmlElementAttribute("dataObjectReference", typeof(tDataObjectReference))]
+        [System.Xml.Serialization.XmlElementAttribute("dataStoreReference", typeof(tDataStoreReference))]
+        [System.Xml.Serialization.XmlElementAttribute("endEvent", typeof(tEndEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("event", typeof(tEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("eventBasedGateway", typeof(tEventBasedGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("exclusiveGateway", typeof(tExclusiveGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("implicitThrowEvent", typeof(tImplicitThrowEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("inclusiveGateway", typeof(tInclusiveGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("intermediateCatchEvent", typeof(tIntermediateCatchEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("intermediateThrowEvent", typeof(tIntermediateThrowEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("manualTask", typeof(tManualTask))]
+        [System.Xml.Serialization.XmlElementAttribute("parallelGateway", typeof(tParallelGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("receiveTask", typeof(tReceiveTask))]
+        [System.Xml.Serialization.XmlElementAttribute("scriptTask", typeof(tScriptTask))]
+        [System.Xml.Serialization.XmlElementAttribute("sendTask", typeof(tSendTask))]
+        [System.Xml.Serialization.XmlElementAttribute("sequenceFlow", typeof(tSequenceFlow))]
+        [System.Xml.Serialization.XmlElementAttribute("serviceTask", typeof(tServiceTask))]
+        [System.Xml.Serialization.XmlElementAttribute("startEvent", typeof(tStartEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("subChoreography", typeof(tSubChoreography))]
+        [System.Xml.Serialization.XmlElementAttribute("subProcess", typeof(tSubProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("task", typeof(tTask))]
+        [System.Xml.Serialization.XmlElementAttribute("transaction", typeof(tTransaction))]
+        [System.Xml.Serialization.XmlElementAttribute("userTask", typeof(tUserTask))]
         [System.Xml.Serialization.XmlElementAttribute("flowElement")]
         public tFlowElement[] flowElement {
             get {
@@ -2539,6 +2576,9 @@ namespace Org.Omg.BPMN20 {
         }
         
         /// <uwagi/>
+        [System.Xml.Serialization.XmlElementAttribute("association", typeof(tAssociation))]
+        [System.Xml.Serialization.XmlElementAttribute("textAnnotation", typeof(tTextAnnotation))]
+        [System.Xml.Serialization.XmlElementAttribute("group", typeof(tGroup))]
         [System.Xml.Serialization.XmlElementAttribute("artifact")]
         public tArtifact[] artifact {
             get {
@@ -2854,8 +2894,17 @@ namespace Org.Omg.BPMN20 {
                 this.outputSetField = value;
             }
         }
-        
-        /// <uwagi/>
+
+        [System.Xml.Serialization.XmlElementAttribute("cancelEventDefinition", typeof(tCancelEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("compensateEventDefinition", typeof(tCompensateEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("conditionalEventDefinition", typeof(tConditionalEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("errorEventDefinition", typeof(tErrorEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("escalationEventDefinition", typeof(tEscalationEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("linkEventDefinition", typeof(tLinkEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("messageEventDefinition", typeof(tMessageEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("signalEventDefinition", typeof(tSignalEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("terminateEventDefinition", typeof(tTerminateEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("timerEventDefinition", typeof(tTimerEventDefinition))]
         [System.Xml.Serialization.XmlElementAttribute("eventDefinition")]
         public tEventDefinition[] eventDefinition {
             get {
@@ -2911,6 +2960,7 @@ namespace Org.Omg.BPMN20 {
     }
     
     /// <uwagi/>
+    [System.Xml.Serialization.XmlIncludeAttribute(typeof(tProcess))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tSignal))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tResource))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tPartnerRole))]
@@ -2940,7 +2990,6 @@ namespace Org.Omg.BPMN20 {
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tGlobalChoreographyTask))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tCategory))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tCallableElement))]
-    [System.Xml.Serialization.XmlIncludeAttribute(typeof(tProcess))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tGlobalTask))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tGlobalUserTask))]
     [System.Xml.Serialization.XmlIncludeAttribute(typeof(tGlobalScriptTask))]
@@ -3547,7 +3596,37 @@ namespace Org.Omg.BPMN20 {
         
         private tFlowElement[] flowElementField;
         
-        /// <uwagi/>
+        [System.Xml.Serialization.XmlElementAttribute("adHocSubProcess", typeof(tAdHocSubProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("boundaryEvent", typeof(tBoundaryEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("businessRuleTask", typeof(tBusinessRuleTask))]
+        [System.Xml.Serialization.XmlElementAttribute("callActivity", typeof(tCallActivity))]
+        [System.Xml.Serialization.XmlElementAttribute("callChoreography", typeof(tCallChoreography))]
+        [System.Xml.Serialization.XmlElementAttribute("choreographyTask", typeof(tChoreographyTask))]
+        [System.Xml.Serialization.XmlElementAttribute("complexGateway", typeof(tComplexGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("dataObject", typeof(tDataObject))]
+        [System.Xml.Serialization.XmlElementAttribute("dataObjectReference", typeof(tDataObjectReference))]
+        [System.Xml.Serialization.XmlElementAttribute("dataStoreReference", typeof(tDataStoreReference))]
+        [System.Xml.Serialization.XmlElementAttribute("endEvent", typeof(tEndEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("event", typeof(tEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("eventBasedGateway", typeof(tEventBasedGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("exclusiveGateway", typeof(tExclusiveGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("implicitThrowEvent", typeof(tImplicitThrowEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("inclusiveGateway", typeof(tInclusiveGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("intermediateCatchEvent", typeof(tIntermediateCatchEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("intermediateThrowEvent", typeof(tIntermediateThrowEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("manualTask", typeof(tManualTask))]
+        [System.Xml.Serialization.XmlElementAttribute("parallelGateway", typeof(tParallelGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("receiveTask", typeof(tReceiveTask))]
+        [System.Xml.Serialization.XmlElementAttribute("scriptTask", typeof(tScriptTask))]
+        [System.Xml.Serialization.XmlElementAttribute("sendTask", typeof(tSendTask))]
+        [System.Xml.Serialization.XmlElementAttribute("sequenceFlow", typeof(tSequenceFlow))]
+        [System.Xml.Serialization.XmlElementAttribute("serviceTask", typeof(tServiceTask))]
+        [System.Xml.Serialization.XmlElementAttribute("startEvent", typeof(tStartEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("subChoreography", typeof(tSubChoreography))]
+        [System.Xml.Serialization.XmlElementAttribute("subProcess", typeof(tSubProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("task", typeof(tTask))]
+        [System.Xml.Serialization.XmlElementAttribute("transaction", typeof(tTransaction))]
+        [System.Xml.Serialization.XmlElementAttribute("userTask", typeof(tUserTask))]
         [System.Xml.Serialization.XmlElementAttribute("flowElement")]
         public tFlowElement[] flowElement {
             get {
@@ -3622,6 +3701,9 @@ namespace Org.Omg.BPMN20 {
         }
         
         /// <uwagi/>
+        [System.Xml.Serialization.XmlElementAttribute("association", typeof(tAssociation))]
+        [System.Xml.Serialization.XmlElementAttribute("textAnnotation", typeof(tTextAnnotation))]
+        [System.Xml.Serialization.XmlElementAttribute("group", typeof(tGroup))]
         [System.Xml.Serialization.XmlElementAttribute("artifact")]
         public tArtifact[] artifact {
             get {
@@ -3634,6 +3716,8 @@ namespace Org.Omg.BPMN20 {
         
         /// <uwagi/>
         [System.Xml.Serialization.XmlElementAttribute("conversationNode")]
+        [System.Xml.Serialization.XmlElementAttribute("callConversation", typeof(tCallConversation))]
+        [System.Xml.Serialization.XmlElementAttribute("subConversation", typeof(tSubConversation))]
         public tConversationNode[] conversationNode {
             get {
                 return this.conversationNodeField;
@@ -4202,8 +4286,17 @@ namespace Org.Omg.BPMN20 {
                 this.inputSetField = value;
             }
         }
-        
-        /// <uwagi/>
+
+        [System.Xml.Serialization.XmlElementAttribute("cancelEventDefinition", typeof(tCancelEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("compensateEventDefinition", typeof(tCompensateEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("conditionalEventDefinition", typeof(tConditionalEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("errorEventDefinition", typeof(tErrorEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("escalationEventDefinition", typeof(tEscalationEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("linkEventDefinition", typeof(tLinkEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("messageEventDefinition", typeof(tMessageEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("signalEventDefinition", typeof(tSignalEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("terminateEventDefinition", typeof(tTerminateEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("timerEventDefinition", typeof(tTimerEventDefinition))]
         [System.Xml.Serialization.XmlElementAttribute("eventDefinition")]
         public tEventDefinition[] eventDefinition {
             get {
@@ -5018,6 +5111,9 @@ namespace Org.Omg.BPMN20 {
         
         /// <uwagi/>
         [System.Xml.Serialization.XmlElementAttribute("resourceRole")]
+        [System.Xml.Serialization.XmlElementAttribute("performer", typeof(tHumanPerformer))]
+        [System.Xml.Serialization.XmlElementAttribute("potentialOwner", typeof(tPotentialOwner))]
+        
         public tResourceRole[] resourceRole {
             get {
                 return this.resourceRoleField;
@@ -5914,8 +6010,38 @@ namespace Org.Omg.BPMN20 {
                 this.laneSetField = value;
             }
         }
-        
-        /// <uwagi/>
+
+        [System.Xml.Serialization.XmlElementAttribute("adHocSubProcess", typeof(tAdHocSubProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("boundaryEvent", typeof(tBoundaryEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("businessRuleTask", typeof(tBusinessRuleTask))]
+        [System.Xml.Serialization.XmlElementAttribute("callActivity", typeof(tCallActivity))]
+        [System.Xml.Serialization.XmlElementAttribute("callChoreography", typeof(tCallChoreography))]
+        [System.Xml.Serialization.XmlElementAttribute("choreographyTask", typeof(tChoreographyTask))]
+        [System.Xml.Serialization.XmlElementAttribute("complexGateway", typeof(tComplexGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("dataObject", typeof(tDataObject))]
+        [System.Xml.Serialization.XmlElementAttribute("dataObjectReference", typeof(tDataObjectReference))]
+        [System.Xml.Serialization.XmlElementAttribute("dataStoreReference", typeof(tDataStoreReference))]
+        [System.Xml.Serialization.XmlElementAttribute("endEvent", typeof(tEndEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("event", typeof(tEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("eventBasedGateway", typeof(tEventBasedGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("exclusiveGateway", typeof(tExclusiveGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("implicitThrowEvent", typeof(tImplicitThrowEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("inclusiveGateway", typeof(tInclusiveGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("intermediateCatchEvent", typeof(tIntermediateCatchEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("intermediateThrowEvent", typeof(tIntermediateThrowEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("manualTask", typeof(tManualTask))]
+        [System.Xml.Serialization.XmlElementAttribute("parallelGateway", typeof(tParallelGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("receiveTask", typeof(tReceiveTask))]
+        [System.Xml.Serialization.XmlElementAttribute("scriptTask", typeof(tScriptTask))]
+        [System.Xml.Serialization.XmlElementAttribute("sendTask", typeof(tSendTask))]
+        [System.Xml.Serialization.XmlElementAttribute("sequenceFlow", typeof(tSequenceFlow))]
+        [System.Xml.Serialization.XmlElementAttribute("serviceTask", typeof(tServiceTask))]
+        [System.Xml.Serialization.XmlElementAttribute("startEvent", typeof(tStartEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("subChoreography", typeof(tSubChoreography))]
+        [System.Xml.Serialization.XmlElementAttribute("subProcess", typeof(tSubProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("task", typeof(tTask))]
+        [System.Xml.Serialization.XmlElementAttribute("transaction", typeof(tTransaction))]
+        [System.Xml.Serialization.XmlElementAttribute("userTask", typeof(tUserTask))]
         [System.Xml.Serialization.XmlElementAttribute("flowElement")]
         public tFlowElement[] flowElement {
             get {
@@ -5927,6 +6053,9 @@ namespace Org.Omg.BPMN20 {
         }
         
         /// <uwagi/>
+        [System.Xml.Serialization.XmlElementAttribute("association", typeof(tAssociation))]
+        [System.Xml.Serialization.XmlElementAttribute("textAnnotation", typeof(tTextAnnotation))]
+        [System.Xml.Serialization.XmlElementAttribute("group", typeof(tGroup))]
         [System.Xml.Serialization.XmlElementAttribute("artifact")]
         public tArtifact[] artifact {
             get {
@@ -5939,6 +6068,8 @@ namespace Org.Omg.BPMN20 {
         
         /// <uwagi/>
         [System.Xml.Serialization.XmlElementAttribute("resourceRole")]
+        [System.Xml.Serialization.XmlElementAttribute("performer", typeof(tHumanPerformer))]
+        [System.Xml.Serialization.XmlElementAttribute("potentialOwner", typeof(tPotentialOwner))]
         public tResourceRole[] resourceRole {
             get {
                 return this.resourceRoleField;
@@ -6661,8 +6792,38 @@ namespace Org.Omg.BPMN20 {
         private tFlowElement[] flowElementField;
         
         private tArtifact[] artifactField;
-        
-        /// <uwagi/>
+
+        [System.Xml.Serialization.XmlElementAttribute("adHocSubProcess", typeof(tAdHocSubProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("boundaryEvent", typeof(tBoundaryEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("businessRuleTask", typeof(tBusinessRuleTask))]
+        [System.Xml.Serialization.XmlElementAttribute("callActivity", typeof(tCallActivity))]
+        [System.Xml.Serialization.XmlElementAttribute("callChoreography", typeof(tCallChoreography))]
+        [System.Xml.Serialization.XmlElementAttribute("choreographyTask", typeof(tChoreographyTask))]
+        [System.Xml.Serialization.XmlElementAttribute("complexGateway", typeof(tComplexGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("dataObject", typeof(tDataObject))]
+        [System.Xml.Serialization.XmlElementAttribute("dataObjectReference", typeof(tDataObjectReference))]
+        [System.Xml.Serialization.XmlElementAttribute("dataStoreReference", typeof(tDataStoreReference))]
+        [System.Xml.Serialization.XmlElementAttribute("endEvent", typeof(tEndEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("event", typeof(tEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("eventBasedGateway", typeof(tEventBasedGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("exclusiveGateway", typeof(tExclusiveGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("implicitThrowEvent", typeof(tImplicitThrowEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("inclusiveGateway", typeof(tInclusiveGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("intermediateCatchEvent", typeof(tIntermediateCatchEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("intermediateThrowEvent", typeof(tIntermediateThrowEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("manualTask", typeof(tManualTask))]
+        [System.Xml.Serialization.XmlElementAttribute("parallelGateway", typeof(tParallelGateway))]
+        [System.Xml.Serialization.XmlElementAttribute("receiveTask", typeof(tReceiveTask))]
+        [System.Xml.Serialization.XmlElementAttribute("scriptTask", typeof(tScriptTask))]
+        [System.Xml.Serialization.XmlElementAttribute("sendTask", typeof(tSendTask))]
+        [System.Xml.Serialization.XmlElementAttribute("sequenceFlow", typeof(tSequenceFlow))]
+        [System.Xml.Serialization.XmlElementAttribute("serviceTask", typeof(tServiceTask))]
+        [System.Xml.Serialization.XmlElementAttribute("startEvent", typeof(tStartEvent))]
+        [System.Xml.Serialization.XmlElementAttribute("subChoreography", typeof(tSubChoreography))]
+        [System.Xml.Serialization.XmlElementAttribute("subProcess", typeof(tSubProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("task", typeof(tTask))]
+        [System.Xml.Serialization.XmlElementAttribute("transaction", typeof(tTransaction))]
+        [System.Xml.Serialization.XmlElementAttribute("userTask", typeof(tUserTask))]
         [System.Xml.Serialization.XmlElementAttribute("flowElement")]
         public tFlowElement[] flowElement {
             get {
@@ -6674,6 +6835,9 @@ namespace Org.Omg.BPMN20 {
         }
         
         /// <uwagi/>
+        [System.Xml.Serialization.XmlElementAttribute("association", typeof(tAssociation))]
+        [System.Xml.Serialization.XmlElementAttribute("textAnnotation", typeof(tTextAnnotation))]
+        [System.Xml.Serialization.XmlElementAttribute("group", typeof(tGroup))]
         [System.Xml.Serialization.XmlElementAttribute("artifact")]
         public tArtifact[] artifact {
             get {
@@ -6698,6 +6862,8 @@ namespace Org.Omg.BPMN20 {
         
         /// <uwagi/>
         [System.Xml.Serialization.XmlElementAttribute("conversationNode")]
+        [System.Xml.Serialization.XmlElementAttribute("callConversation", typeof(tCallConversation))]
+        [System.Xml.Serialization.XmlElementAttribute("subConversation", typeof(tSubConversation))]
         public tConversationNode[] conversationNode {
             get {
                 return this.conversationNodeField;
@@ -6945,6 +7111,27 @@ namespace Org.Omg.BPMN20 {
         }
         
         /// <uwagi/>
+        [System.Xml.Serialization.XmlElementAttribute("category", typeof(tCategory))]
+        [System.Xml.Serialization.XmlElementAttribute("collaboration", typeof(tCollaboration))]
+        [System.Xml.Serialization.XmlElementAttribute("correlationProperty", typeof(tCorrelationProperty))]
+        [System.Xml.Serialization.XmlElementAttribute("dataStore", typeof(tDataStore))]
+        [System.Xml.Serialization.XmlElementAttribute("endPoint", typeof(tEndPoint))]
+        [System.Xml.Serialization.XmlElementAttribute("error", typeof(tError))]
+        [System.Xml.Serialization.XmlElementAttribute("escalation", typeof(tEscalation))]
+        [System.Xml.Serialization.XmlElementAttribute("eventDefinition", typeof(tEventDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("globalBusinessRuleTask", typeof(tGlobalBusinessRuleTask))]
+        [System.Xml.Serialization.XmlElementAttribute("globalManualTask", typeof(tGlobalManualTask))]
+        [System.Xml.Serialization.XmlElementAttribute("globalScriptTask", typeof(tGlobalScriptTask))]
+        [System.Xml.Serialization.XmlElementAttribute("globalTask", typeof(tGlobalTask))]
+        [System.Xml.Serialization.XmlElementAttribute("globalUserTask", typeof(tGlobalUserTask))]
+        [System.Xml.Serialization.XmlElementAttribute("interface", typeof(tInterface))]
+        [System.Xml.Serialization.XmlElementAttribute("itemDefinition", typeof(tItemDefinition))]
+        [System.Xml.Serialization.XmlElementAttribute("message", typeof(tMessage))]
+        [System.Xml.Serialization.XmlElementAttribute("partnerEntity", typeof(tPartnerEntity))]
+        [System.Xml.Serialization.XmlElementAttribute("partnerRole", typeof(tPartnerRole))]
+        [System.Xml.Serialization.XmlElementAttribute("process", typeof(tProcess))]
+        [System.Xml.Serialization.XmlElementAttribute("resource", typeof(tResource))]
+        [System.Xml.Serialization.XmlElementAttribute("signal", typeof(tSignal))]
         [System.Xml.Serialization.XmlElementAttribute("rootElement")]
         public tRootElement[] rootElement {
             get {

@@ -1,0 +1,16 @@
+{
+  "name": "bpmn-translator",
+  "version": "1.0.0",
+  "description": "Translate BPMN 2.0 to NGinnBPM process definition (JSON format)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "lafar6502",
+  "license": "ISC",
+  "dependencies": {
+    "bpmn-moddle": "^0.8.0",
+    "lodash": "^3.3.0",
+    "log4js": "^0.6.22"
+  }
+}

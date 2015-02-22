@@ -1,0 +1,96 @@
+﻿Mapping of BPMN 2.0 elements to nginn bpm language
+
+NGinnBPM language contains a lower number of primitives, but they
+are flexible enough to 'simulate' BPMN 2.0 constructs
+
+we don't have to maintain a 1:1 mapping. It's enough to
+provide mapping from BPMN into NGinnBPM language.
+
+1. Lanes
+- no counterpart in nginnbpm
+2. Activities
+mapped to tasks
+
+3. Composite activities (hmmmmm)
+- composite tasks
+
+4. Events
+4.1 Start event
+	a) empty
+	b) message
+	c) timer
+	d) condition
+4.2 End event
+	a) empty
+	normal end place
+
+	b) message
+	message is triggered upon reaching the end place
+	! no mapping now - we'd have to send the message before end
+	but we're sending 'process complete' message anyway so maybe make
+	some use of that
+
+	c) error end event
+	equal to throwing an error inside a composite task or process
+
+	d) cancel end event
+	activates the 'cancel' out port of a task
+	but does it perform any compensation?
+
+4.3 Throwing intermediate events
+a) send message event
+- send message task
+b) throw error 
+- error task
+c) escalation
+- special case of error
+
+4.4 Catching intermediate events
+a) timer event - maps into timer task
+b) message event - maps into 'receive message' task
+c) catch error event
+e) catch escalation event
+ 
+
+4.5 Attached events (boundary)
+
+4.5.1 Attached interrupting events
+These events can happen only during the execution of the task they attach to
+but when they happen, they interrupt the task (cancel it?)
+and the execution continues through the event
+model?
+
+P -> task  ->
+  -> event ->
+
+4.5.2 Attached non-interrupting events
+They also can happen during the execution of the task,
+but they don't cancel the task. So basically, they're initiated 
+together with the task but task completion cancels them.
+model?
+parallel paths (AND split) 
+AND => Task + cancel flow to event + flow forward
+	=> Event
+
+5. Gateways
+
+5.1 parallel split
+
+5.2 parallel join
+
+5.3 decision
+
+5.6 exclusive join
+
+5.7 'one of' - deferred choice
+
+6. Signals
+Signals are named ('event occurred') and broadcast to all
+handlers of such signal in a process instance or globally
+Signals are delivered only to listeners that were active at the 
+moment of signal publication
+
+7. Messages (sending and receiving)
+messages are delivered only to recipients that were active
+when a message was sent (messages don't wait for recipient)
+

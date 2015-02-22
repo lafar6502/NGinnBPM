@@ -1,0 +1,6 @@
+﻿1. We want to support BPMN
+but also other models if possible
+
+2. So we need to translate bpmn into some
+internal process representation built with nginnbpm primitives
+

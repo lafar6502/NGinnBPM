@@ -2,7 +2,7 @@
   "name": "bpmn-translator",
   "version": "1.0.0",
   "description": "Translate BPMN 2.0 to NGinnBPM process definition (JSON format)",
-  "main": "index.js",
+  "main": "bpmn_translator.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -13,12 +13,14 @@ var log = log4js.getLogger('bpmn-translator');
 //  packageName - package name
 function translateBpmn2ToNginnBPM(bpmn, cfg, callback) {
     var moddle = new BpmnModdle();
-    moddle.fromXml(bpmn, function(err, definitions) {
+    if (Buffer.isBuffer(bpmn)) bpmn = bpmn.toString();
+    moddle.fromXML(bpmn, function(err, definitions) {
         if (err) {
             log.warn('bpmn parse error', err, definitions);
             callback(false, err);
             return;
         };
+        log.info('moddle read', JSON.stringify(definitions, null, ' '));
     });
 }
 

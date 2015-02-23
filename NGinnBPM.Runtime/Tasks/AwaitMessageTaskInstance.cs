@@ -32,6 +32,7 @@ namespace NGinnBPM.Runtime.Tasks
                 if (tm.ToMailbox != this.Mailbox) return;
                 //var sr = Context.GetService<IMessageCorrelationRegistry>();
                 //sr.Unsubscribe(this.Mailbox, this.InstanceId);
+                this.Complete();
             }
             base.HandleTaskExecEvent(ev);
         }

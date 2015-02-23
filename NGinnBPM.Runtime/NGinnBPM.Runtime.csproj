@@ -103,6 +103,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExecutionEngine\IProcessTransactionParticipant.cs" />
+    <Compile Include="ExecutionEngine\ITaskSessionContext.cs" />
+    <Compile Include="ExecutionEngine\ProcessTransaction.cs" />
+    <Compile Include="ExecutionEngine\ProcessEngine.cs" />
+    <Compile Include="ExecutionEngine\TaskExecSession.cs" />
     <Compile Include="IProcessPackageRepo.cs" />
     <Compile Include="Configuration\WindsorConfigurator.cs" />
     <Compile Include="DbSession.cs" />
@@ -128,6 +133,7 @@
     <Compile Include="ProcessSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AsyncProcessControlMessageHandler.cs" />
+    <Compile Include="Services\SqlProcessPersister.cs" />
     <Compile Include="Services\IDbSessionFactory.cs" />
     <Compile Include="Services\IDocumentSessionFactory.cs" />
     <Compile Include="Services\InMemoryTaskPersister.cs" />

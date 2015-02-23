@@ -20,8 +20,15 @@ namespace NGinnBPM.Runtime
         /// </summary>
         /// <param name="msg"></param>
         void SendTaskControlMessage(TaskExecutionEvents.TaskControlCommand msg);
+        /// <summary>
+        /// Schedule a task event with future delivery date
+        /// </summary>
+        /// <param name="ev"></param>
+        /// <param name="deliveryDate"></param>
         void ScheduleTaskEvent(TaskExecutionEvents.TaskExecEvent ev, DateTime deliveryDate);
+
         T GetService<T>();
+        
         T GetService<T>(string name);
         
     }

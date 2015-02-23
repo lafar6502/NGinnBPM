@@ -9,10 +9,11 @@ using NGinnBPM.Runtime.Tasks;
 using NLog;
 using NGinnBPM.MessageBus;
 using System.Threading;
+using NGinnBPM.Runtime.Services;
 
-namespace NGinnBPM.Runtime
+namespace NGinnBPM.Runtime.ExecutionEngine
 {
-    public class ProcessRunner2 
+    public class ProcessEngine 
     {
         public Services.ITaskInstancePersister TaskPersister { get; set; }
         public Services.IDbSessionFactory SessionFactory { get; set; }
@@ -23,10 +24,33 @@ namespace NGinnBPM.Runtime
 
         public TaskPersistenceMode DefaultPersistenceMode { get; set; }
 
-        public ProcessRunner2()
+        public ProcessEngine()
         {
             DefaultPersistenceMode = TaskPersistenceMode.PersistAliveTasksOnly;
         }
+
+
+        /// <summary>
+        /// assume we have all process tasks in a single record
+        /// so when performing modification, we need to limit our scope to that record (this process instance)
+        /// and all messages leaving the process will be handled async
+        /// so we divide our messages between in-process and inter-process
+        /// inter-process are always async
+        /// in-process are sync when they're task control messages 
+        /// async when they are from send/receive message tasks (hmmm, this doesn't really matter when in proc)
+        ///
+        /// what about transactions?
+        /// - we assume we're already inside a system transaction
+        /// - we can get an external db connection. If we don't get it, we need to open it.
+        /// - process session
+        /// - other components should have an option to be notified about commit - use system.transactions api...
+        /// </summary>
+        public static void RunProcessTransaction()
+        {
+            if (Transaction.Current == null) throw new Exception("System transaction required");
+            
+        }
+
 
         public string StartProcess(string definitionId, Dictionary<string, object> inputData)
         {
@@ -66,6 +90,13 @@ namespace NGinnBPM.Runtime
             });
         }
 
+        protected void test()
+        {
+            Transaction t;
+            Enlistment en = t.EnlistVolatile(...);
+            
+        }
+
         protected void UpdateTask(string instanceId, Action<TaskInstance> act)
         {
             RunProcessTransaction(this.DefaultPersistenceMode, ps =>
@@ -74,6 +105,7 @@ namespace NGinnBPM.Runtime
                 try
                 {
                     MappedDiagnosticsContext.Set("NG_TaskInstanceId", instanceId);
+                    
                     var ti = ps.PersisterSession.GetForUpdate(instanceId);
                     var pd = this.GetProcessDef(ti.ProcessDefinitionId);
                     var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
@@ -131,7 +163,7 @@ namespace NGinnBPM.Runtime
             return ProcessSession.Current.GetOrAddSessionData("_ProcessScript_" + definitionId, () => PackageRepository.GetScriptRuntime(definitionId));
         }
 
-        protected void InDbTransaction(Action<DbSession> act)
+        public static void InDbTransaction(IDbSessionFactory factory, Action<DbSession> act)
         {
             if (DbSession.Current != null)
             {
@@ -139,13 +171,18 @@ namespace NGinnBPM.Runtime
             }
             else
             {
-                using (var dbs = SessionFactory.OpenSession())
+                using (var dbs = factory.OpenSession())
                 {
                     DbSession.Current = dbs;
                     act(dbs);
                     DbSession.Current = null;
                 }
             }
+        }
+
+        protected void InDbTransaction(Action<DbSession> act)
+        {
+            InDbTransaction(SessionFactory, act);
         }
 
         protected void InSystemTransaction(Action act)
@@ -160,10 +197,14 @@ namespace NGinnBPM.Runtime
                     IsolationLevel = IsolationLevel.ReadCommitted,
                     Timeout = TimeSpan.FromSeconds(60)
                 };
+                
                 using (var ts = new TransactionScope(TransactionScopeOption.Required, to))
                 {
+                    var lid = Transaction.Current.TransactionInformation.LocalIdentifier;
+                    log.Debug("Opened transaction scope {0}", lid);
                     act();
                     ts.Complete();
+                    log.Debug("Completed transaction {0}", lid);
                 }
             }
         }
@@ -181,20 +222,19 @@ namespace NGinnBPM.Runtime
             {
                 InDbTransaction(dbs =>
                 {
-                    using (var pess = TaskPersister.OpenSession(dbs))
+                    var pess = TaskPersister.OpenSession(dbs);
+                    pess.PersistenceMode = persMode;
+                        
+                    using (var ps = ProcessSession.CreateNew(this))
                     {
-                        pess.PersistenceMode = persMode;
-                        Services.TaskPersisterSession.Current = pess;
-                        using (var ps = ProcessSession.CreateNew(this, pess))
-                        {
-                            ProcessSession.Current = ps;
-                            act(ps);
-                            ps.PumpMessages();
-                            outgoing = ps.GetOutgoingAsyncMessages();
-                        }
-                        pess.SaveChanges();
-                        Services.TaskPersisterSession.Current = null;
+                        ps.Set<TaskPersisterSession>(pess);
+                        ProcessSession.Current = ps;
+                        act(ps);
+                        ps.PumpMessages();
+                        outgoing = ps.GetOutgoingAsyncMessages();
                     }
+                    pess.SaveChanges();
+                    
                 });
             });
             if (outgoing != null)
@@ -226,6 +266,7 @@ namespace NGinnBPM.Runtime
 
         protected void HandleLocalAsyncMessage(ProcessMessage pm)
         {
+            throw new NotImplementedException();
         }
 
         #region internals, event handlers

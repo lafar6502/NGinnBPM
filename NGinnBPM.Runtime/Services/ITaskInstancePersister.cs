@@ -110,15 +110,9 @@ namespace NGinnBPM.Runtime.Services
             th.TaskTypeId = typeId;
         }
 
-        public virtual IEnumerable<TaskInstance> GetNewTasks()
-        {
-            return _cache.Where(kv => kv.Value.State == RecordState.New).Select(kv => kv.Value.Deserialized);
-        }
         
-        public virtual IEnumerable<TaskInstance> GetModifiedTasks()
-        {
-            return _cache.Where(kv => kv.Value.State == RecordState.Modified).Select(kv => kv.Value.Deserialized);
-        }
+        
+        
         
         public virtual void SaveChanges()
         {
@@ -135,24 +129,8 @@ namespace NGinnBPM.Runtime.Services
         protected abstract TaskHolder LoadTaskRecord(string instanceId, bool forUpdate);
         protected abstract void WriteRecords(IEnumerable<TaskHolder> records);
 
-        [ThreadStatic]
-        private static TaskPersisterSession _ses;
-
-        /// <summary>
-        /// Current thread's ambient session (if you have initialized it...)
-        /// </summary>
-        public static TaskPersisterSession Current
-        {
-            get { return _ses; }
-            set { _ses = value; }
-        }
-
         public void Dispose()
         {
-            if (TaskPersisterSession.Current == this)
-            {
-                TaskPersisterSession.Current = null;
-            }
         }
 
         

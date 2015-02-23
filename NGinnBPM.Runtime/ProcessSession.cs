@@ -23,7 +23,7 @@ namespace NGinnBPM.Runtime
             set { _ses = value; }
         }
 
-        protected TaskPersisterSession _persisterSession;
+        
         protected ProcessRunner _runner;
 
         public void ScheduleTaskEvent(TaskExecutionEvents.TaskExecEvent ev, DateTime deliveryDate)
@@ -73,27 +73,16 @@ namespace NGinnBPM.Runtime
 
         
 
-        public static ProcessSession CreateNew(ProcessRunner r, TaskPersisterSession ps)
+        public static ProcessSession CreateNew(ProcessRunner r)
         {
             var s = new ProcessSession
             {
-                _runner = r,
-                _persisterSession = ps
+                _runner = r
             };
-            if (s._persisterSession == null) throw new Exception("Task persister session not present");
             return s;
         }
 
-        public static ProcessSession CreateNew(ProcessRunner r)
-        {
-            return CreateNew(r, TaskPersisterSession.Current);
-        }
-
-        public TaskPersisterSession PersisterSession
-        {
-            get { return _persisterSession; }
-        }
-
+        
         public void Dispose()
         {
             if (ProcessSession.Current == this)
@@ -102,15 +91,8 @@ namespace NGinnBPM.Runtime
             }
         }
 
-        protected void ModifyTaskInstance(string instanceId, Action<TaskInstance> act)
-        {
-            var ti = _persisterSession.GetForUpdate(instanceId);
-            act(ti);
-            _persisterSession.Update(ti);
-        }
-
         
-
+        
         private Dictionary<string, object> _sessionData = new Dictionary<string, object>();
 
         /// <summary>
@@ -120,8 +102,21 @@ namespace NGinnBPM.Runtime
         /// <param name="v"></param>
         public void SetSessionData(string key, object v)
         {
-            _sessionData.Remove(key);
-            _sessionData.Add(key, v);
+            lock (_sessionData)
+            {
+                _sessionData.Remove(key);
+                _sessionData.Add(key, v);
+            }
+        }
+
+        public void Set<T>(T defaultService)
+        {
+            SetSessionData("~" + typeof(T).FullName, defaultService);
+        }
+
+        public T Get<T>()
+        {
+            return GetSessionData<T>("~" + typeof(T).FullName);
         }
 
         /// <summary>
@@ -132,19 +127,25 @@ namespace NGinnBPM.Runtime
         /// <returns></returns>
         public T GetSessionData<T>(string key)
         {
-            object v;
-            return _sessionData.TryGetValue(key, out v) ? (T)v : default(T);
+            lock (_sessionData)
+            {
+                object v;
+                return _sessionData.TryGetValue(key, out v) ? (T)v : default(T);
+            }
         }
 
         public T GetOrAddSessionData<T>(string key, Func<T> valueProvider)
         {
-            object v;
-            if (!_sessionData.TryGetValue(key, out v))
+            lock (_sessionData)
             {
-                v = valueProvider();
-                _sessionData[key] = v;
+                object v;
+                if (!_sessionData.TryGetValue(key, out v))
+                {
+                    v = valueProvider();
+                    _sessionData[key] = v;
+                }
+                return (T)v;
             }
-            return (T)v;
         }
         
 

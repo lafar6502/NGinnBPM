@@ -20,6 +20,8 @@ mapped to tasks
 	b) message
 	c) timer
 	d) condition
+
+	message
 4.2 End event
 	a) empty
 	normal end place

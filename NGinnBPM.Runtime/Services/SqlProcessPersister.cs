@@ -27,9 +27,7 @@ namespace NGinnBPM.Runtime.Services
 
         protected static string GetProcessInstanceId(string taskInstanceId)
         {
-            var idx = taskInstanceId.IndexOf('.');
-            if (idx < 0) return taskInstanceId;
-            return taskInstanceId.Substring(0, idx);
+            return InstanceId.GetProcessInstanceId(taskInstanceId);
         }
 
         protected class ProcessHolder

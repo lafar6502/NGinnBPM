@@ -5,6 +5,7 @@ using System.Text;
 using NGinnBPM.Runtime.TaskExecutionEvents;
 using NGinnBPM.Runtime.Tasks;
 using NGinnBPM.Runtime.Services;
+using NGinnBPM.MessageBus;
 
 namespace NGinnBPM.Runtime
 {
@@ -23,22 +24,23 @@ namespace NGinnBPM.Runtime
             set { _ses = value; }
         }
 
-        
-        protected ProcessRunner _runner;
+        public IMessageBus MessageBus { get; set; }
+        public TaskPersisterSession TaskPersister { get; set; }
+        public IServiceResolver ServiceResolver { get; set; }
 
         public void ScheduleTaskEvent(TaskExecutionEvents.TaskExecEvent ev, DateTime deliveryDate)
         {
-            _runner.MessageBus.NotifyAt(deliveryDate, ev);
+            MessageBus.NotifyAt(deliveryDate, ev);
         }
 
         public void NotifyTaskEvent(TaskExecutionEvents.TaskExecEvent ev)
         {
-            SendProcessMessage(ev, false);
+            SyncQueue.Enqueue(ev);
         }
 
         public void SendTaskControlMessage(TaskExecutionEvents.TaskControlCommand msg)
         {
-            SendProcessMessage(msg, false);
+            SyncQueue.Enqueue(msg);
         }
 
         public bool IsPersistent
@@ -49,35 +51,19 @@ namespace NGinnBPM.Runtime
             }
         }
 
-        private Queue<ProcessMessage> _asyncQueue = new Queue<ProcessMessage>();
-        private Queue<ProcessMessage> _syncQueue = new Queue<ProcessMessage>();
+        public Queue<ProcessMessage> SyncQueue { get; set; }
+        
+        public Queue<ProcessMessage> AsyncQueue { get; set; }
 
-        protected void SendProcessMessage(ProcessMessage pm, bool separateTransaction)
-        {
-            if (separateTransaction)
-            {
-                if (IsPersistent)
-                {
-                    _runner.MessageBus.Notify(pm);
-                }
-                else
-                {
-                    _asyncQueue.Enqueue(pm);
-                }
-            }
-            else
-            {
-                _syncQueue.Enqueue(pm);
-            }
-        }
 
         
+        
 
-        public static ProcessSession CreateNew(ProcessRunner r)
+        public static ProcessSession CreateNew()
         {
             var s = new ProcessSession
             {
-                _runner = r
+                
             };
             return s;
         }
@@ -147,78 +133,17 @@ namespace NGinnBPM.Runtime
                 return (T)v;
             }
         }
-        
 
-
-        public void SetupTaskHelper(TaskInstance ti, Dictionary<string, object> inputData)
-        {
-            
-        }
-
-        public Dictionary<string, object> GetTaskOutputDataHelper(TaskInstance ti)
-        {
-            throw new NotImplementedException();
-        }
-        
-        protected void DeliverEvent(TaskExecEvent ev)
-        {
-            _runner.DeliverTaskExecEvent(ev);
-        }
-
-        protected void DeliverControlMessage(TaskControlCommand msg)
-        {
-            _runner.DeliverTaskControlMessage(msg);
-        }
-
-        private Dictionary<string, object> _content = new Dictionary<string, object>();
-
-        public object this[string index]
-        {
-            get { return _content[index]; }
-            set { _content[index] = value; }
-        }
-
-
-        public void PumpMessages()
-        {
-            while (_syncQueue.Count > 0)
-            {
-                var m = _syncQueue.Dequeue();
-                switch (m.Mode)
-                {
-                    case MessageHandlingMode.AnotherTransaction:
-                        _runner.MessageBus.Notify(m);
-                        break;
-                    case MessageHandlingMode.SameTransaction:
-                        if (m is TaskExecEvent)
-                        {
-                            DeliverEvent((TaskExecEvent)m);
-                        }
-                        else if (m is TaskControlCommand)
-                        {
-                            DeliverControlMessage((TaskControlCommand)m);
-                        }
-                        break;
-                    default:
-                        throw new Exception();
-                }
-            }
-        }
-
-        public IEnumerable<ProcessMessage> GetOutgoingAsyncMessages()
-        {
-            return _asyncQueue;
-        }
 
 
         public T GetService<T>()
         {
-            return _runner.ServiceResolver.GetInstance<T>();
+            return ServiceResolver.GetInstance<T>();
         }
 
         public T GetService<T>(string name)
         {
-            return _runner.ServiceResolver.GetInstance<T>(name);
+            return ServiceResolver.GetInstance<T>(name);
         }
     }
 }

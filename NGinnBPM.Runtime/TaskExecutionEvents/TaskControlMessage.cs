@@ -5,11 +5,21 @@ using System.Text;
 
 namespace NGinnBPM.Runtime.TaskExecutionEvents
 {
+    /// <summary>
+    /// Task control commands 
+    /// </summary>
     public class TaskControlCommand : ProcessMessage
     {
+        /// <summary>
+        /// Destination task instance
+        /// </summary>
         public string ToTaskInstanceId { get; set; }
     }
 
+    /// <summary>
+    /// Enable child task of ToTaskInstanceId
+    /// Sent always to composite task instance
+    /// </summary>
     public class EnableChildTask : TaskControlCommand
     {
         public string ProcessDefinitionId { get; set; }

@@ -30,27 +30,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         }
 
 
-        /// <summary>
-        /// assume we have all process tasks in a single record
-        /// so when performing modification, we need to limit our scope to that record (this process instance)
-        /// and all messages leaving the process will be handled async
-        /// so we divide our messages between in-process and inter-process
-        /// inter-process are always async
-        /// in-process are sync when they're task control messages 
-        /// async when they are from send/receive message tasks (hmmm, this doesn't really matter when in proc)
-        ///
-        /// what about transactions?
-        /// - we assume we're already inside a system transaction
-        /// - we can get an external db connection. If we don't get it, we need to open it.
-        /// - process session
-        /// - other components should have an option to be notified about commit - use system.transactions api...
-        /// </summary>
-        public static void RunProcessTransaction()
-        {
-            if (Transaction.Current == null) throw new Exception("System transaction required");
-            
-        }
-
+        
 
         public string StartProcess(string definitionId, Dictionary<string, object> inputData)
         {
@@ -70,10 +50,10 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                     TaskId = pd.Body.Id
                 };
                 pi.Activate(ps, pd, pscript);
-                ps.PersisterSession.SaveNew(pi);
+                ps.TaskPersister.SaveNew(pi);
                 pi.Enable(inputData);
                 pi.Deactivate();
-                ps.PersisterSession.Update(pi); 
+                ps.TaskPersister.Update(pi); 
                 ret = pi.InstanceId;
             });
             return ret;
@@ -93,8 +73,6 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         protected void test()
         {
             Transaction t;
-            Enlistment en = t.EnlistVolatile(...);
-            
         }
 
         protected void UpdateTask(string instanceId, Action<TaskInstance> act)
@@ -105,14 +83,14 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 try
                 {
                     MappedDiagnosticsContext.Set("NG_TaskInstanceId", instanceId);
-                    
-                    var ti = ps.PersisterSession.GetForUpdate(instanceId);
+
+                    var ti = ps.TaskPersister.GetForUpdate(instanceId);
                     var pd = this.GetProcessDef(ti.ProcessDefinitionId);
                     var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
                     ti.Activate(ps, pd, pscript);
                     act(ti);
                     ti.Deactivate();
-                    ps.PersisterSession.Update(ti);
+                    ps.TaskPersister.Update(ti);
                 }
                 finally
                 {
@@ -187,6 +165,8 @@ namespace NGinnBPM.Runtime.ExecutionEngine
 
         protected void InSystemTransaction(Action act)
         {
+            if (Transaction.Current == null) throw new Exception("System transaction required (transaction scope)");
+
             if (Transaction.Current != null)
             {
                 act();
@@ -209,7 +189,66 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             }
         }
 
-        protected void RunProcessTransaction(TaskPersistenceMode persMode, Action<ProcessSession> act)
+
+
+        protected void PumpMessages(ProcessSession ps)
+        {
+            var queue = ps.SyncQueue;
+            while (queue.Count > 0)
+            {
+                var m = queue.Dequeue();
+                if (m is TaskExecEvent)
+                {
+                    var te = m as TaskExecEvent;
+                    if (InstanceId.IsSameProcessInstance(te.ParentTaskInstanceId, te.FromProcessInstanceId))
+                    {
+                        DeliverTaskExecEvent(te);
+                    }
+                    else
+                    {
+                        MessageBus.Notify(te);
+                    }
+                }
+                else if (m is TaskControlCommand)
+                {
+                    var tc = m as TaskControlCommand;
+                    if (InstanceId.IsSameProcessInstance(tc.FromProcessInstanceId, tc.ToTaskInstanceId))
+                    {
+                        DeliverTaskControlMessage(tc);
+                    }
+                    else
+                    {
+                        MessageBus.Notify(tc);
+                    }
+                }
+                else throw new Exception("Unexpected message in queue");
+            }
+
+           
+        }
+
+
+        /// <summary>
+        /// Execute a process transaction
+        /// Warning: you need to execute this method inside a Transaction (TransactionScope)
+        /// this is how you control if the changes will be saved to the db.
+        /// @param persMode - persistence mode
+        /// 
+        /// assume we have all process tasks in a single record
+        /// so when performing modification, we need to limit our scope to that record (this process instance)
+        /// and all messages leaving the process will be handled async
+        /// so we divide our messages between in-process and inter-process
+        /// inter-process are always async
+        /// in-process are sync when they're task control messages 
+        /// async when they are from send/receive message tasks (hmmm, this doesn't really matter when in proc)
+        ///
+        /// what about transactions?
+        /// - we assume we're already inside a system transaction
+        /// - we can get an external db connection. If we don't get it, we need to open it.
+        /// - process session
+        /// - other components should have an option to be notified about commit - use system.transactions api...
+        /// </summary>
+        public void RunProcessTransaction(TaskPersistenceMode persMode, Action<ProcessSession> act)
         {
             if (ProcessSession.Current != null)
             {
@@ -217,26 +256,33 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 return;
             }
 
-            IEnumerable<ProcessMessage> outgoing = null;
+            Queue<ProcessMessage> outgoing = null;
             InSystemTransaction(() =>
             {
                 InDbTransaction(dbs =>
                 {
                     var pess = TaskPersister.OpenSession(dbs);
                     pess.PersistenceMode = persMode;
-                        
-                    using (var ps = ProcessSession.CreateNew(this))
+                    var ps = new ProcessSession();
+                    try
                     {
-                        ps.Set<TaskPersisterSession>(pess);
                         ProcessSession.Current = ps;
+                        ps.MessageBus = MessageBus;
+                        ps.TaskPersister = pess;
                         act(ps);
-                        ps.PumpMessages();
-                        outgoing = ps.GetOutgoingAsyncMessages();
+                        PumpMessages(ps);
+                        outgoing = ps.AsyncQueue;
+                    }
+                    finally
+                    {
+                        ProcessSession.Current = null;
+                        ps.Dispose();
                     }
                     pess.SaveChanges();
-                    
+                    pess.Dispose();
                 });
             });
+
             if (outgoing != null)
             {
                 foreach (var pm in outgoing)
@@ -340,7 +386,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             ti.InstanceId = string.IsNullOrEmpty(msg.CorrelationId) ? null : msg.CorrelationId;
             ti.ProcessDefinitionId = msg.ProcessDefinitionId;
             ti.TaskId = msg.TaskId;
-            ps.PersisterSession.SaveNew(ti);
+            ps.TaskPersister.SaveNew(ti);
             ti.Activate(ps, pd, pscript);
             if (msg is EnableMultiChildTask)
             {
@@ -351,7 +397,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 ti.Enable(msg.InputData);
             }
             ti.Deactivate();
-            ps.PersisterSession.Update(ti);
+            ps.TaskPersister.Update(ti);
             
             return ti.InstanceId;
         }
@@ -390,7 +436,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             CompositeTaskInstanceInfo ret = null;
             RunProcessTransaction(this.DefaultPersistenceMode, ps =>
             {
-                CompositeTaskInstance cti = (CompositeTaskInstance) ps.PersisterSession.GetForRead(instanceId);
+                CompositeTaskInstance cti = (CompositeTaskInstance)ps.TaskPersister.GetForRead(instanceId);
                 CompositeTaskInstanceInfo rt = new CompositeTaskInstanceInfo();
                 rt.InstanceId = cti.InstanceId;
                 rt.TaskId = cti.TaskId;

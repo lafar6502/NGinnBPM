@@ -72,7 +72,6 @@ namespace NGinnBPM.Runtime.Tasks
                 ChildTransitions.Add(ti);
                 
                 Context.SendTaskControlMessage(new EnableChildTask {
-                    Mode = MessageHandlingMode.SameTransaction,
                     CorrelationId = ti.InstanceId,
                     FromProcessInstanceId = this.ProcessInstanceId,
                     FromTaskInstanceId = this.InstanceId,

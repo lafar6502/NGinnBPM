@@ -108,6 +108,7 @@
     <Compile Include="ExecutionEngine\ProcessTransaction.cs" />
     <Compile Include="ExecutionEngine\ProcessEngine.cs" />
     <Compile Include="ExecutionEngine\TaskExecSession.cs" />
+    <Compile Include="InstanceId.cs" />
     <Compile Include="IProcessPackageRepo.cs" />
     <Compile Include="Configuration\WindsorConfigurator.cs" />
     <Compile Include="DbSession.cs" />

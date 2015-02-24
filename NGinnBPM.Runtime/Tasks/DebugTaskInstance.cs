@@ -25,8 +25,7 @@ namespace NGinnBPM.Runtime.Tasks
                 {
                     ParentTaskInstanceId = this.InstanceId,
                     FromTaskInstanceId = this.InstanceId,
-                    FromProcessInstanceId = this.ProcessInstanceId,
-                    Mode = MessageHandlingMode.AnotherTransaction
+                    FromProcessInstanceId = this.ProcessInstanceId
                 }, DateTime.Now.AddSeconds(10));
             }
             else

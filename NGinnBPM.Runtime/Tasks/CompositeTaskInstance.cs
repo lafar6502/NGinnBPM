@@ -461,7 +461,7 @@ namespace NGinnBPM.Runtime.Tasks
                     };
                 }
 
-                msg.Mode = tsk.AllowSynchronousExec ? MessageHandlingMode.SameTransaction : MessageHandlingMode.AnotherTransaction;
+                //msg.Mode = tsk.AllowSynchronousExec ? MessageHandlingMode.SameTransaction : MessageHandlingMode.AnotherTransaction;
                 msg.CorrelationId = ti.InstanceId;
                 msg.FromTaskInstanceId = this.InstanceId;
                 msg.FromProcessInstanceId = this.ProcessInstanceId;

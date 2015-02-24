@@ -27,5 +27,13 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             throw new NotImplementedException();
         }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        
     }
 }

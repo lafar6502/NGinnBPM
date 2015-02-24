@@ -16,14 +16,11 @@ namespace NGinnBPM.Runtime.TaskExecutionEvents
     /// </summary>
     public class ProcessMessage
     {
-        public MessageHandlingMode Mode { get; set; }
+        
         public string CorrelationId { get; set; }
         public string FromTaskInstanceId { get; set; }
         public string FromProcessInstanceId { get; set; }
 
-        public ProcessMessage()
-        {
-            Mode = MessageHandlingMode.SameTransaction;
-        }
+        
     }
 }

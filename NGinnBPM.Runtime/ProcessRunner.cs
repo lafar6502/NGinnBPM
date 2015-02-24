@@ -9,6 +9,7 @@ using NGinnBPM.Runtime.Tasks;
 using NLog;
 using NGinnBPM.MessageBus;
 using System.Threading;
+using NGinnBPM.Runtime.Services;
 
 namespace NGinnBPM.Runtime
 {
@@ -93,10 +94,10 @@ namespace NGinnBPM.Runtime
                     TaskId = pd.Body.Id
                 };
                 pi.Activate(ps, pd, pscript);
-                ps.PersisterSession.SaveNew(pi);
+                ps.TaskPersister.SaveNew(pi);
                 pi.Enable(inputData);
                 pi.Deactivate();
-                ps.PersisterSession.Update(pi); 
+                ps.TaskPersister.Update(pi); 
                 ret = pi.InstanceId;
             });
             return ret;
@@ -121,13 +122,13 @@ namespace NGinnBPM.Runtime
                 try
                 {
                     MappedDiagnosticsContext.Set("NG_TaskInstanceId", instanceId);
-                    var ti = ps.PersisterSession.GetForUpdate(instanceId);
+                    var ti = ps.TaskPersister.GetForUpdate(instanceId);
                     var pd = this.GetProcessDef(ti.ProcessDefinitionId);
                     var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
                     ti.Activate(ps, pd, pscript);
                     act(ti);
                     ti.Deactivate();
-                    ps.PersisterSession.Update(ti);
+                    ps.TaskPersister.Update(ti);
                 }
                 finally
                 {
@@ -228,20 +229,18 @@ namespace NGinnBPM.Runtime
             {
                 InDbTransaction(dbs =>
                 {
-                    using (var pess = TaskPersister.OpenSession(dbs))
+                    var pess = TaskPersister.OpenSession(dbs);
+                    pess.PersistenceMode = persMode;
+                    using (var ps = ProcessSession.CreateNew())
                     {
-                        pess.PersistenceMode = persMode;
-                        Services.TaskPersisterSession.Current = pess;
-                        using (var ps = ProcessSession.CreateNew(this, pess))
-                        {
-                            ProcessSession.Current = ps;
-                            act(ps);
-                            ps.PumpMessages();
-                            outgoing = ps.GetOutgoingAsyncMessages();
-                        }
-                        pess.SaveChanges();
-                        Services.TaskPersisterSession.Current = null;
+                        ps.Set(pess);
+                        ps.MessageBus = this.MessageBus;
+                        ProcessSession.Current = ps;
+                        act(ps);
+                        //ps.PumpMessages();
+                        //outgoing = ps.AsyncQueue;
                     }
+                    pess.SaveChanges();
                 });
             });
             if (outgoing != null)
@@ -346,7 +345,7 @@ namespace NGinnBPM.Runtime
             ti.InstanceId = string.IsNullOrEmpty(msg.CorrelationId) ? null : msg.CorrelationId;
             ti.ProcessDefinitionId = msg.ProcessDefinitionId;
             ti.TaskId = msg.TaskId;
-            ps.PersisterSession.SaveNew(ti);
+            ps.TaskPersister.SaveNew(ti);
             ti.Activate(ps, pd, pscript);
             if (msg is EnableMultiChildTask)
             {
@@ -357,7 +356,7 @@ namespace NGinnBPM.Runtime
                 ti.Enable(msg.InputData);
             }
             ti.Deactivate();
-            ps.PersisterSession.Update(ti);
+            ps.TaskPersister.Update(ti);
             
             return ti.InstanceId;
         }
@@ -396,7 +395,7 @@ namespace NGinnBPM.Runtime
             CompositeTaskInstanceInfo ret = null;
             RunProcessTransaction(this.DefaultPersistenceMode, ps =>
             {
-                CompositeTaskInstance cti = (CompositeTaskInstance) ps.PersisterSession.GetForRead(instanceId);
+                CompositeTaskInstance cti = (CompositeTaskInstance)ps.TaskPersister.GetForRead(instanceId);
                 CompositeTaskInstanceInfo rt = new CompositeTaskInstanceInfo();
                 rt.InstanceId = cti.InstanceId;
                 rt.TaskId = cti.TaskId;

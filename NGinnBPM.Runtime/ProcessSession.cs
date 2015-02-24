@@ -24,6 +24,13 @@ namespace NGinnBPM.Runtime
             set { _ses = value; }
         }
 
+        public ProcessSession(TaskPersisterSession taskPersister, IMessageBus bus, IServiceResolver serviceResolver)
+        {
+            MessageBus = bus;
+            TaskPersister = taskPersister;
+            ServiceResolver = ServiceResolver;
+        }
+
         public IMessageBus MessageBus { get; set; }
         public TaskPersisterSession TaskPersister { get; set; }
         public IServiceResolver ServiceResolver { get; set; }
@@ -59,22 +66,10 @@ namespace NGinnBPM.Runtime
         
         
 
-        public static ProcessSession CreateNew()
-        {
-            var s = new ProcessSession
-            {
-                
-            };
-            return s;
-        }
 
         
         public void Dispose()
         {
-            if (ProcessSession.Current == this)
-            {
-                ProcessSession.Current = null;
-            }
         }
 
         

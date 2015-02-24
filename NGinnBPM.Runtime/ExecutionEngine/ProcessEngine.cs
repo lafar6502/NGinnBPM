@@ -263,7 +263,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 {
                     var pess = TaskPersister.OpenSession(dbs);
                     pess.PersistenceMode = persMode;
-                    var ps = new ProcessSession();
+                    var ps = new ProcessSession(pess, MessageBus, ServiceResolver);
                     try
                     {
                         ProcessSession.Current = ps;

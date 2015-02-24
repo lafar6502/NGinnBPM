@@ -231,7 +231,7 @@ namespace NGinnBPM.Runtime
                 {
                     var pess = TaskPersister.OpenSession(dbs);
                     pess.PersistenceMode = persMode;
-                    using (var ps = ProcessSession.CreateNew())
+                    using (var ps = new ProcessSession(pess, MessageBus, ServiceResolver))
                     {
                         ps.Set(pess);
                         ps.MessageBus = this.MessageBus;

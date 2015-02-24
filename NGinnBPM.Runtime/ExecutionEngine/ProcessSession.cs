@@ -7,7 +7,7 @@ using NGinnBPM.Runtime.Tasks;
 using NGinnBPM.Runtime.Services;
 using NGinnBPM.MessageBus;
 
-namespace NGinnBPM.Runtime
+namespace NGinnBPM.Runtime.ExecutionEngine
 {
     /// <summary>
     /// Process session roughly equals to a transaction

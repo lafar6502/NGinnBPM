@@ -108,6 +108,7 @@
     <Compile Include="ExecutionEngine\ProcessTransaction.cs" />
     <Compile Include="ExecutionEngine\ProcessEngine.cs" />
     <Compile Include="ExecutionEngine\TaskExecSession.cs" />
+    <Compile Include="ExecutionEngine\TaskPersistenceMode.cs" />
     <Compile Include="InstanceId.cs" />
     <Compile Include="IProcessPackageRepo.cs" />
     <Compile Include="Configuration\WindsorConfigurator.cs" />
@@ -130,8 +131,7 @@
     <Compile Include="ProcessDSL\ProcessPackageRepository.cs" />
     <Compile Include="ProcessDSL\QuackDictionaryWrapper.cs" />
     <Compile Include="ProcessInstanceInfo.cs" />
-    <Compile Include="ProcessRunner.cs" />
-    <Compile Include="ProcessSession.cs" />
+    <Compile Include="ExecutionEngine\ProcessSession.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AsyncProcessControlMessageHandler.cs" />
     <Compile Include="Services\SqlProcessPersister.cs" />

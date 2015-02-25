@@ -59,7 +59,7 @@ namespace TestHost.cs
                 .ImplementedBy<ProcessEngine>()
                 .LifeStyle.Singleton);
             _wc.Register(Component.For<ITaskInstancePersister>()
-                .ImplementedBy<SqlTaskInstancePersister>()
+                .ImplementedBy<SqlProcessPersister>()
                 .LifeStyle.Singleton);
             _wc.Register(Component.For<ITaskInstanceSerializer>()
                 .ImplementedBy<JsonTaskInstanceSerializer>());

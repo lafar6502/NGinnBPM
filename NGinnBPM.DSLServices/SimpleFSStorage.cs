@@ -63,6 +63,7 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public virtual string GetTypeNameFromUrl(string url)
         {
+            if (url.EndsWith(".boo")) return url.Substring(0, url.Length - 4);
             return url;
         }
         

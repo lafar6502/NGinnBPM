@@ -8,6 +8,7 @@ using NGinnBPM.MessageBus;
 using NGinnBPM.Runtime;
 using D2 = NGinnBPM.Runtime.ProcessDSL2;
 using NGinnBPM.Runtime.ExecutionEngine;
+using System.Transactions;
 
 namespace TestHost.cs
 {
@@ -22,9 +23,13 @@ namespace TestHost.cs
             //return;
             var c = ConfigureNGinnBPM();
 
-            var pr = c.GetInstance<ProcessEngine>();
-           // var proc = pr.StartProcess("Test2.TimerTest.1", new Dictionary<string,object> {});
+            using (var ts = new TransactionScope())
+            {
+                var pr = c.GetInstance<ProcessEngine>();
+                var proc = pr.StartProcess("Test2.TimerTest.1", new Dictionary<string, object> { });
+                var ti = pr.GetTaskInstanceInfo(proc);
 
+            }
             //var proc = pr.StartProcess("Test2.ErrorHandlerTest.1", new Dictionary<string, object> { });
             //var proc = pr.StartProcess("Test2.MultiInstance.1", new Dictionary<string, object> { });
             //TestCompensation(pr);

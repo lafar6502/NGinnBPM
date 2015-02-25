@@ -212,7 +212,12 @@ namespace NGinnBPM.DSLServices
                     Type tp = cc.GeneratedAssembly.GetType(tn);
                     if (tp == null)
                     {
-                        throw new Exception("Type not found for url: " + url);
+                        foreach (var t in cc.GeneratedAssembly.GetTypes())
+                        {
+                            Console.WriteLine("Type: {0}", t.FullName);
+                        }
+
+                        throw new Exception("Type not found for url: " + url + ", type name: " + tn);
                     }
                     TypeCacheEntry tce = new TypeCacheEntry
                     {
@@ -354,6 +359,7 @@ namespace NGinnBPM.DSLServices
             {
                 _compilationCallback(compilerContext, urls);
             }
+            
             if (compilerContext.Errors.Count != 0)
                 throw CreateCompilerException(compilerContext);
             HandleWarnings(compilerContext.Warnings);

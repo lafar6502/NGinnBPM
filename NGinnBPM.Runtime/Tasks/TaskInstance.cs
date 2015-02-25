@@ -99,7 +99,11 @@ namespace NGinnBPM.Runtime.Tasks
             this.OnTaskEnabling();
             if (this.Status == TaskStatus.Enabled)
             {
-                Context.NotifyTaskEvent(new TaskEnabled { FromTaskInstanceId = this.InstanceId, ParentTaskInstanceId = this.ParentTaskInstanceId });
+                Context.NotifyTaskEvent(new TaskEnabled { 
+                    FromTaskInstanceId = this.InstanceId,
+                    FromProcessInstanceId = this.ProcessInstanceId,
+                    ParentTaskInstanceId = this.ParentTaskInstanceId 
+                });
             }
         }
 
@@ -169,6 +173,7 @@ namespace NGinnBPM.Runtime.Tasks
             Context.NotifyTaskEvent(new TaskCompleted
             {
                 FromTaskInstanceId = this.InstanceId,
+                FromProcessInstanceId = this.ProcessInstanceId,
                 ParentTaskInstanceId = this.ParentTaskInstanceId,
                 OutputData = this.GetOutputData()
             });
@@ -185,6 +190,7 @@ namespace NGinnBPM.Runtime.Tasks
             Context.NotifyTaskEvent(new TaskCancelled
             {
                 FromTaskInstanceId = this.InstanceId,
+                FromProcessInstanceId = this.ProcessInstanceId,
                 ParentTaskInstanceId = this.ParentTaskInstanceId,
                 CorrelationId = null
             });

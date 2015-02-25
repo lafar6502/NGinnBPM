@@ -29,24 +29,41 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             MessageBus = bus;
             TaskPersister = taskPersister;
             ServiceResolver = ServiceResolver;
+            SyncQueue = new Queue<ProcessMessage>();
+            AsyncQueue = new Queue<ProcessMessage>();
         }
 
         public IMessageBus MessageBus { get; set; }
         public TaskPersisterSession TaskPersister { get; set; }
         public IServiceResolver ServiceResolver { get; set; }
 
+        private void ValidateMessage(ProcessMessage pm)
+        {
+            if (string.IsNullOrEmpty(pm.FromProcessInstanceId) ||
+                string.IsNullOrEmpty(pm.FromTaskInstanceId)) throw new Exception("Missing source task/process id");
+        }
+
+        private void ValidateMessage(TaskExecEvent ev)
+        {
+            ValidateMessage((ProcessMessage)ev);
+            if (string.IsNullOrEmpty(ev.ParentTaskInstanceId) && ev.FromTaskInstanceId != ev.FromProcessInstanceId) throw new Exception("Missing parent task id");
+        }
+
         public void ScheduleTaskEvent(TaskExecutionEvents.TaskExecEvent ev, DateTime deliveryDate)
         {
+            ValidateMessage(ev);
             MessageBus.NotifyAt(deliveryDate, ev);
         }
 
         public void NotifyTaskEvent(TaskExecutionEvents.TaskExecEvent ev)
         {
+            ValidateMessage(ev);
             SyncQueue.Enqueue(ev);
         }
 
         public void SendTaskControlMessage(TaskExecutionEvents.TaskControlCommand msg)
         {
+            ValidateMessage(msg);
             SyncQueue.Enqueue(msg);
         }
 

@@ -19,6 +19,12 @@ namespace NGinnBPM.Runtime.Tasks
         [DataMember]
         public TimeSpan Delay { get;set;}
 
+        [IgnoreDataMember]
+        public DateTime ExpirationDate
+        {
+            get { return DateTime.Now + Delay; }
+            set { Delay = ExpirationDate - DateTime.Now; }
+        }
 
         protected override void OnTaskEnabling()
         {

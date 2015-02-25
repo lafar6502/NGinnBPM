@@ -200,7 +200,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 if (m is TaskExecEvent)
                 {
                     var te = m as TaskExecEvent;
-                    if (InstanceId.IsSameProcessInstance(te.ParentTaskInstanceId, te.FromProcessInstanceId))
+                    if (te.FromTaskInstanceId == te.FromProcessInstanceId || InstanceId.IsSameProcessInstance(te.ParentTaskInstanceId, te.FromProcessInstanceId))
                     {
                         DeliverTaskExecEvent(te);
                     }

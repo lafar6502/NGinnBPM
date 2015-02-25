@@ -1,6 +1,7 @@
 # testing error handlers and async execution
 # when these are used
 #
+import NGinnBPM.ProcessModel
 
 variable "V0", "string":
     default_value Environment.MachineName

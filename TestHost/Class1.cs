@@ -7,6 +7,7 @@ using System.IO;
 using NGinnBPM.MessageBus;
 using NGinnBPM.Runtime;
 using D2 = NGinnBPM.Runtime.ProcessDSL2;
+using NGinnBPM.Runtime.ExecutionEngine;
 
 namespace TestHost.cs
 {
@@ -16,12 +17,12 @@ namespace TestHost.cs
         {
             //TestProcessDsl();
             //TestPackageRepo();
-            TestBpmn();
-            TestRepo2();
-            return;
+            //TestBpmn();
+            //TestRepo2();
+            //return;
             var c = ConfigureNGinnBPM();
 
-            var pr = c.GetInstance<ProcessRunner>();
+            var pr = c.GetInstance<ProcessEngine>();
            // var proc = pr.StartProcess("Test2.TimerTest.1", new Dictionary<string,object> {});
 
             //var proc = pr.StartProcess("Test2.ErrorHandlerTest.1", new Dictionary<string, object> { });
@@ -69,7 +70,7 @@ namespace TestHost.cs
             Console.WriteLine(sw.ToString());
         }
 
-        public static void TestCompensation(ProcessRunner pr)
+        public static void TestCompensation(ProcessEngine pr)
         {
             var proc = pr.StartProcess("Test2.Compensation.1", new Dictionary<string, object> { });
             Console.WriteLine("Enter to cancel the process {0}", proc);

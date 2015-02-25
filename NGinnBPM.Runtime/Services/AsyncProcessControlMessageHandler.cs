@@ -5,6 +5,7 @@ using System.Text;
 using NGinnBPM.MessageBus;
 using NGinnBPM.Runtime.TaskExecutionEvents;
 using NGinnBPM.Runtime;
+using NGinnBPM.Runtime.ExecutionEngine;
 using NLog;
 
 namespace NGinnBPM.Runtime.Services
@@ -16,12 +17,12 @@ namespace NGinnBPM.Runtime.Services
         IMessageConsumer<TaskExecEvent>,
         IMessageConsumer<TaskControlCommand>
     {
-        private ProcessRunner _pr;
+        private ProcessEngine _pr;
         private static Logger log = LogManager.GetCurrentClassLogger();
 
         public IDbSessionFactory DbSessionFactory { get; set; }
 
-        public AsyncProcessControlMessageHandler(ProcessRunner pr)
+        public AsyncProcessControlMessageHandler(ProcessEngine pr)
         {
             _pr = pr;
         }

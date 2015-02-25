@@ -9,6 +9,7 @@ using Castle.MicroKernel.Registration;
 using NGinnBPM.Runtime;
 using NGinnBPM.Runtime.Services;
 using NGinnBPM.Runtime.Tasks;
+using NGinnBPM.Runtime.ExecutionEngine;
 using System.IO;
 
 namespace TestHost.cs
@@ -54,8 +55,8 @@ namespace TestHost.cs
 
         public NGinnConfigurator FinishConfiguration()
         {
-            _wc.Register(Component.For<ProcessRunner>()
-                .ImplementedBy<ProcessRunner>()
+            _wc.Register(Component.For<ProcessEngine>()
+                .ImplementedBy<ProcessEngine>()
                 .LifeStyle.Singleton);
             _wc.Register(Component.For<ITaskInstancePersister>()
                 .ImplementedBy<SqlTaskInstancePersister>()

@@ -8,6 +8,7 @@ using Castle.MicroKernel;
 using System.IO;
 using Castle.MicroKernel.Registration;
 using NGinnBPM.Runtime.Services;
+using NGinnBPM.Runtime.ExecutionEngine;
 using System.Configuration;
 
 namespace NGinnBPM.Runtime.Configuration
@@ -65,8 +66,8 @@ namespace NGinnBPM.Runtime.Configuration
 
         public WindsorConfigurator FinishConfiguration()
         {
-            _wc.Register(Component.For<ProcessRunner>()
-                .ImplementedBy<ProcessRunner>()
+            _wc.Register(Component.For<ProcessEngine>()
+                .ImplementedBy<ProcessEngine>()
                 .LifeStyle.Singleton);
             _wc.Register(Component.For<ITaskInstancePersister>()
                 .ImplementedBy<SqlTaskInstancePersister>()

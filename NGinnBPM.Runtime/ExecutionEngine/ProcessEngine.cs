@@ -259,7 +259,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             Queue<ProcessMessage> outgoing = null;
             InSystemTransaction(() =>
             {
-                InDbTransaction(dbs =>
+                InDbTransaction(SessionFactory, dbs =>
                 {
                     var pess = TaskPersister.OpenSession(dbs);
                     pess.PersistenceMode = persMode;

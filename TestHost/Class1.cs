@@ -38,7 +38,7 @@ namespace TestHost.cs
             using (var ts = new TransactionScope())
             {
                 var pr = c.GetInstance<ProcessEngine>();
-                var proc = pr.StartProcess("Test2.ErrorTest1.1", new Dictionary<string, object> { });
+                var proc = pr.StartProcess("Test2.ErrorTest2.1", new Dictionary<string, object> { });
                 var ti = pr.GetTaskInstanceInfo(proc);
                 ts.Complete();
             }

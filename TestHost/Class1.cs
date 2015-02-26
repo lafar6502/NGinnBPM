@@ -27,13 +27,13 @@ namespace TestHost.cs
             //return;
             var c = ConfigureNGinnBPM();
 
-            using (var ts = new TransactionScope())
+            /*using (var ts = new TransactionScope())
             {
                 var pr = c.GetInstance<ProcessEngine>();
                 var proc = pr.StartProcess("Test2.DeferredChoice.1", new Dictionary<string, object> { });
                 var ti = pr.GetTaskInstanceInfo(proc);
                 ts.Complete();
-            }
+            }*/
 
             using (var ts = new TransactionScope())
             {

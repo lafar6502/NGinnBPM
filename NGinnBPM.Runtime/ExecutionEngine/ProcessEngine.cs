@@ -159,11 +159,16 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             }
             else
             {
-                using (var dbs = factory.OpenSession())
+                var dbs = factory.OpenSession(MessageBusContext.ReceivingConnection);
+                try
                 {
                     DbSession.Current = dbs;
                     act(dbs);
+                }
+                finally
+                {
                     DbSession.Current = null;
+                    dbs.Dispose();
                 }
             }
         }

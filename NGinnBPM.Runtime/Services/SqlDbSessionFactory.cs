@@ -55,7 +55,10 @@ namespace NGinnBPM.Runtime.Services
         public DbSession OpenSession(object connection)
         {
             DbConnection c = connection as DbConnection;
-            if (c == null) throw new Exception("DbConnection expected");
+            if (c == null || c.State != System.Data.ConnectionState.Open)
+            {
+                return OpenSession();
+            };
             var cse = ConfigurationManager.ConnectionStrings[this.ConnectionString];
             string cs = cse == null ? this.ConnectionString : cse.ConnectionString;
             if (!SqlUtil.IsSameDatabaseConnection(cs, c.ConnectionString))

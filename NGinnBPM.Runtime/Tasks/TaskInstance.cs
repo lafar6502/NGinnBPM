@@ -212,6 +212,7 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 FromTaskInstanceId = this.InstanceId,
                 ParentTaskInstanceId = this.ParentTaskInstanceId,
+                FromProcessInstanceId = this.ProcessInstanceId,
                 IsExpected = failureIntended,
                 ErrorInfo = errorInfo
             });

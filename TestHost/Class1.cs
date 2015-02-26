@@ -33,12 +33,19 @@ namespace TestHost.cs
                 var proc = pr.StartProcess("Test2.DeferredChoice.1", new Dictionary<string, object> { });
                 var ti = pr.GetTaskInstanceInfo(proc);
                 ts.Complete();
-                
+            }
+
+            using (var ts = new TransactionScope())
+            {
+                var pr = c.GetInstance<ProcessEngine>();
+                var proc = pr.StartProcess("Test2.ErrorTest1.1", new Dictionary<string, object> { });
+                var ti = pr.GetTaskInstanceInfo(proc);
+                ts.Complete();
             }
             //var proc = pr.StartProcess("Test2.ErrorHandlerTest.1", new Dictionary<string, object> { });
             //var proc = pr.StartProcess("Test2.MultiInstance.1", new Dictionary<string, object> { });
             //TestCompensation(pr);
-            TestProcessScriptGenerator(c);
+            //TestProcessScriptGenerator(c);
             Console.ReadLine();
 
         }

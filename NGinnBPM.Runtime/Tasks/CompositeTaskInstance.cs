@@ -864,7 +864,10 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 OnChildTaskStarted(ti.InstanceId);
             }
-            Debug.Assert(ti.Status == TransitionStatus.Started || ti.Status == TransitionStatus.FailedActive);
+            if (!(ti.Status == TransitionStatus.Started || ti.Status == TransitionStatus.FailedActive))
+            {
+                throw new Exception("Invalid transition status " + instanceId + ", status is " + ti.Status.ToString());
+            }
         }
 
 
@@ -1555,5 +1558,19 @@ namespace NGinnBPM.Runtime.Tasks
                 log.Debug("Child task {1} ({0}) cancellation timeout - ignoring because the transition is not in cancelling. ", ti.InstanceId, ti.TaskId);
             }
         }*/
+
+        public override string ToString()
+        {
+            var state = new Dictionary<string, object>
+            { { "Marking", this.Marking },
+                { "ActiveTasks", this.ActiveTasks },
+                {"Status", this.Status},
+                {"InstanceId", this.InstanceId},
+                {"TaskId", this.TaskId},
+                {"ProcessDefinition", this.ProcessDefinitionId},
+                {"ProcessInstanceId", this.ProcessInstanceId}
+            };
+            return Jsonizer.ToJsonString(state);
+        }
     }
 }

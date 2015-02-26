@@ -186,12 +186,19 @@ namespace NGinnBPM.Runtime.Services
 
         protected void StoreProcessRecords(IEnumerable<ProcessHolder> records)
         {
+            if (records.Count() == 0) return;
             var sb = new StringBuilder();
             using (var cmd = _ses.Connection.CreateCommand())
             {
                 int pcnt = 0;
                 foreach (var ph in records)
                 {
+                    foreach (var ti in ph.TaskInstances.Where(x => x is CompositeTaskInstance))
+                    {
+                        var s = ti.ToString();
+                        log.Info("Saving: {0}", s);
+                    }
+                    ph.SerializedData = SerializeTaskList(ph.TaskInstances);
                     if (string.IsNullOrEmpty(ph.SerializedData)) throw new Exception("Task not serialized!");
                     int ov = string.IsNullOrEmpty(ph.DbVersion) ? 1 : Int32.Parse(ph.DbVersion);
                     if (ph.State== RecordState.New)

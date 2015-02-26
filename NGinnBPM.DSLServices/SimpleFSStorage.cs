@@ -53,7 +53,7 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public virtual IEnumerable<string> GetScriptUrls()
         {
-            return Directory.GetFiles(BaseDirectory, "*.boo").Select(x => Path.GetFileNameWithoutExtension(x));
+            return Directory.GetFiles(BaseDirectory, "*.boo").Select(x => Path.GetFileName(x));
         }
 
         /// <summary>

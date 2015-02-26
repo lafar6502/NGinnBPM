@@ -9,11 +9,15 @@ using NGinnBPM.Runtime;
 using D2 = NGinnBPM.Runtime.ProcessDSL2;
 using NGinnBPM.Runtime.ExecutionEngine;
 using System.Transactions;
+using NLog;
 
 namespace TestHost.cs
 {
+    
     public class Class1
     {
+        private static Logger log = LogManager.GetCurrentClassLogger();
+
         public static void Main(string[] args)
         {
             //TestProcessDsl();
@@ -26,9 +30,10 @@ namespace TestHost.cs
             using (var ts = new TransactionScope())
             {
                 var pr = c.GetInstance<ProcessEngine>();
-                var proc = pr.StartProcess("Test2.TimerTest.1", new Dictionary<string, object> { });
+                var proc = pr.StartProcess("Test2.DeferredChoice.1", new Dictionary<string, object> { });
                 var ti = pr.GetTaskInstanceInfo(proc);
-
+                ts.Complete();
+                
             }
             //var proc = pr.StartProcess("Test2.ErrorHandlerTest.1", new Dictionary<string, object> { });
             //var proc = pr.StartProcess("Test2.MultiInstance.1", new Dictionary<string, object> { });

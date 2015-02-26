@@ -192,6 +192,12 @@ namespace NGinnBPM.Runtime.Tasks
             return lst;
         }
 
+        public TransitionInfo GetChildTransitionInfo(string instanceId)
+        {
+            var ti = this.AllTasks.Find(x => x.InstanceId == instanceId);
+            return ti;
+        }
+
         /// <summary>
         /// Get active instance of specified task
         /// </summary>

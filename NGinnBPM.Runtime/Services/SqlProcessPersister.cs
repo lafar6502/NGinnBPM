@@ -56,7 +56,8 @@ namespace NGinnBPM.Runtime.Services
                 if (ti.Status != TaskStatus.Cancelling &&
                     ti.Status != TaskStatus.Enabled &&
                     ti.Status != TaskStatus.Enabling &&
-                    ti.Status != TaskStatus.Selected)
+                    ti.Status != TaskStatus.Selected &&
+                    !(ti is CompositeTaskInstance))
                 {
                     continue; //not serialized
                 }

@@ -20,6 +20,13 @@ namespace NGinnBPM.Runtime
             return GetProcessInstanceId(taskInstance1) == GetProcessInstanceId(taskInstance2);
         }
 
+        public static string GetParentTaskInstanceId(string taskInstanceId)
+        {
+            var idx = taskInstanceId.LastIndexOf('.');
+            if (idx < 0) return taskInstanceId;
+            return taskInstanceId.Substring(0, idx);
+        }
+
 
     }
 }

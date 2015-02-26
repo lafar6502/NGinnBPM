@@ -85,6 +85,16 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                     MappedDiagnosticsContext.Set("NG_TaskInstanceId", instanceId);
 
                     var ti = ps.TaskPersister.GetForUpdate(instanceId);
+                    if (ti == null)
+                    {
+                        log.Warn("Task instance not found: {0}", instanceId);
+                        var pti = (CompositeTaskInstance) ps.TaskPersister.GetForRead(InstanceId.GetParentTaskInstanceId(instanceId));
+                        if (pti == null) throw new Exception("Task instance not found and no parent. Instance ID: " + instanceId);
+                        var tin = pti.GetChildTransitionInfo(instanceId);
+                        if (tin == null) throw new Exception("Task instance not found anywhere: " + instanceId);
+                        log.Info("Task instance not found, parent says that status is {0}", tin.Status);
+                        return;
+                    };
                     var pd = this.GetProcessDef(ti.ProcessDefinitionId);
                     var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
                     ti.Activate(ps, pd, pscript);

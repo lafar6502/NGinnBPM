@@ -12,7 +12,7 @@ end_place "end"
 
 task "T1", "debug":
     init_task:
-        Task.Delay = true
+        Task.Delay = false
         Task.DoFail = false
         
 task "T2", "debug":

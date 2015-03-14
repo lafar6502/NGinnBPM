@@ -1,0 +1,120 @@
+{
+  "ProcessName": "Parallel",
+  "Version": 1,
+  "PackageName": "EngineTest",
+  "DataTypes": {
+    "Types": {}
+  },
+  "Body": {
+    "Tasks": [
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "SplitType": "AND",
+        "JoinType": "XOR",
+        "AutoBindVariables": true,
+        "Id": "T1"
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "SplitType": "XOR",
+        "JoinType": "XOR",
+        "AutoBindVariables": true,
+        "Id": "T2"
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "SplitType": "XOR",
+        "JoinType": "XOR",
+        "AutoBindVariables": true,
+        "Id": "T3"
+      }
+    ],
+    "Places": [
+      {
+        "PlaceType": "Start",
+        "Implicit": false,
+        "Id": "start"
+      },
+      {
+        "PlaceType": "End",
+        "Implicit": false,
+        "Id": "end"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": true,
+        "Id": "T1.-.T2"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": true,
+        "Id": "T1.-.T3"
+      }
+    ],
+    "Flows": [
+      {
+        "From": "start",
+        "To": "T1",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T1",
+        "To": "T1.-.T2",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T1.-.T2",
+        "To": "T2",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T1",
+        "To": "T1.-.T3",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T1.-.T3",
+        "To": "T3",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T2",
+        "To": "end",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T3",
+        "To": "end",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      }
+    ],
+    "SplitType": "XOR",
+    "JoinType": "XOR",
+    "AutoBindVariables": false,
+    "Id": "Parallel"
+  }
+}

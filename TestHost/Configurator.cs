@@ -42,6 +42,18 @@ namespace TestHost.cs
             return this;
         }
 
+        public NGinnConfigurator ConfigureJsonProcessRepository(string baseDir)
+        {
+            string bd = AppDomain.CurrentDomain.BaseDirectory;
+            bd = Path.IsPathRooted(baseDir) ? baseDir : Path.Combine(bd, baseDir);
+            _wc.Register(Component.For<IProcessPackageRepo>().ImplementedBy<NGinnBPM.Runtime.ProcessDSL2.ProcessPackageRepository>()
+                .DependsOn(new
+                {
+                    BaseDirectory = bd
+                }).LifeStyle.Singleton);
+            return this;
+        }
+
         public NGinnConfigurator ConfigureSqlStorage(string connString)
         {
             _wc.Register(Component.For<IDbSessionFactory>()

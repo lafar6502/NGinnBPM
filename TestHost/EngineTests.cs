@@ -27,6 +27,11 @@ namespace TestHost.cs
             var pkg = repo.GetProcessPackage("EngineTest");
             foreach (var pn in pkg.ProcessNames)
             {
+                var pd = pkg.GetProcessDefinition(pn);
+
+                string processJson = ProcessDefJsonSerializer.Serialize(pd);
+                //File.WriteAllText(pn + ".json", processJson);
+
                 TestProcess(pkg.Name + "." + pn, c);
             }
         }
@@ -50,7 +55,8 @@ namespace TestHost.cs
         public static IServiceResolver ConfigureNGinnBPM()
         {
             var cfg = NGinnConfigurator.Begin()
-                .ConfigureProcessRepository("..\\..\\..\\ProcessPackages")
+                //.ConfigureProcessRepository("..\\..\\..\\ProcessPackages")
+                .ConfigureJsonProcessRepository("..\\..\\..\\PackageRepo2")
                 .ConfigureSqlStorage("nginn")
                 .FinishConfiguration();
             return cfg.GetContainer();

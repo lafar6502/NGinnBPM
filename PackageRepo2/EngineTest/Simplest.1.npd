@@ -1,0 +1,54 @@
+{
+  "ProcessName": "Simplest",
+  "Version": 1,
+  "PackageName": "EngineTest",
+  "DataTypes": {
+    "Types": {}
+  },
+  "Body": {
+    "Tasks": [
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "SplitType": "XOR",
+        "JoinType": "XOR",
+        "AutoBindVariables": true,
+        "Id": "T1"
+      }
+    ],
+    "Places": [
+      {
+        "PlaceType": "Start",
+        "Implicit": false,
+        "Id": "start"
+      },
+      {
+        "PlaceType": "End",
+        "Implicit": false,
+        "Id": "end"
+      }
+    ],
+    "Flows": [
+      {
+        "From": "start",
+        "To": "T1",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T1",
+        "To": "end",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      }
+    ],
+    "SplitType": "XOR",
+    "JoinType": "XOR",
+    "AutoBindVariables": false,
+    "Id": "Simplest"
+  }
+}

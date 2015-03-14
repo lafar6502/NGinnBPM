@@ -10,6 +10,7 @@ using D2 = NGinnBPM.Runtime.ProcessDSL2;
 using NGinnBPM.Runtime.ExecutionEngine;
 using System.Transactions;
 using NLog;
+using System.Threading.Tasks;
 
 namespace TestHost.cs
 {
@@ -20,6 +21,8 @@ namespace TestHost.cs
 
         public static void Main(string[] args)
         {
+            EngineTests.RunTests();
+            return;
             //TestProcessDsl();
             //TestPackageRepo();
             //TestBpmn();
@@ -38,7 +41,7 @@ namespace TestHost.cs
             using (var ts = new TransactionScope())
             {
                 var pr = c.GetInstance<ProcessEngine>();
-                var proc = pr.StartProcess("Test2.ErrorTest2.1", new Dictionary<string, object> { });
+                var proc = pr.StartProcess("EngineTest.Simplest.1", new Dictionary<string, object> { });
                 var ti = pr.GetTaskInstanceInfo(proc);
                 ts.Complete();
             }

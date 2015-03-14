@@ -459,6 +459,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 rt.ProcessInstanceId = cti.ProcessInstanceId;
                 rt.Marking = cti.Marking.Where(x => x.Value > 0).Select(x => x.Key).ToList();
                 rt.ActiveTasks = cti.ActiveTasks.Select(x => x.TaskId).ToList();
+                rt.Status = cti.Status;
                 ret = rt;
             });
             return ret;

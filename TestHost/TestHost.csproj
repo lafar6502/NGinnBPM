@@ -76,6 +76,7 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="Configurator.cs" />
+    <Compile Include="EngineTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TestProcessEngine.cs" />
   </ItemGroup>

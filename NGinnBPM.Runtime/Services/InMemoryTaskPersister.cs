@@ -17,7 +17,7 @@ namespace NGinnBPM.Runtime.Services
             throw new NotImplementedException();
         }
 
-        internal class InMemoryTaskPersisterSession : TaskPersisterSession
+        public class InMemoryTaskPersisterSession : TaskPersisterSession
         {
             public InMemoryTaskPersisterSession(ITaskInstanceSerializer ser) : base(ser)
             {
@@ -25,7 +25,9 @@ namespace NGinnBPM.Runtime.Services
 
             protected override void WriteRecords(IEnumerable<TaskPersisterSession.TaskHolder> records)
             {
-                throw new NotImplementedException();
+                foreach (var th in records)
+                {
+                }
             }
 
             protected override TaskPersisterSession.TaskHolder LoadTaskRecord(string instanceId, bool forUpdate)

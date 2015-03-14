@@ -13,6 +13,7 @@ namespace NGinnBPM.Runtime
         public string ProcessDefinitionId { get; set; }
         public List<string> Marking { get; set; }
         public List<string> ActiveTasks { get; set; }
+        public TaskStatus Status { get; set; }
     }
 
     public class ProcessInstanceInfo : CompositeTaskInstanceInfo

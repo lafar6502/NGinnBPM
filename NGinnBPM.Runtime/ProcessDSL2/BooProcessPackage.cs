@@ -74,6 +74,12 @@ namespace NGinnBPM.Runtime.ProcessDSL2
                         throw new Exception("Script not found: " + id);
                     });
                     var dsl = new ProcessDslCompiler(st);
+                    dsl.Namespaces = new List<string>
+                    {
+                        "NGinnBPM.ProcessModel",
+                        "NGinnBPM.Runtime"
+
+                    };
                     _storage = st;
                     _dsl = dsl;
                 }

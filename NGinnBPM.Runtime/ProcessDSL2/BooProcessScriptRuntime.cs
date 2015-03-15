@@ -282,6 +282,8 @@ namespace NGinnBPM.Runtime.ProcessDSL2
                 throw new Exception("Task not inited properly");
             _pd.SetTaskInstanceInfo(ti, ctx);
             _pd.SetOutputData(childOutputData);
+            _pd.SetInputData(null);
+            
             var ctd = childTask.Parent;
             if (childTask.AutoBindVariables && ctd.Variables != null)
             {

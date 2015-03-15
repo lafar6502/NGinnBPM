@@ -75,6 +75,19 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             Transaction t;
         }
 
+        protected void ReadTask(string instanceId, Action<TaskInstance> act)
+        {
+            RunProcessTransaction(this.DefaultPersistenceMode, ps =>
+            {
+                var ti = ps.TaskPersister.GetForRead(instanceId);
+                var pd = this.GetProcessDef(ti.ProcessDefinitionId);
+                var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
+                ti.Activate(ps, pd, pscript);
+                act(ti);
+                ti.Deactivate();
+            });
+        }
+
         protected void UpdateTask(string instanceId, Action<TaskInstance> act)
         {
             RunProcessTransaction(this.DefaultPersistenceMode, ps =>
@@ -445,6 +458,16 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             }
         }
         #endregion
+
+        public Dictionary<string, object> GetTaskData(string instanceId)
+        {
+            Dictionary<string, object> ret = null;
+            this.ReadTask(instanceId, ti =>
+            {
+                ret = new Dictionary<string,object>(ti.TaskData);
+            });
+            return ret;
+        }
 
         public CompositeTaskInstanceInfo GetTaskInstanceInfo(string instanceId)
         {

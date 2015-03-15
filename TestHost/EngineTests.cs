@@ -44,6 +44,7 @@ namespace TestHost.cs
                 var proc = pr.StartProcess(definitionId, new Dictionary<string, object> { });
                 log.Info("Started process {0}: {1}", definitionId, proc);
                 var ti = pr.GetTaskInstanceInfo(proc);
+                
                 if (ti.Status != NGinnBPM.Runtime.TaskStatus.Completed)
                 {
                     throw new Exception("Process did not complete");

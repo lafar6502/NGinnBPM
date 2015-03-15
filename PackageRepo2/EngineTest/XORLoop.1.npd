@@ -17,11 +17,17 @@
       },
       {
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
-        "TaskType": "Empty",
+        "TaskType": "Debug",
         "SplitType": "XOR",
         "JoinType": "XOR",
         "AutoBindVariables": true,
-        "Id": "T2"
+        "Id": "T2",
+        "Variables": [
+            {"VariableDir": "InOut", "Name": "N", "TypeName": "int","IsArray": false,"IsRequired": true}
+        ],
+        "OutputDataBindings": [
+            {"Source" : "OutputData.N + 1", "Target" : "N", "BindType" : "Expr"}
+        ]
       },
       {
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
@@ -72,7 +78,7 @@
         "From": "T1",
         "To": "T1.-.T2",
         "IsCancelling": false,
-        "InputCondition": "(TaskData.N == 0)",
+        "InputCondition": "(TaskData.N <  20)",
         "EvalOrder": 0,
         "TargetPortType": "In",
         "SourcePortType": "Out"

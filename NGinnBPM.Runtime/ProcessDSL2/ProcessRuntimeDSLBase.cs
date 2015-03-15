@@ -47,12 +47,12 @@ namespace NGinnBPM.Runtime.ProcessDSL2
 
         public void SetInputData(Dictionary<string, object> data)
         {
-            InputData = new QuackTaskDataWrapper(data);
+            InputData = data == null ? null : new QuackTaskDataWrapper(data);
         }
 
         public void SetOutputData(Dictionary<string, object> data)
         {
-            OutputData = new QuackTaskDataWrapper(data);
+            OutputData = data == null ? null : new QuackTaskDataWrapper(data);
         }
 
         public void SetItem(object v)

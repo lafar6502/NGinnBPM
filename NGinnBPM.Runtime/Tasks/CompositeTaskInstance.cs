@@ -382,7 +382,6 @@ namespace NGinnBPM.Runtime.Tasks
                         log.Warn("Deadlock detected in composite task {0} ({1}) of process {2}", InstanceId, TaskId, ProcessDefinitionId);
                         if (throwOnDeadlock)
                             throw new DeadlockException(this.InstanceId, this.TaskId, this.ProcessDefinitionId); 
-
                     }
                 }
             }

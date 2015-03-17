@@ -1,0 +1,146 @@
+{
+  "ProcessName": "DeferredChoice",
+  "Version": 2,
+  "PackageName": "EngineTest",
+  "DataTypes": {
+    "Types": {}
+  },
+  "Body": {
+    "Tasks": [
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "SplitType": "XOR",
+        "JoinType": "XOR",
+        "AutoBindVariables": true,
+        "Id": "T1",
+        "Variables": [
+            {"VariableDir": "InOut", "Name": "M", "TypeName": "int","IsArray": false,"IsRequired": true}
+        ],
+        "OutputDataBindings": [
+            {"Source" : "1", "Target" : "M", "BindType" : "Expr"}
+        ]
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Debug",
+        "SplitType": "XOR",
+        "JoinType": "XOR",
+        "AutoBindVariables": true,
+        "Id": "T2",
+        "Variables": [
+            {"VariableDir": "InOut", "Name": "N", "TypeName": "int","IsArray": false,"IsRequired": true}
+        ],
+        "OutputDataBindings": [
+            {"Source" : "1", "Target" : "N", "BindType" : "Expr"}
+        ]
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Debug",
+        "SplitType": "XOR",
+        "JoinType": "XOR",
+        "AutoBindVariables": true,
+        "Id": "T3",
+        "Variables": [
+            {"VariableDir": "InOut", "Name": "K", "TypeName": "int","IsArray": false,"IsRequired": true}
+        ],
+        "OutputDataBindings": [
+            {"Source" : "1", "Target" : "K", "BindType" : "Expr"}
+        ]
+      }
+    ],
+    "Places": [
+      {
+        "PlaceType": "Start",
+        "Implicit": false,
+        "Id": "start"
+      },
+      {
+        "PlaceType": "End",
+        "Implicit": false,
+        "Id": "end"
+      }
+    ],
+    "Flows": [
+      {
+        "From": "start",
+        "To": "T1",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "start",
+        "To": "T2",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "start",
+        "To": "T3",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T1",
+        "To": "end",
+        "IsCancelling": false,
+        "EvalOrder": 1,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T2",
+        "To": "end",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T3",
+        "To": "end",
+        "IsCancelling": false,
+        "EvalOrder": 0,
+        "TargetPortType": "In",
+        "SourcePortType": "Out"
+      }
+    ],
+    "SplitType": "XOR",
+    "JoinType": "XOR",
+    "Variables": [
+      {
+        "VariableDir": "In",
+        "DefaultValueExpr": "0",
+        "Name": "N",
+        "TypeName": "int",
+        "IsArray": false,
+        "IsRequired": true
+      },
+      {
+        "VariableDir": "In",
+        "DefaultValueExpr": "0",
+        "Name": "M",
+        "TypeName": "int",
+        "IsArray": false,
+        "IsRequired": true
+      },
+      {
+        "VariableDir": "In",
+        "DefaultValueExpr": "0",
+        "Name": "K",
+        "TypeName": "int",
+        "IsArray": false,
+        "IsRequired": true
+      }
+    ],
+    "AutoBindVariables": false,
+    "Id": "DeferredChoice"
+  }
+}

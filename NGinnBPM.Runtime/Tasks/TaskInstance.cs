@@ -116,22 +116,44 @@ namespace NGinnBPM.Runtime.Tasks
 
         public virtual void ForceComplete(Dictionary<string, object> updatedData)
         {
+            if (Status == TaskStatus.Cancelled || Status == TaskStatus.Completed ||
+                Status == TaskStatus.Failed)
+                return; //ignore the call
+            
 
         }
 
         public virtual void Cancel(string reason)
         {
+            if (Status == TaskStatus.Cancelled || Status == TaskStatus.Completed ||
+                Status == TaskStatus.Failed)
+                return; //ignore the call
+            
             DefaultHandleTaskCancel(reason);
         }
 
         public virtual void ForceFail(string errorInfo)
         {
+            if (Status == TaskStatus.Cancelled || Status == TaskStatus.Completed ||
+                Status == TaskStatus.Failed)
+                return; //ignore the call
+            
             DefaultHandleTaskFailure(errorInfo, true);
         }
 
         public virtual void Select()
         {
-
+            if (Status != TaskStatus.Enabled && Status != TaskStatus.Enabling)
+            {
+                return;
+            }
+            this.Status = TaskStatus.Selected;
+            this.Context.NotifyTaskEvent(new TaskSelected
+            {
+                FromTaskInstanceId = this.InstanceId,
+                FromProcessInstanceId = this.ProcessInstanceId,
+                ParentTaskInstanceId = this.ParentTaskInstanceId
+            });
         }
 
         protected void Complete()

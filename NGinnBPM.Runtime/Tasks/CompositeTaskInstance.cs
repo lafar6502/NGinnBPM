@@ -1032,26 +1032,33 @@ namespace NGinnBPM.Runtime.Tasks
             TaskDef tsk = MyTask.GetTask(ti.TaskId);
             if (ti.Status == TransitionStatus.Enabling)
                 ti.Status = TransitionStatus.Enabled;
-            if (tce is MultiTaskCompleted)
-            {
-                MultiTaskCompleted mce = (MultiTaskCompleted)tce;
-                if (!string.IsNullOrEmpty(tsk.MultiInstanceResultsBinding) && mce.MultiOutputData != null)
-                {
-                    TaskData[tsk.MultiInstanceResultsBinding] = mce.MultiOutputData;
-                }
-            }
-            else 
-            {
-                if (tce.OutputData != null)
-                {
-                    ScriptRuntime.ExecuteChildTaskOutputDataBinding(this, tsk, tce.OutputData, Context);
-                }
-            }
 
-            //
-            ConsumeTaskInputTokens(tce.FromTaskInstanceId);
-            ti.Status = TransitionStatus.Completed;
-            ProduceTaskOutputTokens(ti.InstanceId);
+            if (ti.Status == TransitionStatus.Enabled || ti.Status == TransitionStatus.Started)
+            {
+                ConsumeTaskInputTokens(tce.FromTaskInstanceId);
+                if (tce is MultiTaskCompleted)
+                {
+                    MultiTaskCompleted mce = (MultiTaskCompleted)tce;
+                    if (!string.IsNullOrEmpty(tsk.MultiInstanceResultsBinding) && mce.MultiOutputData != null)
+                    {
+                        TaskData[tsk.MultiInstanceResultsBinding] = mce.MultiOutputData;
+                    }
+                }
+                else
+                {
+                    if (tce.OutputData != null)
+                    {
+                        ScriptRuntime.ExecuteChildTaskOutputDataBinding(this, tsk, tce.OutputData, Context);
+                    }
+                }
+                ti.Status = TransitionStatus.Completed;
+                ProduceTaskOutputTokens(ti.InstanceId);
+            }
+            else
+            {
+                ti.Status = TransitionStatus.Completed;
+                log.Warn("Task {0} has completed, but the transition status was {1} and it did not produce output tokens or execute data bindings", ti.InstanceId, ti.Status);
+            }
         }
 
         /// <summary>

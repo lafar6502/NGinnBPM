@@ -51,6 +51,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 };
                 pi.Activate(ps, pd, pscript);
                 ps.TaskPersister.SaveNew(pi);
+                log.Info("\n --- Created process {0} instance {1}. Data: {2}", pi.ProcessDefinitionId, pi.InstanceId, Jsonizer.ToJsonString(inputData));
                 pi.Enable(inputData);
                 pi.Deactivate();
                 ps.TaskPersister.Update(pi); 
@@ -126,6 +127,10 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             UpdateTask(instanceId, ti =>
             {
+                if (!ti.IsAlive)
+                {
+                    log.Warn("Trying to cancel an inactive task {0} [{1}], status: {2}", ti.TaskId, ti.InstanceId, ti.Status);
+                }
                 ti.Cancel(reason);
             });
         }
@@ -134,6 +139,10 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             UpdateTask(instanceId, ti =>
             {
+                if (!ti.IsAlive)
+                {
+                    log.Warn("Trying to select an inactive task {0} [{1}], status: {2}", ti.TaskId, ti.InstanceId, ti.Status);
+                }
                 ti.Select();
             });
         }

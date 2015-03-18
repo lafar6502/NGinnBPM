@@ -1255,7 +1255,7 @@ namespace NGinnBPM.Runtime.Tasks
             ti.Status = TransitionStatus.Cancelled;
             if (doCancel)
             {
-#warning: don't we have to handle TransitionStatus.Cancelling here (hm, why?)
+#warning: don't we have to handle TransitionStatus.Cancelling here (hm, why? maybe we don't care?)
                 Context.SendTaskControlMessage(new CancelTask
                 {
                     FromProcessInstanceId = this.ProcessInstanceId,
@@ -1579,6 +1579,7 @@ namespace NGinnBPM.Runtime.Tasks
                 {"Status", this.Status},
                 {"InstanceId", this.InstanceId},
                 {"TaskId", this.TaskId},
+                {"Data", this.TaskData},
                 {"ProcessDefinition", this.ProcessDefinitionId},
                 {"ProcessInstanceId", this.ProcessInstanceId}
             };

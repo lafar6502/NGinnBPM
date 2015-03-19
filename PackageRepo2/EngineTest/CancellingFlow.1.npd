@@ -9,7 +9,7 @@
     "Tasks": [
       {
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
-        "TaskType": "Empty",
+        "TaskType": "Debug",
         "SplitType": "AND",
         "JoinType": "XOR",
         "AutoBindVariables": true,
@@ -17,19 +17,25 @@
       },
       {
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
-        "TaskType": "Empty",
+        "TaskType": "Timer",
         "SplitType": "XOR",
         "JoinType": "XOR",
         "AutoBindVariables": true,
-        "Id": "T2"
+        "Id": "T2",
+        "InputParameterBindings" : [
+            {"Source" : "DateTime.Now.AddSeconds(20)", "Target" : "ExpirationDate", "BindType" : "Expr"}
+        ]
       },
       {
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
-        "TaskType": "Empty",
-        "SplitType": "XOR",
+        "TaskType": "Debug",
+        "SplitType": "AND",
         "JoinType": "XOR",
         "AutoBindVariables": true,
-        "Id": "T3"
+        "Id": "T3",
+        "InputParameterBindings" : [
+            {"Source" : "true", "Target" : "Delay", "BindType" : "Expr"}
+        ]
       }
     ],
     "Places": [
@@ -93,6 +99,13 @@
         "IsCancelling": false,
         "EvalOrder": 0,
         "TargetPortType": "In",
+        "SourcePortType": "Out"
+      },
+      {
+        "From": "T3",
+        "To": "T1.-.T2",
+        "IsCancelling": true,
+        "EvalOrder": 0,
         "SourcePortType": "Out"
       },
       {

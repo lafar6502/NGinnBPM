@@ -34,6 +34,9 @@ namespace TestHost.cs
 
                 TestProcess(pkg.Name + "." + pn, c);
             }
+
+            Console.WriteLine("enter..");
+            Console.ReadLine();
         }
 
         public static void TestProcess(string definitionId, IServiceResolver container)

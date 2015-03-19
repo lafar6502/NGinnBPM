@@ -76,6 +76,7 @@ namespace NGinnBPM.Runtime.ProcessDSL2
                     var dsl = new ProcessDslCompiler(st);
                     dsl.Namespaces = new List<string>
                     {
+                        "System",
                         "NGinnBPM.ProcessModel",
                         "NGinnBPM.Runtime"
 

@@ -175,6 +175,10 @@ namespace NGinnBPM.Runtime.Tasks
                 if (vd.VariableDir == ProcessModel.Data.VariableDef.Dir.Out ||
                     vd.VariableDir == ProcessModel.Data.VariableDef.Dir.InOut)
                 {
+                    if (!TaskData.ContainsKey(vd.Name) && vd.IsRequired)
+                    {
+                        throw new Exception("Missing required variable:" + vd.Name);
+                    }
                     ret[vd.Name] = TaskData[vd.Name];
                 }
             }

@@ -139,10 +139,12 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             UpdateTask(instanceId, ti =>
             {
+                if (ti.Status == TaskStatus.Selected) return;
                 if (!ti.IsAlive)
                 {
                     log.Warn("Trying to select an inactive task {0} [{1}], status: {2}", ti.TaskId, ti.InstanceId, ti.Status);
                 }
+                
                 ti.Select();
             });
         }

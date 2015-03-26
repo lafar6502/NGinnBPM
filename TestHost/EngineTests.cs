@@ -32,15 +32,15 @@ namespace TestHost.cs
             var repo = c.GetInstance<IProcessPackageRepo>();
 
             var pkg = repo.GetProcessPackage("EngineTest");
-            foreach (var pn in pkg.ProcessNames)
-            {
-                var pd = pkg.GetProcessDefinition(pn);
+            TestProcess("EngineTest.Simplest.1", c, validateCompleted);
+            TestProcess("EngineTest.CancellingFlow.1", c, null);
+            TestProcess("EngineTest.Composite.1", c, validateCompleted);
+            TestProcess("EngineTest.DeferredChoice.1", c, validateCompleted);
+            TestProcess("EngineTest.DeferredChoice.2", c, validateCompleted);
+            TestProcess("EngineTest.Parallel.1", c, validateCompleted);
+            TestProcess("EngineTest.SimpleFailure.1", c, null);
+            TestProcess("EngineTest.XORLoop.1", c, validateCompleted);
 
-                string processJson = ProcessDefJsonSerializer.Serialize(pd);
-                //File.WriteAllText(pn + ".json", processJson);
-
-                TestProcess(pkg.Name + "." + pn, c, null);
-            }
 
             Console.WriteLine("enter..");
             Console.ReadLine();

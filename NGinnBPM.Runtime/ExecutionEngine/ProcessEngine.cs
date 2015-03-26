@@ -360,7 +360,36 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             if (string.IsNullOrEmpty(ev.ParentTaskInstanceId))
             {
-                log.Info("event has no parent: {0}", ev);
+                if (ev.FromTaskInstanceId == ev.FromProcessInstanceId)
+                {
+                    //process-level events
+                    UpdateTask(ev.FromProcessInstanceId, ti =>
+                    {
+                        var pi = ti as ProcessInstance;
+                        if (pi == null) throw new Exception("Process instance expected for id=" + ev.FromProcessInstanceId);
+                        if (ev is TaskCompleted)
+                        {
+                            
+                        }
+                        else if (ev is TaskFailed)
+                        {
+
+                        }
+                        else if (ev is TaskCancelled)
+                        {
+
+                        }
+                        else if (ev is TaskEnabled)
+                        {
+
+                        }
+                        else throw new Exception("Unexpected event " + ev.GetType().Name);
+                    });
+                }
+                else
+                {
+                    log.Warn("Event has no parent but sender task {0} is not process instance {1}", ev.FromTaskInstanceId, ev.FromProcessInstanceId);
+                }
                 return; //TODO handle process-level events
             }
             UpdateTask(ev.ParentTaskInstanceId, ti =>

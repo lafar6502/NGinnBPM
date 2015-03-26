@@ -148,6 +148,11 @@
     <Compile Include="Services\SqlUtil.cs" />
     <Compile Include="TaskExecutionEvents\InterTaskMessage.cs" />
     <Compile Include="TaskExecutionEvents\ProcessMessage.cs" />
+    <Compile Include="TaskExecutionEvents\Process\ProcessCancelled.cs" />
+    <Compile Include="TaskExecutionEvents\Process\ProcessCompleted.cs" />
+    <Compile Include="TaskExecutionEvents\Process\ProcessEvent.cs" />
+    <Compile Include="TaskExecutionEvents\Process\ProcessFailed.cs" />
+    <Compile Include="TaskExecutionEvents\Process\ProcessStarted.cs" />
     <Compile Include="TaskExecutionEvents\StartSubProcess.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlCommandFailed.cs" />
     <Compile Include="TaskExecutionEvents\TaskControlMessage.cs" />

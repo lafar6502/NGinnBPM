@@ -13,6 +13,11 @@ using NGinnBPM.Runtime.Services;
 
 namespace NGinnBPM.Runtime.ExecutionEngine
 {
+
+    /// <summary>
+    /// Process execution engine
+    /// 
+    /// </summary>
     public class ProcessEngine 
     {
         public Services.ITaskInstancePersister TaskPersister { get; set; }
@@ -369,19 +374,38 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                         if (pi == null) throw new Exception("Process instance expected for id=" + ev.FromProcessInstanceId);
                         if (ev is TaskCompleted)
                         {
-                            
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessCompleted {
+                                InstanceId = ev.FromProcessInstanceId,
+                                DefinitionId = pi.ProcessDefinitionId,
+                                Timestamp = DateTime.Now
+                            });
                         }
                         else if (ev is TaskFailed)
                         {
-
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessFailed
+                            {
+                                InstanceId = ev.FromProcessInstanceId,
+                                DefinitionId = pi.ProcessDefinitionId,
+                                Timestamp = DateTime.Now
+                            });
                         }
                         else if (ev is TaskCancelled)
                         {
-
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessCancelled
+                            {
+                                InstanceId = ev.FromProcessInstanceId,
+                                DefinitionId = pi.ProcessDefinitionId,
+                                Timestamp = DateTime.Now
+                            });
                         }
                         else if (ev is TaskEnabled)
                         {
-
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessStarted
+                            {
+                                InstanceId = ev.FromProcessInstanceId,
+                                DefinitionId = pi.ProcessDefinitionId,
+                                Timestamp = DateTime.Now
+                            });
                         }
                         else throw new Exception("Unexpected event " + ev.GetType().Name);
                     });

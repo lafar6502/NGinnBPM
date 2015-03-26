@@ -1,0 +1,58 @@
+{
+  "ProcessName": "Composite",
+  "Version": 1,
+  "PackageName": "EngineTest",
+  "DataTypes": {
+    "Types": {}
+  },
+  "Body": {
+    "Tasks": [
+        {
+            "$type": "NGinnBPM.ProcessModel.CompositeTaskDef, NGinnBPM.ProcessModel",
+            "TaskType": "Composite",
+            "AutoBindVariables": true,
+            "Id": "T1",
+            "Tasks": [
+                {
+                    "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+                    "TaskType": "Empty",
+                    "SplitType": "AND",
+                    "JoinType": "XOR",
+                    "AutoBindVariables": true,
+                    "Id": "T11"
+                }
+            ],
+            "Places" : [
+                 {"PlaceType": "Start", "Id": "start"},
+                 {"PlaceType": "End", "Id": "end"}
+            ],
+            "Flows" : [
+                { "From": "start", "To": "T11"},
+                { "From": "T11", "To": "end"}
+            ]
+       }
+          
+      
+    ],
+    "Places": [
+      {"PlaceType": "Start", "Implicit": false, "Id": "start"},
+      {
+        "PlaceType": "End",
+        "Implicit": false,
+        "Id": "end"
+      }
+    ],
+    "Flows": [
+      {
+        "From": "start",
+        "To": "T1"
+      },
+      {
+        "From": "T1",
+        "To": "end"
+      }
+    ],
+    "AutoBindVariables": false,
+    "Id": "Composite"
+  }
+}

@@ -19,6 +19,13 @@ namespace TestHost.cs
     {
         private static Logger log = LogManager.GetCurrentClassLogger();
 
+
+        static void validateCompleted(CompositeTaskInstanceInfo ti, Dictionary<string, object> data)
+        {
+            if (ti.Status != NGinnBPM.Runtime.TaskStatus.Completed) throw new Exception("Not completed");
+            if (ti.ActiveTasks != null && ti.ActiveTasks.Count > 0) throw new Exception("Active tasks");
+        }
+
         public static void RunTests()
         {
             var c = ConfigureNGinnBPM();
@@ -32,14 +39,14 @@ namespace TestHost.cs
                 string processJson = ProcessDefJsonSerializer.Serialize(pd);
                 //File.WriteAllText(pn + ".json", processJson);
 
-                TestProcess(pkg.Name + "." + pn, c);
+                TestProcess(pkg.Name + "." + pn, c, null);
             }
 
             Console.WriteLine("enter..");
             Console.ReadLine();
         }
 
-        public static void TestProcess(string definitionId, IServiceResolver container)
+        public static void TestProcess(string definitionId, IServiceResolver container, Action<CompositeTaskInstanceInfo, Dictionary<string, object>> validate)
         {
             using (var ts = new TransactionScope())
             {
@@ -47,6 +54,11 @@ namespace TestHost.cs
                 var proc = pr.StartProcess(definitionId, new Dictionary<string, object> { });
                 log.Info("Started process {0}: {1}", definitionId, proc);
                 var ti = pr.GetTaskInstanceInfo(proc);
+                var data = pr.GetTaskData(proc);
+                if (validate != null)
+                {
+                    validate(ti, data);
+                }
                 /*
                 if (ti.Status != NGinnBPM.Runtime.TaskStatus.Completed)
                 {

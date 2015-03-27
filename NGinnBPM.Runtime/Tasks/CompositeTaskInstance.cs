@@ -475,7 +475,7 @@ namespace NGinnBPM.Runtime.Tasks
                 msg.TaskId = tsk.Id;
             
                 AllTasks.Add(ti);
-                Context.SendTaskControlMessage(msg);
+                Context.EnableChildTask(msg);
                 log.Info("Child task {0} created: {1}", taskId, ti.InstanceId);
                 return ti.InstanceId;
             }
@@ -1212,7 +1212,7 @@ namespace NGinnBPM.Runtime.Tasks
                 return;
             }
             ti.Status = TransitionStatus.Cancelling;
-            Context.SendTaskControlMessage(new CancelTask
+            Context.CancelChildTask(new CancelTask
             {
                 FromProcessInstanceId = this.ProcessInstanceId,
                 FromTaskInstanceId = this.InstanceId,
@@ -1256,7 +1256,7 @@ namespace NGinnBPM.Runtime.Tasks
             if (doCancel)
             {
 #warning: don't we have to handle TransitionStatus.Cancelling here (hm, why? maybe we don't care?)
-                Context.SendTaskControlMessage(new CancelTask
+                Context.CancelChildTask(new CancelTask
                 {
                     FromProcessInstanceId = this.ProcessInstanceId,
                     FromTaskInstanceId = this.InstanceId,

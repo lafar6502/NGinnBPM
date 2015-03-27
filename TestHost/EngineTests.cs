@@ -33,7 +33,7 @@ namespace TestHost.cs
 
             var pkg = repo.GetProcessPackage("EngineTest");
             TestProcess("EngineTest.Simplest.1", c, validateCompleted);
-            //TestProcess("EngineTest.CancellingFlow.1", c, null);
+            TestProcess("EngineTest.CancellingFlow.1", c, null);
             //TestProcess("EngineTest.DeferredChoice.1", c, validateCompleted);
             //TestProcess("EngineTest.DeferredChoice.2", c, validateCompleted);
             //TestProcess("EngineTest.Parallel.1", c, validateCompleted);

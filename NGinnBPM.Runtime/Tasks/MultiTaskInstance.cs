@@ -94,7 +94,7 @@ namespace NGinnBPM.Runtime.Tasks
                 ti.InstanceId = AllocateNewTaskInstanceId(TaskId);
                 ChildTransitions.Add(ti);
                 
-                Context.SendTaskControlMessage(new EnableChildTask {
+                Context.EnableChildTask(new EnableChildTask {
                     CorrelationId = ti.InstanceId,
                     FromProcessInstanceId = this.ProcessInstanceId,
                     FromTaskInstanceId = this.InstanceId,
@@ -156,7 +156,7 @@ namespace NGinnBPM.Runtime.Tasks
                     ti.Status == TransitionStatus.Started)
                 {
                     ti.Status = TransitionStatus.Cancelling;
-                    Context.SendTaskControlMessage(new CancelTask
+                    Context.CancelChildTask(new CancelTask
                     {
                         FromProcessInstanceId = this.ProcessInstanceId,
                         FromTaskInstanceId = this.InstanceId,

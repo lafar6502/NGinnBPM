@@ -61,7 +61,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             SyncQueue.Enqueue(ev);
         }
 
-        public void SendTaskControlMessage(TaskExecutionEvents.TaskControlCommand msg)
+        protected void SendTaskControlMessage(TaskExecutionEvents.TaskControlCommand msg)
         {
             ValidateMessage(msg);
             SyncQueue.Enqueue(msg);
@@ -156,6 +156,16 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         public T GetService<T>(string name)
         {
             return ServiceResolver.GetInstance<T>(name);
+        }
+
+        public void EnableChildTask(EnableChildTask msg)
+        {
+            SendTaskControlMessage(msg);
+        }
+
+        public void CancelChildTask(CancelTask msg)
+        {
+            SendTaskControlMessage(msg);
         }
     }
 }

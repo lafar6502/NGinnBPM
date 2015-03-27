@@ -38,5 +38,15 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             throw new NotImplementedException();
         }
+
+        public void EnableChildTask(TaskExecutionEvents.EnableChildTask msg)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void CancelChildTask(TaskExecutionEvents.CancelTask msg)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

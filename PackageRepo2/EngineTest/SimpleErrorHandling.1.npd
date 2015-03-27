@@ -1,0 +1,80 @@
+{
+  "ProcessName": "SimpleErrorHandling",
+  "Version": 1,
+  "PackageName": "EngineTest",
+  "DataTypes": {
+    "Types": {}
+  },
+  
+  "Body": {
+    "Variables": [
+        {"VariableDir": "InOut", "Name": "T2Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"},
+        {"VariableDir": "InOut", "Name": "T1Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"},
+    ],
+    "Tasks": [
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Debug",
+        "AutoBindVariables": true,
+        "Id": "T1",
+        "InputParameterBindings" : [
+            {"Source" : "true", "Target" : "DoFail", "BindType" : "Expr"}
+        ],
+        "Variables": [
+            {"VariableDir": "Out", "Name": "T1Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "1"}
+        ]
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Debug",
+        "AutoBindVariables": true,
+        "Id": "T2",
+        "InputParameterBindings" : [
+        ],
+        "Variables": [
+            {"VariableDir": "Out", "Name": "T2Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "1"}
+        ]
+      }
+    ],
+    "Places": [
+      {
+        "PlaceType": "Start",
+        "Implicit": false,
+        "Id": "start"
+      },
+      {
+        "PlaceType": "End",
+        "Implicit": false,
+        "Id": "end"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Id": "P1"
+      }
+    ],
+    "Flows": [
+      {
+        "From": "start",
+        "To": "T1"
+      },
+      {
+        "From": "T1",
+        "To": "P1",
+        "TargetPortType": "In",
+        "SourcePortType": "Error"
+      },
+      {
+        "From": "P1", "To": "T2"
+      },
+      {
+        "From": "T1",
+        "To": "end"
+      },
+      {
+        "From": "T2",
+        "To": "end"
+      }
+    ],
+    "AutoBindVariables": false
+  }
+}

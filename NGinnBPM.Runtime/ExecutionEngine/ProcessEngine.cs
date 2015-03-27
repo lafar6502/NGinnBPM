@@ -117,7 +117,9 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                     var pd = this.GetProcessDef(ti.ProcessDefinitionId);
                     var pscript = this.GetProcessScriptRuntime(ti.ProcessDefinitionId);
                     ti.Activate(ps, pd, pscript);
+                    var pstat = ti.Status;
                     act(ti);
+                    OnTaskInstanceStatusChange(ti, pstat);
                     ti.Deactivate();
                     ps.TaskPersister.Update(ti);
                 }
@@ -166,6 +168,12 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             UpdateTask(instanceId, ti =>
             {
+                var pstat = ti.Status;
+                if (ti.Status != TaskStatus.Enabling &&
+                    ti.Status != TaskStatus.Enabled &&
+                    ti.Status != TaskStatus.Selected &&
+                    ti.Status != TaskStatus.Cancelling)
+                    throw new ProcessModel.Exceptions.InvalidTaskStatusException();
                 ti.ForceFail(reason);
             });
         }
@@ -480,6 +488,11 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             ti.TaskId = msg.TaskId;
             ps.TaskPersister.SaveNew(ti);
             ti.Activate(ps, pd, pscript);
+            if (ti.Status != TaskStatus.Enabling)
+            {
+                log.Warn("STATUS!");
+            }
+            var prevStat = ti.Status;
             if (msg is EnableMultiChildTask)
             {
                 ((MultiTaskInstance)ti).Enable(((EnableMultiChildTask)msg).MultiInputData);
@@ -488,10 +501,91 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             {
                 ti.Enable(msg.InputData);
             }
+
+            OnTaskInstanceStatusChange(ti, prevStat);
+            
             ti.Deactivate();
             ps.TaskPersister.Update(ti);
-            
             return ti.InstanceId;
+        }
+
+        class TaskStatusTransition
+        {
+            public TaskStatus From;
+            public TaskStatus To;
+        }
+
+        private T FillTaskEvent<T>(TaskInstance ti, T ev) where T : TaskExecEvent
+        {
+            ev.FromProcessInstanceId = ti.ProcessInstanceId;
+            ev.FromTaskInstanceId = ti.InstanceId;
+            ev.ParentTaskInstanceId = ti.ParentTaskInstanceId;
+            return ev;
+        }
+
+        private void OnTaskInstanceStatusChange(TaskInstance ti, TaskStatus previousStatus)
+        {
+            if (previousStatus == ti.Status) return; //no status change - no message
+            log.Info("Task status change {0} ({1}) Status: {2} => {3}", ti.InstanceId, ti.TaskId, previousStatus, ti.Status);
+            var ps = ProcessSession.Current;
+            TaskStatusTransition[] tts = new TaskStatusTransition[] {
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Enabled},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Selected},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Completed},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Failed},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Cancelling},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Cancelled},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Selected},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Completed},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Failed},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Cancelling},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Cancelled},
+                new TaskStatusTransition {From = TaskStatus.Selected, To = TaskStatus.Completed},
+                new TaskStatusTransition {From = TaskStatus.Selected, To = TaskStatus.Failed},
+                new TaskStatusTransition {From = TaskStatus.Selected, To = TaskStatus.Cancelling},
+                new TaskStatusTransition {From = TaskStatus.Selected, To = TaskStatus.Cancelled},
+                new TaskStatusTransition {From = TaskStatus.Cancelling, To = TaskStatus.Cancelled},
+                new TaskStatusTransition {From = TaskStatus.Cancelling, To = TaskStatus.Failed}
+            };
+            var tt = tts.First(x => x.From == previousStatus && x.To == ti.Status);
+            if (tt == null) throw new ProcessModel.Exceptions.InvalidTaskStatusException().SetInstanceId(ti.InstanceId).SetPermanent(true);
+
+            switch (ti.Status)
+            {
+                case TaskStatus.Enabling:
+                    //do nothing..
+                    break;
+                case TaskStatus.Enabled:
+                    //notify task enabled
+                    ps.NotifyTaskEvent(FillTaskEvent(ti, new TaskEnabled()));
+                    break;
+                case TaskStatus.Selected:
+                    //notify task selected
+                    ps.NotifyTaskEvent(FillTaskEvent(ti, new TaskSelected()));
+                    break;
+                case TaskStatus.Completed:
+                    if (ti is MultiTaskInstance)
+                    {
+                        ps.NotifyTaskEvent(FillTaskEvent(ti, new MultiTaskCompleted { 
+                            MultiOutputData = ((MultiTaskInstance) ti).GetMultiOutputData()
+                        }));
+                    }
+                    else
+                    {
+                        ps.NotifyTaskEvent(FillTaskEvent(ti, new TaskCompleted
+                        {
+                            OutputData = ti.GetOutputData()
+                        }));
+                    }
+                    log.Debug("Task completed: {0}", ti.ToString());
+                    break;
+                case TaskStatus.Failed:
+                    ps.NotifyTaskEvent(FillTaskEvent(ti, new TaskFailed { ErrorInfo = ti.StatusInfo, IsExpected = true }));
+                    break;
+                default:
+                    throw new ProcessModel.Exceptions.InvalidTaskStatusException().SetInstanceId(ti.InstanceId).SetPermanent(true);
+                    break;
+            }
         }
 
         protected TaskInstance CreateTaskInstance(TaskDef td)

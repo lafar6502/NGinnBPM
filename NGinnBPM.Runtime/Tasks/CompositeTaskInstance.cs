@@ -475,7 +475,7 @@ namespace NGinnBPM.Runtime.Tasks
                 msg.TaskId = tsk.Id;
             
                 AllTasks.Add(ti);
-                Context.SendTaskControlMessage(msg);
+                Context.EnableChildTask(msg);
                 log.Info("Child task {0} created: {1}", taskId, ti.InstanceId);
                 return ti.InstanceId;
             }
@@ -563,6 +563,7 @@ namespace NGinnBPM.Runtime.Tasks
                 ti.Status = TransitionStatus.Enabled;
             if (ti.Status == TransitionStatus.Enabled)
             {
+                log.Debug("Child task {0} ({1}) started", ti.InstanceId, ti.TaskId);
                 OnChildTaskStarted(tse.FromTaskInstanceId);
             }
             else
@@ -906,11 +907,14 @@ namespace NGinnBPM.Runtime.Tasks
                 {
                     if (fd.IsCancelling)
                     {
-                        RemoveAllTokensInPlace(fd.To);
+                        log.Info("Compensation removing all tokens at {0}", fd.To);
+                        RemoveAllTokensInPlace(fd.To); //this one is tricky - what tokens do we remove when we have removed all tokens prior to compensation?
+                        //answer: removing tokens that were genereated as a part of compensation
                     }
                     else
                     {
-                        AddToken(fd.To);
+                        log.Info("Compensating token placed at {0}", fd.To);
+                        AddToken(fd.To); //generate compensating token
                     }
                 }
             }
@@ -1077,7 +1081,6 @@ namespace NGinnBPM.Runtime.Tasks
         /// <param name="ev"></param>
         protected virtual void OnChildTaskStarted(string childInstanceId)
         {
-            log.Debug("Child task started: {0}", childInstanceId);
             TransitionInfo ti = GetTransitionInfo(childInstanceId);
             if (ti.Status != TransitionStatus.Enabled)
                 throw new Exception();
@@ -1212,20 +1215,13 @@ namespace NGinnBPM.Runtime.Tasks
                 return;
             }
             ti.Status = TransitionStatus.Cancelling;
-            Context.SendTaskControlMessage(new CancelTask
+            Context.CancelChildTask(new CancelTask
             {
                 FromProcessInstanceId = this.ProcessInstanceId,
                 FromTaskInstanceId = this.InstanceId,
                 ToTaskInstanceId = ti.InstanceId,
                 Reason = ""
             });
-            /* RG v2 - to framework niech zalatwi...
-            if (ti.Status == TransitionStatus.Cancelling)
-            {
-                Context.MessageBus.NewMessage(new CancelTaskTimeout { TargetTaskInstanceId = this.InstanceId, ChildInstanceId = ti.InstanceId })
-                    .SetDeliveryDate(DateTime.Now.AddHours(24))
-                    .Publish();
-            }*/
             //Context.MessageBus.Notify(new object[] {ctm, new ScheduledMessage(ctt, DateTime.Now.AddHours(24))});
         }
 
@@ -1256,7 +1252,7 @@ namespace NGinnBPM.Runtime.Tasks
             if (doCancel)
             {
 #warning: don't we have to handle TransitionStatus.Cancelling here (hm, why? maybe we don't care?)
-                Context.SendTaskControlMessage(new CancelTask
+                Context.CancelChildTask(new CancelTask
                 {
                     FromProcessInstanceId = this.ProcessInstanceId,
                     FromTaskInstanceId = this.InstanceId,

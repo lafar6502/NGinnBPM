@@ -112,8 +112,7 @@ namespace NGinnBPM.Runtime.Tasks
             if (Status == TaskStatus.Cancelled || Status == TaskStatus.Completed ||
                 Status == TaskStatus.Failed)
                 return; //ignore the call
-            
-
+            DefaultHandleTaskCompletion(updatedData);
         }
 
         public virtual void Cancel(string reason)
@@ -140,6 +139,7 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 return;
             }
+
             this.Status = TaskStatus.Selected;
             
         }
@@ -192,8 +192,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// <param name="reason"></param>
         protected virtual void DefaultHandleTaskCancel(string reason)
         {
-            Status = TaskStatus.Cancelled;
-            StatusInfo = reason;
+            
         }
 
         /// <summary>

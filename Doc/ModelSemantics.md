@@ -10,10 +10,17 @@ In case the task has no error handler the error will be propagated to the parent
 After receiving such notification the composite task must handle the error somehow. The default procedure is to cancel whole composite task and fail it too. This means that all child tasks that were active when the error occurred will be cancelled and then the composite task will report failure. And failure handling rules described here also apply to parent task so the behavior will be the same: if the composite task has no error handler then the error will be propagated upwards. If it reaches process instance level the whole process instance will fail.
 
 ## Compensation
-
+## compensation
 Compensation is a procedure of reverting the effects of already completed tasks. Such tasks have already executed and cannot be cancelled, so the only option for reverting their effects is to apply a compensating operation.
-How to initiate compensation procedure
-TODO set the rules
+How to initiate compensation procedure?
+
+Rules for compensation
+- compensation is performed as a part of composite task cancellation
+- in such case all active tasks will be cancelled and all tokens removed from the net
+- each completed child task with a compensation flow (flow from the 'compensate' port) will generate a token on that flow
+- and execution will continue in the 'Cancelling' state. All compensation logic must execute and then the task will change status to Cancelled or Failed
+- Failed status will be set when there's an error thrown during compensation phase
+
 
 ## Sync and async execution
 

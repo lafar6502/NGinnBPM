@@ -907,11 +907,14 @@ namespace NGinnBPM.Runtime.Tasks
                 {
                     if (fd.IsCancelling)
                     {
-                        RemoveAllTokensInPlace(fd.To);
+                        log.Info("Compensation removing all tokens at {0}", fd.To);
+                        RemoveAllTokensInPlace(fd.To); //this one is tricky - what tokens do we remove when we have removed all tokens prior to compensation?
+                        //answer: removing tokens that were genereated as a part of compensation
                     }
                     else
                     {
-                        AddToken(fd.To);
+                        log.Info("Compensating token placed at {0}", fd.To);
+                        AddToken(fd.To); //generate compensating token
                     }
                 }
             }
@@ -1219,13 +1222,6 @@ namespace NGinnBPM.Runtime.Tasks
                 ToTaskInstanceId = ti.InstanceId,
                 Reason = ""
             });
-            /* RG v2 - to framework niech zalatwi...
-            if (ti.Status == TransitionStatus.Cancelling)
-            {
-                Context.MessageBus.NewMessage(new CancelTaskTimeout { TargetTaskInstanceId = this.InstanceId, ChildInstanceId = ti.InstanceId })
-                    .SetDeliveryDate(DateTime.Now.AddHours(24))
-                    .Publish();
-            }*/
             //Context.MessageBus.Notify(new object[] {ctm, new ScheduledMessage(ctt, DateTime.Now.AddHours(24))});
         }
 

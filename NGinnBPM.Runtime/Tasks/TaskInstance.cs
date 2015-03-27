@@ -222,6 +222,10 @@ namespace NGinnBPM.Runtime.Tasks
             if (ev.ParentTaskInstanceId != this.InstanceId) throw new Exception("Invalid ParentTaskInstanceId");
         }
 
+        public override string ToString()
+        {
+            return Jsonizer.ToJsonString(this);
+        }
         
     }
 }

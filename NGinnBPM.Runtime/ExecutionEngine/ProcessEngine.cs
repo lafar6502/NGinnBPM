@@ -577,6 +577,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                             OutputData = ti.GetOutputData()
                         }));
                     }
+                    log.Debug("Task completed: {0}", ti.ToString());
                     break;
                 case TaskStatus.Failed:
                     ps.NotifyTaskEvent(FillTaskEvent(ti, new TaskFailed { ErrorInfo = ti.StatusInfo, IsExpected = true }));

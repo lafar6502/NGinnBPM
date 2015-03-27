@@ -34,13 +34,13 @@ namespace TestHost.cs
             var pkg = repo.GetProcessPackage("EngineTest");
             TestProcess("EngineTest.Simplest.1", c, validateCompleted);
             TestProcess("EngineTest.CancellingFlow.1", c, null);
-            //TestProcess("EngineTest.DeferredChoice.1", c, validateCompleted);
-            //TestProcess("EngineTest.DeferredChoice.2", c, validateCompleted);
-            //TestProcess("EngineTest.Parallel.1", c, validateCompleted);
-            //TestProcess("EngineTest.SimpleFailure.1", c, null);
-            //TestProcess("EngineTest.XORLoop.1", c, validateCompleted);
-            //TestProcess("EngineTest.Composite.1", c, validateCompleted);
-            //TestProcess("EngineTest.Composite.2", c, null);
+            TestProcess("EngineTest.DeferredChoice.1", c, validateCompleted);
+            TestProcess("EngineTest.DeferredChoice.2", c, validateCompleted);
+            TestProcess("EngineTest.Parallel.1", c, validateCompleted);
+            TestProcess("EngineTest.SimpleFailure.1", c, null);
+            TestProcess("EngineTest.XORLoop.1", c, validateCompleted);
+            TestProcess("EngineTest.Composite.1", c, validateCompleted);
+            TestProcess("EngineTest.Composite.2", c, null);
             TestProcess("EngineTest.SimpleErrorHandling.1", c, null);
 
 

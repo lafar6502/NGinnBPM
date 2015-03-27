@@ -8,7 +8,7 @@ namespace NGinnBPM.Runtime
 {
     public interface ITaskExecutionContext
     {
-        void NotifyTaskEvent(TaskExecutionEvents.TaskExecEvent ev);
+        //void NotifyTaskEvent(TaskExecutionEvents.TaskExecEvent ev);
         /// <summary>
         /// Send a task control request.
         /// Warning: this will not execute synchronously. It will be executed later, when processing

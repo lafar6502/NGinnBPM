@@ -272,7 +272,7 @@ namespace NGinnBPM.Runtime.Tasks
             {
                 return;
             }
-            log.Info("Composite task finished!");
+            log.Info("Composite task {0} finished!", TaskId);
             if (Status == TaskStatus.Cancelling)
             {
                 DefaultHandleTaskCancel(null);

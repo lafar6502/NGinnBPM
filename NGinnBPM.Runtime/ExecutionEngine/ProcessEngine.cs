@@ -13,6 +13,11 @@ using NGinnBPM.Runtime.Services;
 
 namespace NGinnBPM.Runtime.ExecutionEngine
 {
+
+    /// <summary>
+    /// Process execution engine
+    /// 
+    /// </summary>
     public class ProcessEngine 
     {
         public Services.ITaskInstancePersister TaskPersister { get; set; }
@@ -139,10 +144,12 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             UpdateTask(instanceId, ti =>
             {
+                if (ti.Status == TaskStatus.Selected) return;
                 if (!ti.IsAlive)
                 {
                     log.Warn("Trying to select an inactive task {0} [{1}], status: {2}", ti.TaskId, ti.InstanceId, ti.Status);
                 }
+                
                 ti.Select();
             });
         }
@@ -358,7 +365,55 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             if (string.IsNullOrEmpty(ev.ParentTaskInstanceId))
             {
-                log.Info("event has no parent: {0}", ev);
+                if (ev.FromTaskInstanceId == ev.FromProcessInstanceId)
+                {
+                    //process-level events
+                    UpdateTask(ev.FromProcessInstanceId, ti =>
+                    {
+                        var pi = ti as ProcessInstance;
+                        if (pi == null) throw new Exception("Process instance expected for id=" + ev.FromProcessInstanceId);
+                        if (ev is TaskCompleted)
+                        {
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessCompleted {
+                                InstanceId = ev.FromProcessInstanceId,
+                                DefinitionId = pi.ProcessDefinitionId,
+                                Timestamp = DateTime.Now
+                            });
+                        }
+                        else if (ev is TaskFailed)
+                        {
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessFailed
+                            {
+                                InstanceId = ev.FromProcessInstanceId,
+                                DefinitionId = pi.ProcessDefinitionId,
+                                Timestamp = DateTime.Now
+                            });
+                        }
+                        else if (ev is TaskCancelled)
+                        {
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessCancelled
+                            {
+                                InstanceId = ev.FromProcessInstanceId,
+                                DefinitionId = pi.ProcessDefinitionId,
+                                Timestamp = DateTime.Now
+                            });
+                        }
+                        else if (ev is TaskEnabled)
+                        {
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessStarted
+                            {
+                                InstanceId = ev.FromProcessInstanceId,
+                                DefinitionId = pi.ProcessDefinitionId,
+                                Timestamp = DateTime.Now
+                            });
+                        }
+                        else throw new Exception("Unexpected event " + ev.GetType().Name);
+                    });
+                }
+                else
+                {
+                    log.Warn("Event has no parent but sender task {0} is not process instance {1}", ev.FromTaskInstanceId, ev.FromProcessInstanceId);
+                }
                 return; //TODO handle process-level events
             }
             UpdateTask(ev.ParentTaskInstanceId, ti =>

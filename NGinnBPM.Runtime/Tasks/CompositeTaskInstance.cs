@@ -563,6 +563,7 @@ namespace NGinnBPM.Runtime.Tasks
                 ti.Status = TransitionStatus.Enabled;
             if (ti.Status == TransitionStatus.Enabled)
             {
+                log.Debug("Child task {0} ({1}) started", ti.InstanceId, ti.TaskId);
                 OnChildTaskStarted(tse.FromTaskInstanceId);
             }
             else
@@ -1077,7 +1078,6 @@ namespace NGinnBPM.Runtime.Tasks
         /// <param name="ev"></param>
         protected virtual void OnChildTaskStarted(string childInstanceId)
         {
-            log.Debug("Child task started: {0}", childInstanceId);
             TransitionInfo ti = GetTransitionInfo(childInstanceId);
             if (ti.Status != TransitionStatus.Enabled)
                 throw new Exception();

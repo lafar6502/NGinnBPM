@@ -480,6 +480,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             ti.TaskId = msg.TaskId;
             ps.TaskPersister.SaveNew(ti);
             ti.Activate(ps, pd, pscript);
+            var prevStat = ti.Status;
             if (msg is EnableMultiChildTask)
             {
                 ((MultiTaskInstance)ti).Enable(((EnableMultiChildTask)msg).MultiInputData);
@@ -490,8 +491,39 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             }
             ti.Deactivate();
             ps.TaskPersister.Update(ti);
-            
+            OnTaskInstanceStatusChange(ti, prevStat);
             return ti.InstanceId;
+        }
+
+        struct TaskStatusTransition
+        {
+            public TaskStatus From;
+            public TaskStatus To;
+        }
+
+        private void OnTaskInstanceStatusChange(TaskInstance ti, TaskStatus previousStatus)
+        {
+            TaskStatusTransition[] tts = new TaskStatusTransition[] {
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Enabled},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Selected},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Completed},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Failed},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Cancelling},
+                new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Cancelled},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Selected},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Completed},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Failed},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Cancelling},
+                new TaskStatusTransition {From = TaskStatus.Enabled, To = TaskStatus.Cancelled},
+                new TaskStatusTransition {From = TaskStatus.Selected, To = TaskStatus.Completed},
+                new TaskStatusTransition {From = TaskStatus.Selected, To = TaskStatus.Failed},
+                new TaskStatusTransition {From = TaskStatus.Selected, To = TaskStatus.Cancelling},
+                new TaskStatusTransition {From = TaskStatus.Selected, To = TaskStatus.Cancelled},
+                new TaskStatusTransition {From = TaskStatus.Cancelling, To = TaskStatus.Cancelled},
+                new TaskStatusTransition {From = TaskStatus.Cancelling, To = TaskStatus.Failed}
+            };
+            var tt = tts.First(x => x.From == previousStatus && x.To == ti.Status);
+
         }
 
         protected TaskInstance CreateTaskInstance(TaskDef td)

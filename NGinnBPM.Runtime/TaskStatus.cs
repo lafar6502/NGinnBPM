@@ -18,4 +18,6 @@ namespace NGinnBPM.Runtime
         Failed = 5,
         Cancelling = 6 
     }
+
+    
 }

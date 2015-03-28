@@ -8,10 +8,10 @@
   },
   "Body": {
     "Variables": [
-        {"VariableDir": "InOut", "Name": "V", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "2"},
+        {"VariableDir": "InOut", "Name": "V", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "1"},
         {"VariableDir": "InOut", "Name": "T2Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"},
         {"VariableDir": "InOut", "Name": "T3Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"},
-        {"VariableDir": "InOut", "Name": "T1Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"}
+        {"VariableDir": "InOut", "Name": "T4Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"}
     ],
     "Tasks": [
       {
@@ -25,19 +25,28 @@
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
         "TaskType": "Empty",
         "AutoBindVariables": true,
-        "Id": "T2"
+        "Id": "T2",
+        "Variables": [
+            {"VariableDir": "Out", "Name": "T2Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "1"}
+        ]
       },
       {
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
         "TaskType": "Empty",
         "AutoBindVariables": true,
-        "Id": "T3"
+        "Id": "T3",
+        "Variables": [
+            {"VariableDir": "Out", "Name": "T3Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "1"}
+        ]
       },
       {
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
         "TaskType": "Empty",
         "AutoBindVariables": true,
-        "Id": "T4"
+        "Id": "T4",
+        "Variables": [
+            {"VariableDir": "Out", "Name": "T4Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "1"}
+        ]
       },
       {
         "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
@@ -177,6 +186,7 @@
     "SplitType": "XOR",
     "JoinType": "XOR",
     "AutoBindVariables": false,
-    "Id": "OrJoin"
+    "Id": "OrJoin",
+    "AfterCompleteScript": "raise('validation 1') if TaskData.V >= 0 and TaskData.T2Run != 1\nraise('validation 2') if TaskData.V >= 1 and TaskData.T3Run != 1\nraise('validation 3') if TaskData.V >= 0 and TaskData.T4Run != 1\n"
   }
 }

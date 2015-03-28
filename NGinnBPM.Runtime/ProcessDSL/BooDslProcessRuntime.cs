@@ -310,5 +310,11 @@ namespace NGinnBPM.Runtime.ProcessDSL
                 }
             }
         }
+
+
+        public void ExecuteTaskScriptBlock(TaskInstance ti, string blockName, ITaskExecutionContext ctx)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

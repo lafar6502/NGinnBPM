@@ -94,10 +94,10 @@ namespace NGinnBPM.Runtime.Tasks
             if (Status != TaskStatus.Enabling) throw new Exception("Invalid status!");
             this.TaskData = new Dictionary<string, object>();
             ScriptRuntime.InitializeNewTask(this, inputData, Context);
+            ScriptRuntime.ExecuteTaskScriptBlock(this, "BeforeEnable", Context);
             this.Status = TaskStatus.Enabled;
             EnabledDate = DateTime.Now;
             this.OnTaskEnabling();
-            
         }
 
         /// <summary>
@@ -184,6 +184,7 @@ namespace NGinnBPM.Runtime.Tasks
                 }
             }
             Status = TaskStatus.Completed;
+            ScriptRuntime.ExecuteTaskScriptBlock(this, "AfterComplete", Context);
         }
 
         /// <summary>

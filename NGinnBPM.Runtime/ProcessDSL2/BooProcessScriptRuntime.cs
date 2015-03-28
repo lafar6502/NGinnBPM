@@ -316,5 +316,24 @@ namespace NGinnBPM.Runtime.ProcessDSL2
                 }
             }
         }
+
+
+        public void ExecuteTaskScriptBlock(TaskInstance ti, string blockName, ITaskExecutionContext ctx)
+        {
+            string k = DslUtil.TaskScriptKey(ti.TaskId, blockName);
+            _pd.SetTaskInstanceInfo(ti, ctx);
+            try
+            {
+                Action act;
+                if (_pd._stmts.TryGetValue(k, out act) && act != null)
+                {
+                    act();
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
     }
 }

@@ -51,13 +51,7 @@ namespace NGinnBPM.Runtime
         /// <param name="ctx"></param>
         void InitializeNewTask(TaskInstance ti, Dictionary<string, object> inputData, ITaskExecutionContext ctx);
 
-        /// <summary>
-        /// Execute task output parameter bindings and collect task output data
-        /// </summary>
-        /// <param name="ti"></param>
-        /// <param name="ctx"></param>
-        /// <returns></returns>
-        Dictionary<string, object> GatherOutputData(TaskInstance ti, ITaskExecutionContext ctx);
+        void ExecuteTaskScriptBlock(TaskInstance ti, string blockName, ITaskExecutionContext ctx);
 
         bool EvalFlowCondition(TaskInstance ti, FlowDef fd, ITaskExecutionContext ctx);
 

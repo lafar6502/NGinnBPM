@@ -528,6 +528,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             if (previousStatus == ti.Status) return; //no status change - no message
             log.Info("Task status change {0} ({1}) Status: {2} => {3}", ti.InstanceId, ti.TaskId, previousStatus, ti.Status);
             var ps = ProcessSession.Current;
+            
             TaskStatusTransition[] tts = new TaskStatusTransition[] {
                 new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Enabled},
                 new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Selected},
@@ -564,6 +565,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                     ps.NotifyTaskEvent(FillTaskEvent(ti, new TaskSelected()));
                     break;
                 case TaskStatus.Completed:
+                    
                     if (ti is MultiTaskInstance)
                     {
                         ps.NotifyTaskEvent(FillTaskEvent(ti, new MultiTaskCompleted { 

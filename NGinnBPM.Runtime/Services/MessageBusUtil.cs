@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NGinnBPM.MessageBus;
+using System.Diagnostics;
 
 /// <summary>
 /// session (process transaction) =
@@ -22,11 +23,18 @@ namespace NGinnBPM.Runtime.Services
             }
             else
             {
-                using (var ses = fact.OpenSession(MessageBusContext.ReceivingConnection))
+                var ses = fact.OpenSession(MessageBusContext.ReceivingConnection);
+                try
                 {
                     DbSession.Current = ses;
                     act();
+                }
+                finally
+                {
+                    var s = DbSession.Current;
                     DbSession.Current = null;
+                    Debug.Assert(s == ses);
+                    s.Dispose();
                 }
             }
         }

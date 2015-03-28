@@ -830,7 +830,7 @@ namespace NGinnBPM.Runtime.Tasks
                 ///now check the OrJoinCheckList. If there are tokens in places from the list,
                 ///don't enable the transition - we have to wait until all the tokens disappear from 
                 ///these places.
-                foreach (string plid in tsk.ORJoinChecklist)
+                foreach (string plid in tsk.OrJoinCheckList)
                 {
                     PlaceDef pl = MyTask.GetPlace(plid);
                     if (tsk.NodesIn.Contains(pl)) continue;

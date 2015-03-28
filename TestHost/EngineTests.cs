@@ -42,7 +42,7 @@ namespace TestHost.cs
             TestProcess("EngineTest.Composite.1", c, validateCompleted);
             TestProcess("EngineTest.Composite.2", c, null);
             TestProcess("EngineTest.SimpleErrorHandling.1", c, null);
-
+            TestProcess("EngineTest.OrJoin.1", c, validateCompleted);
 
             Console.WriteLine("enter..");
             Console.ReadLine();

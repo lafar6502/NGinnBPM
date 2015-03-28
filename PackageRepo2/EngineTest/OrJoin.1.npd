@@ -1,0 +1,182 @@
+{
+  "ProcessName": "OrJoin",
+  "Version": 1,
+  "PackageName": "EngineTest",
+  "Description" : "OR-Join test",
+  "DataTypes": {
+    "Types": {}
+  },
+  "Body": {
+    "Variables": [
+        {"VariableDir": "InOut", "Name": "V", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "2"},
+        {"VariableDir": "InOut", "Name": "T2Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"},
+        {"VariableDir": "InOut", "Name": "T3Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"},
+        {"VariableDir": "InOut", "Name": "T1Run", "TypeName": "int","IsArray": false,"IsRequired": true, "DefaultValueExpr" : "0"}
+    ],
+    "Tasks": [
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "SplitType": "OR",
+        "AutoBindVariables": true,
+        "Id": "T1"
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "AutoBindVariables": true,
+        "Id": "T2"
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "AutoBindVariables": true,
+        "Id": "T3"
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "AutoBindVariables": true,
+        "Id": "T4"
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "AutoBindVariables": true,
+        "Id": "T5"
+      },
+      {
+        "$type": "NGinnBPM.ProcessModel.AtomicTaskDef, NGinnBPM.ProcessModel",
+        "TaskType": "Empty",
+        "JoinType" : "OR",
+        "OrJoinChecklist": ["T1.-.T2", "T1.-.T3", "T1.-.T4"],
+        "AutoBindVariables": true,
+        "Id": "T6"
+      }
+    ],
+    "Places": [
+      {
+        "PlaceType": "Start",
+        "Implicit": false,
+        "Id": "start"
+      },
+      {
+        "PlaceType": "End",
+        "Implicit": false,
+        "Id": "end"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": true,
+        "Id": "T1.-.T2"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": true,
+        "Id": "T1.-.T3"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": false,
+        "Id": "T1.-.T4"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": true,
+        "Id": "T2.-.T6"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": true,
+        "Id": "T3.-.T6"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": true,
+        "Id": "T4.-.T5"
+      },
+      {
+        "PlaceType": "Intermediate",
+        "Implicit": true,
+        "Id": "T5.-.T6"
+      }
+      
+    ],
+    "Flows": [
+      {
+        "From": "start",
+        "To": "T1"
+      },
+      {
+        "From": "T1",
+        "To": "T1.-.T2",
+        "EvalOrder": 0,
+        "InputCondition" : "TaskData.V >= 0"
+      },
+      {
+        "From": "T1",
+        "To": "T1.-.T3",
+        "EvalOrder": 0,
+        "InputCondition" : "TaskData.V >= 1"
+      },
+      {
+        "From": "T1",
+        "To": "T1.-.T4",
+        "EvalOrder": 0,
+        "InputCondition" : "TaskData.V >= 2"
+      },
+      {
+        "From": "T1.-.T2",
+        "To": "T2"
+      },
+      {
+        "From": "T1.-.T3",
+        "To": "T3"
+      },
+      {
+        "From": "T1.-.T4",
+        "To": "T4"
+      },
+      {
+        "From": "T2",
+        "To": "T2.-.T6"
+      },
+      {
+        "From": "T3",
+        "To": "T3.-.T6"
+      },
+      {
+        "From": "T4",
+        "To": "T4.-.T5"
+      },
+      {
+        "From": "T4.-.T5",
+        "To": "T5"
+      },
+      {
+        "From": "T5",
+        "To": "T5.-.T6"
+      },
+      {
+        "From": "T2.-.T6",
+        "To": "T6"
+      },
+      {
+        "From": "T3.-.T6",
+        "To": "T6"
+      },
+      {
+        "From": "T5.-.T6",
+        "To": "T6"
+      },
+      {
+        "From": "T6",
+        "To": "end"
+      }
+    ],
+    "SplitType": "XOR",
+    "JoinType": "XOR",
+    "AutoBindVariables": false,
+    "Id": "OrJoin"
+  }
+}

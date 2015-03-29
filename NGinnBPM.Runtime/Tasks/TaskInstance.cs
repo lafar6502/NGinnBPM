@@ -98,6 +98,10 @@ namespace NGinnBPM.Runtime.Tasks
             this.Status = TaskStatus.Enabled;
             EnabledDate = DateTime.Now;
             this.OnTaskEnabling();
+            if (Status == TaskStatus.Enabled && Status == TaskStatus.Selected || Status == TaskStatus.Completed)
+            {
+                ScriptRuntime.ExecuteTaskScriptBlock(this, "AfterEnable", Context);
+            }
         }
 
         /// <summary>

@@ -76,3 +76,10 @@ Most important features yet to be implemented
 
 *   Standard library of process components, eg sending and receiving email or SMS messages, common set of integration tools for popular corporate software (MS Exchange, Active Directory, LDAP, ERPs etc)
 
+Inspirations
+------------
+
+  * YAWL [http://www.yawlfoundation.org/] - Petri-net based process description language with lots of research behind it. Very valuable project, I like YAWL for its simplicity and expresiveness.
+  * BPMN [http://www.bpmn.org/] - just what the acronym says, business process modelling notation / standard from OMG, industry standard for graphical process description. Quite complex if you go into details, but based on same concepts as YAWL and NGinn.BPM
+  * jBPM [http://www.jbpm.org/] - Open-source, java-based BPMN engine, process editor (and lots of other stuff), developed by RedHat. Big and complex project (inspiration to stay lean/lightweight) but has some nice features.
+  

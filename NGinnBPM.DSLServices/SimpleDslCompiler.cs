@@ -146,6 +146,21 @@ namespace NGinnBPM.DSLServices
         }
 
         /// <summary>
+        /// URLS of scripts that have been compiled
+        /// </summary>
+        public virtual IEnumerable<string> CompiledScriptUrls
+        {
+            get
+            {
+                lock (_typeCache)
+                {
+                    return _typeCache.Where(kv => kv.Value.DslType != null).Select(kv => kv.Key);
+                }
+            }
+        }
+
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="url"></param>
@@ -186,10 +201,12 @@ namespace NGinnBPM.DSLServices
                 catch (Exception ex)
                 {
                     _typeCache["_123compile_error"] = new TypeCacheEntry { Url = ex.Message };
+                    Console.WriteLine("Error when compiling all urls - will try to recompile only {1}: {0}", ex, url);
                 }
             }
             TypeCacheEntry tp;
             if (_typeCache.TryGetValue(url, out tp)) return tp.DslType;
+            Console.WriteLine("type not found in cache - compiling only {0}", url);
             Type t2 = TryRecompile(url, CompilationMode.Compile);
             return t2;
         }

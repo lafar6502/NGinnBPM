@@ -38,3 +38,10 @@ this information can be sent by the engine on detecting task status change.
 
 
 
+=== Process execution events
+What: We're starting a process and we want to get notified when the process is started, cancelled, completed or failed
+with async execution we can use message bus
+with sync execution we get the response as a return value
+what about Tasks/async/await? Is it applicable here?
+
+

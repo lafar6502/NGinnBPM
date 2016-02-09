@@ -168,6 +168,11 @@ namespace NGinnBPM.DSLServices
         public virtual T Create(string url)
         {
             Type tp = GetCompiledDslType(url);
+            var ci = tp.GetConstructor(new Type[] { typeof(string) });
+            if (ci != null)
+            {
+                return (T) ci.Invoke(new object[] { url });
+            }
             return (T) Activator.CreateInstance(tp);
         }
 

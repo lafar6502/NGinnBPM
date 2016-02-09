@@ -29,8 +29,8 @@ namespace NGinnBPM.Runtime.ProcessDSL2
         /// Documents retrieved for each 'docref' input/local variable
         /// </summary>
         protected BL.IQuackFu Documents { get; set; }
-        
 
+        
         public void Initialize(ProcessDef pd, BooProcessPackage pp)
         {
             ProcessDefinition = pd;

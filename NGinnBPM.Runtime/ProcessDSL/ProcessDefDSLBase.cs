@@ -18,6 +18,11 @@ namespace NGinnBPM.Runtime.ProcessDSL
     {
         protected abstract void Prepare();
 
+        public ProcessDefDSLBase(string scriptUrl)
+        {
+            log.Info("url: {0}", scriptUrl);
+        }
+
         public ProcessDef GetProcessDef()
         {
             _curProcessDef = new ProcessDef();

@@ -73,6 +73,7 @@ namespace NGinnBPM.DSLServices
     /// </summary>
     public class SimpleBaseClassDslCompiler<T>
     {
+        protected Type _actualBaseType = typeof(T);
         /// <summary>
         /// 
         /// </summary>
@@ -113,6 +114,12 @@ namespace NGinnBPM.DSLServices
             });
             WhitespaceAgnostic = false;
             DSLMethodName = "Prepare";
+        }
+
+        public SimpleBaseClassDslCompiler(ISimpleScriptStorage storage, Type actualBaseType) : this(storage)
+        {
+            if (!typeof(T).IsAssignableFrom(actualBaseType)) throw new Exception("actualBaseType does not inherit from T");
+            _actualBaseType = actualBaseType;
         }
 
         /// <summary>
@@ -408,7 +415,7 @@ namespace NGinnBPM.DSLServices
                 catch (Exception) {  }
             }*/
 
-            pipeline.Insert(1, new ImplicitBaseClassCompilerStep(typeof(T), DSLMethodName, Namespaces.ToArray()));
+            pipeline.Insert(1, new ImplicitBaseClassCompilerStep(_actualBaseType, DSLMethodName, Namespaces.ToArray()));
         }
 
         private Action<CompilerContext, string[]> _compilationCallback;

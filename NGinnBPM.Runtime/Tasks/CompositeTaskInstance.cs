@@ -774,7 +774,7 @@ namespace NGinnBPM.Runtime.Tasks
         /// <returns></returns>
         protected bool IsBarrierSetAt(string placeId)
         {
-#warning TODO
+//#warning TODO
             return false;
             //return Context.Environment.GetBarrier(this.ProcessDefinitionId, placeId);
         }
@@ -1251,7 +1251,7 @@ namespace NGinnBPM.Runtime.Tasks
             ti.Status = TransitionStatus.Cancelled;
             if (doCancel)
             {
-#warning: don't we have to handle TransitionStatus.Cancelling here (hm, why? maybe we don't care?)
+//#warning: don't we have to handle TransitionStatus.Cancelling here (hm, why? maybe we don't care?)
                 Context.CancelChildTask(new CancelTask
                 {
                     FromProcessInstanceId = this.ProcessInstanceId,

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using NGinnBPM.MessageBus;
 using NGinnBPM.MessageBus.Windsor;
 using Castle.Windsor;
@@ -33,7 +30,7 @@ namespace TestHost.cs
 
         public NGinnConfigurator ConfigureProcessRepository(string baseDir)
         {
-            string bd = AppDomain.CurrentDomain.BaseDirectory;
+            var bd = AppDomain.CurrentDomain.BaseDirectory;
             bd = Path.IsPathRooted(baseDir) ? baseDir : Path.Combine(bd, baseDir);
             _wc.Register(Component.For<IProcessPackageRepo>().ImplementedBy<NGinnBPM.Runtime.ProcessDSL.ProcessPackageRepository>()
                 .DependsOn(new {
@@ -44,7 +41,7 @@ namespace TestHost.cs
 
         public NGinnConfigurator ConfigureJsonProcessRepository(string baseDir)
         {
-            string bd = AppDomain.CurrentDomain.BaseDirectory;
+            var bd = AppDomain.CurrentDomain.BaseDirectory;
             bd = Path.IsPathRooted(baseDir) ? baseDir : Path.Combine(bd, baseDir);
             _wc.Register(Component.For<IProcessPackageRepo>().ImplementedBy<NGinnBPM.Runtime.ProcessDSL2.ProcessPackageRepository>()
                 .DependsOn(new

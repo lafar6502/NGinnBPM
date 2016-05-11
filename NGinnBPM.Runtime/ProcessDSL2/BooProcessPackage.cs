@@ -132,7 +132,9 @@ namespace NGinnBPM.Runtime.ProcessDSL2
             }
         }
 
+/*
         private PackageDef _pkgDef = null;
+*/
 
         public PackageDef GetPackageDef()
         {

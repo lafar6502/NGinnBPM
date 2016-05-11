@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using System.Xml;
 
@@ -15,7 +11,7 @@ namespace NGinnBPM.BPMNTools.Parser
     {
         public static tDefinitions Parse(TextReader tr)
         {
-            XmlSerializer xs = new XmlSerializer(typeof(tDefinitions));
+            var xs = new XmlSerializer(typeof(tDefinitions));
             var td = xs.Deserialize(tr);
 
             var sw = new StringWriter();

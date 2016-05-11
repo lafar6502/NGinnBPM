@@ -39,7 +39,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="DC_DI_BPMNDI_BPMN20.cs" />
     <Compile Include="Parser\BPMNParser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

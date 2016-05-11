@@ -36,9 +36,9 @@ namespace NGinnBPM.DSLServices
         /// </summary>
         public override void OnModule(Module node)
         {
-            foreach (string ns in namespaces)
+            foreach (var ns in namespaces)
             {
-                Import import = new Import(node.LexicalInfo, ns);
+                var import = new Import(node.LexicalInfo, ns);
                 node.Imports.Add(import);
             }
         }

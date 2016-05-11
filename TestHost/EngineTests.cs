@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NGinnBPM.Runtime.ProcessDSL;
-using System.IO;
 using NGinnBPM.MessageBus;
 using NGinnBPM.Runtime;
-using D2 = NGinnBPM.Runtime.ProcessDSL2;
 using NGinnBPM.Runtime.ExecutionEngine;
 using System.Transactions;
 using NLog;
-using System.Threading.Tasks;
 
 namespace TestHost.cs
 {
-    
+
     public class EngineTests
     {
         private static Logger log = LogManager.GetCurrentClassLogger();
@@ -22,7 +16,7 @@ namespace TestHost.cs
 
         static void validateCompleted(CompositeTaskInstanceInfo ti, Dictionary<string, object> data)
         {
-            if (ti.Status != NGinnBPM.Runtime.TaskStatus.Completed) throw new Exception("Not completed");
+            if (ti.Status != TaskStatus.Completed) throw new Exception("Not completed");
             if (ti.ActiveTasks != null && ti.ActiveTasks.Count > 0) throw new Exception("Active tasks");
         }
 
@@ -57,10 +51,7 @@ namespace TestHost.cs
                 log.Info("Started process {0}: {1}", definitionId, proc);
                 var ti = pr.GetTaskInstanceInfo(proc);
                 var data = pr.GetTaskData(proc);
-                if (validate != null)
-                {
-                    validate(ti, data);
-                }
+                validate?.Invoke(ti, data);
                 /*
                 if (ti.Status != NGinnBPM.Runtime.TaskStatus.Completed)
                 {

@@ -10,14 +10,14 @@ namespace NGinnBPM.Runtime.Tasks
 {
     /// <summary>
     /// Waits for an inter-task message.
-#warning TODO : what about the message correlation registry???
+    ///#warning TODO : what about the message correlation registry???
     /// </summary>
     [DataContract]
     public class AwaitMessageTaskInstance : AtomicTaskInstance
     {
         [DataMember]
         public string Mailbox { get; set; }
-        
+
         protected override void OnTaskEnabling()
         {
             //var srv = Context.GetService<IMessageCorrelationRegistry>();

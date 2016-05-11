@@ -10,7 +10,9 @@ namespace NGinnBPM.ProcessModel
     [DataContract(Name="Process")]
     public class ProcessDef : IValidate, IHaveMetadata
     {
-        private string _pname;
+
+        //private string _pname;
+
 
         [DataMember]
         public string ProcessName { get;set;}

@@ -27,7 +27,7 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public override Statement Expand(MacroStatement macro)
         {
-            Property property = new Property(propertyName);
+            var property = new Property(propertyName);
             property.LexicalInfo = macro.LexicalInfo;
             property.Getter = new Method();
             if(macro.Arguments.Count==1)
@@ -50,7 +50,7 @@ namespace NGinnBPM.DSLServices
                 return null;
             }
 
-            ClassDefinition clazz = (ClassDefinition) macro.GetAncestor(NodeType.ClassDefinition);
+            var clazz = (ClassDefinition) macro.GetAncestor(NodeType.ClassDefinition);
             clazz.Members.Add(property);
 
             return null;

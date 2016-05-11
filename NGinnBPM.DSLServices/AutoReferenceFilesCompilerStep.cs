@@ -121,19 +121,19 @@ namespace NGinnBPM.DSLServices
 		{
 			RemoveCurrentNode();
 			
-			string url = GetFilePath(node);
-			using(TextReader reader = urlResolver(url, baseDirectory))
+			var url = GetFilePath(node);
+			using(var reader = urlResolver(url, baseDirectory))
 			{
-				BooParsingStep parser = new BooParsingStep();
-				CompilerContext context = new CompilerContext();
-				StringInput input = new StringInput(node.AssemblyReference.Name, reader.ReadToEnd());
+				var parser = new BooParsingStep();
+				var context = new CompilerContext();
+				var input = new StringInput(node.AssemblyReference.Name, reader.ReadToEnd());
 				context.Parameters.Input.Add(input);
 				parser.Initialize(context);
 				parser.Run();
-				Module current = (Module) node.GetAncestor(NodeType.Module);
-				foreach (Module module in context.CompileUnit.Modules)
+				var current = (Module) node.GetAncestor(NodeType.Module);
+				foreach (var module in context.CompileUnit.Modules)
 				{
-					foreach (Import import in module.Imports)
+					foreach (var import in module.Imports)
 					{
 						current.Imports.Add(import);
 					}
@@ -147,9 +147,9 @@ namespace NGinnBPM.DSLServices
 
 			//we may need to preserve this, since it may be used in several compiler cycles.
 			//which will set them to different things
-			CompilerErrorCollection errors = Errors;
-			CompilerReferenceCollection references = Parameters.References;
-			string url = GetFilePath(node);
+			var errors = Errors;
+			var references = Parameters.References;
+			var url = GetFilePath(node);
 
 			Assembly assembly;
 			if (assemblyCache.TryGetValue(url, out assembly) == false)
@@ -170,44 +170,37 @@ namespace NGinnBPM.DSLServices
 		private static string GetFilePath(Import node)
 		{
             // assume this is located relative to the current file
-            if (node.LexicalInfo != null &&
-                File.Exists(node.LexicalInfo.FullPath))
-            {
-                string directory = Path.GetDirectoryName(node.LexicalInfo.FullPath);
-                return Path.Combine(directory, node.AssemblyReference.Name);
-            }
-
-		    return node.AssemblyReference.Name
-				.Replace("~", AppDomain.CurrentDomain.BaseDirectory);
+		    if (node.LexicalInfo == null || !File.Exists(node.LexicalInfo.FullPath))
+		        return node.AssemblyReference.Name
+		            .Replace("~", AppDomain.CurrentDomain.BaseDirectory);
+		    var directory = Path.GetDirectoryName(node.LexicalInfo.FullPath);
+		    return Path.Combine(directory, node.AssemblyReference.Name);
 		}
 
 		private static TextReader ResolveFile(string url, string basePath)
 		{
-			string path = Path.Combine(basePath, url);
+			var path = Path.Combine(basePath, url);
 			return new StreamReader(path);
 		}
 
 		private Assembly CompileAssembly(Node node, string url, CompilerErrorCollection errors)
 		{
-		    CompilerContext result = Compile(url);
-			if (result.Errors.Count > 0)
-			{
-				errors.Add(new CompilerError(node.LexicalInfo, "Failed to add a file reference"));
-				foreach (CompilerError err in result.Errors)
-				{
-					errors.Add(err);
-				}
-				return null;
-			}
-			return result.GeneratedAssembly;
+		    var result = Compile(url);
+		    if (result.Errors.Count <= 0) return result.GeneratedAssembly;
+		    errors.Add(new CompilerError(node.LexicalInfo, "Failed to add a file reference"));
+		    foreach (var err in result.Errors)
+		    {
+		        errors.Add(err);
+		    }
+		    return null;
 		}
 
 		private CompilerContext Compile(string url)
 		{
-			TextReader input = urlResolver(url, baseDirectory ?? Path.GetDirectoryName(url));
-			CompilerParameters parameters = SafeCloneParameters(Parameters);
+			var input = urlResolver(url, baseDirectory ?? Path.GetDirectoryName(url));
+			var parameters = SafeCloneParameters(Parameters);
 			parameters.Input.Add(new ReaderInput(url, input));
-			BooCompiler compiler = new BooCompiler(parameters);
+			var compiler = new BooCompiler(parameters);
 			return compiler.Run();
 		}
 
@@ -219,17 +212,19 @@ namespace NGinnBPM.DSLServices
 		/// <returns></returns>
 		private static CompilerParameters SafeCloneParameters(CompilerParameters parameters)
 		{
-			CompilerParameters cloned = new CompilerParameters();
-			cloned.BooAssembly = parameters.BooAssembly;
-			cloned.Checked = parameters.Checked;
-			cloned.Debug = parameters.Debug;
-			cloned.DelaySign = parameters.DelaySign;
-			cloned.Ducky = parameters.Ducky;
-			cloned.GenerateInMemory = parameters.GenerateInMemory;
+		    var cloned = new CompilerParameters
+		    {
+		        BooAssembly = parameters.BooAssembly,
+		        Checked = parameters.Checked,
+		        Debug = parameters.Debug,
+		        DelaySign = parameters.DelaySign,
+		        Ducky = parameters.Ducky,
+		        GenerateInMemory = parameters.GenerateInMemory,
+		        KeyContainer = parameters.KeyContainer,
+		        KeyFile = parameters.KeyFile
+		    };
 
-			// cloned.Input - we don't want to copy that
-			cloned.KeyContainer = parameters.KeyContainer;
-			cloned.KeyFile = parameters.KeyFile;
+		    // cloned.Input - we don't want to copy that
 		    foreach (var libPath in parameters.LibPaths)
 		    {
 		        cloned.LibPaths.Add(libPath);

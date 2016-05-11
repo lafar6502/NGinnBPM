@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using NGinnBPM.Runtime.TaskExecutionEvents;
 using System.Transactions;
 using NGinnBPM.ProcessModel;
 using NGinnBPM.Runtime.Tasks;
 using NLog;
 using NGinnBPM.MessageBus;
-using System.Threading;
 using NGinnBPM.Runtime.Services;
 
 namespace NGinnBPM.Runtime.ExecutionEngine
@@ -18,7 +16,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
     /// Process execution engine
     /// 
     /// </summary>
-    public class ProcessEngine 
+    public class ProcessEngine
     {
         public Services.ITaskInstancePersister TaskPersister { get; set; }
         public Services.IDbSessionFactory SessionFactory { get; set; }
@@ -35,19 +33,19 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         }
 
 
-        
+
 
         public string StartProcess(string definitionId, Dictionary<string, object> inputData)
         {
-            
+
             string ret = null;
             RunProcessTransaction(this.DefaultPersistenceMode, ps =>
             {
                 var pd = this.GetProcessDef(definitionId);
                 var pscript = this.GetProcessScriptRuntime(definitionId);
 
-                string instanceId = Guid.NewGuid().ToString("N");
-                ProcessInstance pi = new ProcessInstance
+                var instanceId = Guid.NewGuid().ToString("N");
+                var pi = new ProcessInstance
                 {
                     InstanceId = instanceId,
                     ProcessDefinitionId = definitionId,
@@ -56,10 +54,11 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 };
                 pi.Activate(ps, pd, pscript);
                 ps.TaskPersister.SaveNew(pi);
-                log.Info("\n --- Created process {0} instance {1}. Data: {2}", pi.ProcessDefinitionId, pi.InstanceId, Jsonizer.ToJsonString(inputData));
+                log.Info(
+                    $"\n --- Created process {pi.ProcessDefinitionId} instance {pi.InstanceId}. Data: {Jsonizer.ToJsonString(inputData)}");
                 pi.Enable(inputData);
                 pi.Deactivate();
-                ps.TaskPersister.Update(pi); 
+                ps.TaskPersister.Update(pi);
                 ret = pi.InstanceId;
             });
             return ret;
@@ -69,17 +68,17 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             UpdateTask(instanceId, ti =>
             {
-                foreach (string k in updatedData.Keys)
+                foreach (var k in updatedData.Keys)
                 {
                     ti.TaskData[k] = updatedData[k];
                 }
             });
         }
 
-        protected void test()
-        {
-            Transaction t;
-        }
+        //protected void test()
+        //{
+        //    Transaction t;
+        //}
 
         protected void ReadTask(string instanceId, Action<TaskInstance> act)
         {
@@ -98,7 +97,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             RunProcessTransaction(this.DefaultPersistenceMode, ps =>
             {
-                string ol = MappedDiagnosticsContext.Get("NG_TaskInstanceId");
+                var ol = MappedDiagnosticsContext.Get("NG_TaskInstanceId");
                 try
                 {
                     MappedDiagnosticsContext.Set("NG_TaskInstanceId", instanceId);
@@ -107,7 +106,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                     if (ti == null)
                     {
                         log.Warn("Task instance not found: {0}", instanceId);
-                        var pti = (CompositeTaskInstance) ps.TaskPersister.GetForRead(InstanceId.GetParentTaskInstanceId(instanceId));
+                        var pti = (CompositeTaskInstance)ps.TaskPersister.GetForRead(InstanceId.GetParentTaskInstanceId(instanceId));
                         if (pti == null) throw new Exception("Task instance not found and no parent. Instance ID: " + instanceId);
                         var tin = pti.GetChildTransitionInfo(instanceId);
                         if (tin == null) throw new Exception("Task instance not found anywhere: " + instanceId);
@@ -129,7 +128,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 }
             });
         }
-        
+
         public void CancelTask(string instanceId, string reason)
         {
             UpdateTask(instanceId, ti =>
@@ -151,7 +150,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 {
                     log.Warn("Trying to select an inactive task {0} [{1}], status: {2}", ti.TaskId, ti.InstanceId, ti.Status);
                 }
-                
+
                 ti.Select();
             });
         }
@@ -225,11 +224,12 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             }
             else
             {
-                TransactionOptions to = new TransactionOptions { 
+                TransactionOptions to = new TransactionOptions
+                {
                     IsolationLevel = IsolationLevel.ReadCommitted,
                     Timeout = TimeSpan.FromSeconds(60)
                 };
-                
+
                 using (var ts = new TransactionScope(TransactionScopeOption.Required, to))
                 {
                     var lid = Transaction.Current.TransactionInformation.LocalIdentifier;
@@ -276,7 +276,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                 else throw new Exception("Unexpected message in queue");
             }
 
-           
+
         }
 
 
@@ -348,13 +348,13 @@ namespace NGinnBPM.Runtime.ExecutionEngine
         {
             System.Threading.Tasks.Task.Factory.StartNew((q) =>
             {
-                ProcessMessage m = q as ProcessMessage;
+                var m = q as ProcessMessage;
                 try
                 {
                     log.Warn("Handling async message {0} from {1}", m.GetType().Name, m.FromTaskInstanceId);
                     HandleLocalAsyncMessage(pm);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     //TODO: some error handling here, for example report 'TaskFailed' for EnableTask
                     log.Error("Error handling local async message {0} from {1}: {2}", m.GetType().Name, m.FromTaskInstanceId);
@@ -382,7 +382,8 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                         if (pi == null) throw new Exception("Process instance expected for id=" + ev.FromProcessInstanceId);
                         if (ev is TaskCompleted)
                         {
-                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessCompleted {
+                            MessageBus.Notify(new TaskExecutionEvents.Process.ProcessCompleted
+                            {
                                 InstanceId = ev.FromProcessInstanceId,
                                 DefinitionId = pi.ProcessDefinitionId,
                                 Timestamp = DateTime.Now
@@ -432,38 +433,38 @@ namespace NGinnBPM.Runtime.ExecutionEngine
 
         internal void DeliverTaskControlMessage(TaskControlCommand tcm)
         {
-            RunProcessTransaction(this.DefaultPersistenceMode,ps =>
-            {
-                if (tcm is EnableChildTask)
-                {
-                    EnableChildTask(tcm as EnableChildTask);
-                    return;
-                }
-                else if (tcm is CancelTask)
-                {
-                    CancelTask(tcm.ToTaskInstanceId, "");
-                    return;
-                }
-                else if (tcm is SelectTask)
-                {
-                    SelectTask(tcm.ToTaskInstanceId);
-                    return;
-                }
-                else if (tcm is FailTask)
-                {
-                    this.ForceFailTask(tcm.ToTaskInstanceId, ((FailTask)tcm).ErrorInfo);
-                    return;
-                }
-                else if (tcm is ForceCompleteTask)
-                {
-                    this.ForceCompleteTask(tcm.ToTaskInstanceId, ((ForceCompleteTask)tcm).UpdateData);
-                    return;
-                }
-                else throw new NotImplementedException(tcm.GetType().Name);
-            });
+            RunProcessTransaction(this.DefaultPersistenceMode, ps =>
+             {
+                 if (tcm is EnableChildTask)
+                 {
+                     EnableChildTask(tcm as EnableChildTask);
+                     return;
+                 }
+                 else if (tcm is CancelTask)
+                 {
+                     CancelTask(tcm.ToTaskInstanceId, "");
+                     return;
+                 }
+                 else if (tcm is SelectTask)
+                 {
+                     SelectTask(tcm.ToTaskInstanceId);
+                     return;
+                 }
+                 else if (tcm is FailTask)
+                 {
+                     this.ForceFailTask(tcm.ToTaskInstanceId, ((FailTask)tcm).ErrorInfo);
+                     return;
+                 }
+                 else if (tcm is ForceCompleteTask)
+                 {
+                     this.ForceCompleteTask(tcm.ToTaskInstanceId, ((ForceCompleteTask)tcm).UpdateData);
+                     return;
+                 }
+                 else throw new NotImplementedException(tcm.GetType().Name);
+             });
         }
 
-        
+
 
         protected string EnableChildTask(EnableChildTask msg)
         {
@@ -503,7 +504,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             }
 
             OnTaskInstanceStatusChange(ti, prevStat);
-            
+
             ti.Deactivate();
             ps.TaskPersister.Update(ti);
             return ti.InstanceId;
@@ -528,7 +529,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             if (previousStatus == ti.Status) return; //no status change - no message
             log.Info("Task status change {0} ({1}) Status: {2} => {3}", ti.InstanceId, ti.TaskId, previousStatus, ti.Status);
             var ps = ProcessSession.Current;
-            
+
             TaskStatusTransition[] tts = new TaskStatusTransition[] {
                 new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Enabled},
                 new TaskStatusTransition {From = TaskStatus.Enabling, To = TaskStatus.Selected},
@@ -565,11 +566,12 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                     ps.NotifyTaskEvent(FillTaskEvent(ti, new TaskSelected()));
                     break;
                 case TaskStatus.Completed:
-                    
+
                     if (ti is MultiTaskInstance)
                     {
-                        ps.NotifyTaskEvent(FillTaskEvent(ti, new MultiTaskCompleted { 
-                            MultiOutputData = ((MultiTaskInstance) ti).GetMultiOutputData()
+                        ps.NotifyTaskEvent(FillTaskEvent(ti, new MultiTaskCompleted
+                        {
+                            MultiOutputData = ((MultiTaskInstance)ti).GetMultiOutputData()
                         }));
                     }
                     else
@@ -586,7 +588,6 @@ namespace NGinnBPM.Runtime.ExecutionEngine
                     break;
                 default:
                     throw new ProcessModel.Exceptions.InvalidTaskStatusException().SetInstanceId(ti.InstanceId).SetPermanent(true);
-                    break;
             }
         }
 
@@ -624,7 +625,7 @@ namespace NGinnBPM.Runtime.ExecutionEngine
             Dictionary<string, object> ret = null;
             this.ReadTask(instanceId, ti =>
             {
-                ret = new Dictionary<string,object>(ti.TaskData);
+                ret = new Dictionary<string, object>(ti.TaskData);
             });
             return ret;
         }
@@ -650,6 +651,6 @@ namespace NGinnBPM.Runtime.ExecutionEngine
 
 
 
-        
+
     }
 }

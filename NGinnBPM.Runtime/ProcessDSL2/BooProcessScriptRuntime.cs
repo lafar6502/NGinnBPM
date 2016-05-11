@@ -149,8 +149,8 @@ namespace NGinnBPM.Runtime.ProcessDSL2
         {
             throw new NotImplementedException();
             //_pd.SetTaskInstanceInfo(task, ctx);
-            _pd.SetInputData(inputData);
-            _pd.SetOutputData(outputData);
+            //_pd.SetInputData(inputData);
+            //_pd.SetOutputData(outputData);
         }
 
 
@@ -320,19 +320,12 @@ namespace NGinnBPM.Runtime.ProcessDSL2
 
         public void ExecuteTaskScriptBlock(TaskInstance ti, string blockName, ITaskExecutionContext ctx)
         {
-            string k = DslUtil.TaskScriptKey(ti.TaskId, blockName);
+            var k = DslUtil.TaskScriptKey(ti.TaskId, blockName);
             _pd.SetTaskInstanceInfo(ti, ctx);
-            try
+            Action act;
+            if (_pd._stmts.TryGetValue(k, out act))
             {
-                Action act;
-                if (_pd._stmts.TryGetValue(k, out act) && act != null)
-                {
-                    act();
-                }
-            }
-            catch (Exception ex)
-            {
-                throw;
+                act?.Invoke();
             }
         }
     }

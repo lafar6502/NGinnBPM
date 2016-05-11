@@ -11,8 +11,8 @@ namespace NGinnBPM.DSLServices
     /// </summary>
     public class ImplicitBaseClassCompilerStep : BaseClassCompilerStep
     {
-        private readonly string methodName;
-        private readonly ParameterDeclarationCollection parameters;
+        private readonly string _methodName;
+        private readonly ParameterDeclarationCollection _parameters;
 
         /// <summary>
         /// Create new instance of <seealso cref="ImplicitBaseClassCompilerStep"/>
@@ -35,8 +35,8 @@ namespace NGinnBPM.DSLServices
         public ImplicitBaseClassCompilerStep(Type baseClass, string methodName, ParameterDeclarationCollection parameters, params string[] namespaces)
 			: base(baseClass, namespaces)
         {
-            this.methodName = methodName;
-            this.parameters = parameters;
+            this._methodName = methodName;
+            this._parameters = parameters;
         }
 
         /// <summary>
@@ -44,12 +44,12 @@ namespace NGinnBPM.DSLServices
         /// </summary>
         protected override void ExtendBaseClass(Module module, ClassDefinition definition)
         {
-			Method method = new Method(methodName);
+			var method = new Method(_methodName);
 
 
-			if (parameters != null)
+			if (_parameters != null)
 			{
-				foreach (ParameterDeclaration parameter in parameters)
+				foreach (var parameter in _parameters)
 				{
 					method.Parameters.Add(parameter);
 				}

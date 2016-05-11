@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Boo.Lang.Compiler.Ast;
 
 //RG: borrowed the file from Rhino.DSL
@@ -47,8 +46,8 @@ namespace NGinnBPM.DSLServices
 			{
 				if (node.Body != null)
 				{
-					Expression[] expressions = GetExpressionsFromBlock(node.Body);
-					foreach (Expression expression in expressions)
+					var expressions = GetExpressionsFromBlock(node.Body);
+					foreach (var expression in expressions)
 						node.Arguments.Add(expression);
 					node.Body.Clear();
 				}
@@ -58,30 +57,32 @@ namespace NGinnBPM.DSLServices
 
 		private static Expression[] GetExpressionsFromBlock(Block block)
 		{
-			List<Expression> expressions = new List<Expression>(block.Statements.Count);
-			foreach (Statement statement in block.Statements)
+			var expressions = new List<Expression>(block.Statements.Count);
+			foreach (var statement in block.Statements)
 			{
 				if (statement is ExpressionStatement)
 					expressions.Add((statement as ExpressionStatement).Expression);
 				else if (statement is MacroStatement)
 				{
-					MacroStatement macroStatement = statement as MacroStatement;
+					var macroStatement = statement as MacroStatement;
 					if (macroStatement.Arguments.Count == 0 &&
 						macroStatement.Body.IsEmpty)
 					{
 						// Assume it is a reference expression
-						ReferenceExpression refExp = new ReferenceExpression(macroStatement.LexicalInfo);
+						var refExp = new ReferenceExpression(macroStatement.LexicalInfo);
 						refExp.Name = macroStatement.Name;
 						expressions.Add(refExp);
 					}
 					else
 					{
 						// Assume it is a MethodInvocation
-						MethodInvocationExpression mie = new MethodInvocationExpression(macroStatement.LexicalInfo);
-						mie.Target = new ReferenceExpression(macroStatement.LexicalInfo, macroStatement.Name);
-						mie.Arguments = macroStatement.Arguments;
+					    var mie = new MethodInvocationExpression(macroStatement.LexicalInfo)
+					    {
+					        Target = new ReferenceExpression(macroStatement.LexicalInfo, macroStatement.Name),
+					        Arguments = macroStatement.Arguments
+					    };
 
-						if (macroStatement.Body.IsEmpty == false)
+					    if (macroStatement.Body.IsEmpty == false)
 						{
 							// If the macro statement has a block,                      
 							// transform it into a block expression and pass that as the last argument                     
@@ -97,8 +98,7 @@ namespace NGinnBPM.DSLServices
 				}
 				else
 				{
-					throw new InvalidOperationException(string.Format("Can not transform block with {0} into argument.",
-																	  statement.GetType()));
+					throw new InvalidOperationException($"Can not transform block with {statement.GetType()} into argument.");
 				}
 			}
 			return expressions.ToArray();

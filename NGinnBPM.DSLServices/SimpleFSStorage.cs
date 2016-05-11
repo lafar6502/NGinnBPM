@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using Boo.Lang.Compiler;
 
@@ -13,7 +12,6 @@ namespace NGinnBPM.DSLServices
     public class SimpleFSStorage : ISimpleScriptStorage
     {
         private FileSystemWatcher _watcher;
-        private DateTime _lastModificationReported;
         private Action<string[]> _modificationCallback;
 
         /// <summary>
@@ -28,7 +26,6 @@ namespace NGinnBPM.DSLServices
             {
                 _watcher = new FileSystemWatcher(BaseDirectory, "*.boo");
                 _watcher.Changed += new FileSystemEventHandler(_watcher_Changed);
-                _lastModificationReported = DateTime.Now;
             }
         }
 
@@ -63,10 +60,9 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public virtual string GetTypeNameFromUrl(string url)
         {
-            if (url.EndsWith(".boo")) return url.Substring(0, url.Length - 4);
-            return url;
+            return url.EndsWith(".boo") ? url.Substring(0, url.Length - 4) : url;
         }
-        
+
         private string MapUrlToFilePath(string url)
         {
             if (!url.EndsWith(".boo", StringComparison.InvariantCultureIgnoreCase)) url += ".boo";
@@ -79,7 +75,7 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public virtual ICompilerInput CreateCompilerInput(string url)
         {
-            string path = MapUrlToFilePath(url);
+            var path = MapUrlToFilePath(url);
             return new Boo.Lang.Compiler.IO.FileInput(path);
         }
 
@@ -98,11 +94,9 @@ namespace NGinnBPM.DSLServices
         /// </summary>
         public void Dispose()
         {
-            if (_watcher != null)
-            {
-                _watcher.Dispose();
-                _watcher = null;
-            }
+            if (_watcher == null) return;
+            _watcher.Dispose();
+            _watcher = null;
         }
 
         /// <summary>
@@ -112,9 +106,8 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public virtual DateTime GetLastModificationDate(string url)
         {
-            string pth = MapUrlToFilePath(url);
-            if (!File.Exists(pth)) return DateTime.MinValue;
-            return File.GetLastWriteTime(pth);
+            var pth = MapUrlToFilePath(url);
+            return !File.Exists(pth) ? DateTime.MinValue : File.GetLastWriteTime(pth);
         }
 
         /// <summary>

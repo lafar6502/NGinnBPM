@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using BL = Boo.Lang;
 using Boo.Lang.Compiler;
 using System.Reflection;
 
@@ -107,8 +106,8 @@ namespace NGinnBPM.DSLServices
         public SimpleBaseClassDslCompiler(ISimpleScriptStorage storage)
         {
             _storage = storage;
-            _storage.DetectModification(urls => this.ReportScriptsModified(urls));
-            Namespaces = new List<string>(new string[] {
+            _storage.DetectModification(ReportScriptsModified);
+            Namespaces = new List<string>(new[] {
                 "System",
                 "System.Text"
             });
@@ -174,7 +173,7 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public virtual T Create(string url)
         {
-            Type tp = GetCompiledDslType(url);
+            var tp = GetCompiledDslType(url);
             var ci = tp.GetConstructor(new Type[] { typeof(string) });
             if (ci != null)
             {
@@ -204,22 +203,28 @@ namespace NGinnBPM.DSLServices
             {
                 try
                 {
-                    string[] urls = _storage.GetScriptUrls().ToArray();
-                    if (urls != null && urls.Contains(url))
+                    var urls = _storage.GetScriptUrls().ToArray();
+                    if (urls.Contains(url))
                     {
                         TryRecompile(urls, CompilationMode.Compile);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _typeCache["_123compile_error"] = new TypeCacheEntry { Url = ex.Message };
+                    lock (_typeCache)
+                    {
+                        _typeCache["_123compile_error"] = new TypeCacheEntry { Url = ex.Message };
+                    }
                     Console.WriteLine("Error when compiling all urls - will try to recompile only {1}: {0}", ex, url);
                 }
             }
-            TypeCacheEntry tp;
-            if (_typeCache.TryGetValue(url, out tp)) return tp.DslType;
-            Console.WriteLine("type not found in cache - compiling only {0}", url);
-            Type t2 = TryRecompile(url, CompilationMode.Compile);
+            lock (_typeCache)
+            {
+                TypeCacheEntry tp;
+                if (_typeCache.TryGetValue(url, out tp)) return tp.DslType;
+            }
+            Console.WriteLine($"type not found in cache - compiling only {url}");
+            var t2 = TryRecompile(url, CompilationMode.Compile);
             return t2;
         }
 
@@ -231,34 +236,33 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         protected virtual Assembly TryRecompile(string[] urls, CompilationMode mode)
         {
-            CompilerContext cc = TryCompile(urls, mode == CompilationMode.CheckErrors ? true : false);
-            if (cc.GeneratedAssembly == null && (mode == CompilationMode.Compile || mode == CompilationMode.CompileNoReplace)) throw new Exception("Generated assembly missing");
-            if (mode == CompilationMode.Compile)
-            {
-                foreach (var url in urls)
-                {
-                    string tn = _storage.GetTypeNameFromUrl(url);
-                    Type tp = cc.GeneratedAssembly.GetType(tn);
-                    if (tp == null)
-                    {
-                        foreach (var t in cc.GeneratedAssembly.GetTypes())
-                        {
-                            Console.WriteLine("Type: {0}", t.FullName);
-                        }
 
-                        throw new Exception("Type not found for url: " + url + ", type name: " + tn);
-                    }
-                    TypeCacheEntry tce = new TypeCacheEntry
+            var cc = TryCompile(urls, mode == CompilationMode.CheckErrors ? true : false);
+            if (cc.GeneratedAssembly == null && (mode == CompilationMode.Compile || mode == CompilationMode.CompileNoReplace)) throw new Exception("Generated assembly missing");
+            if (mode != CompilationMode.Compile) return cc.GeneratedAssembly;
+            foreach (var url in urls)
+            {
+                var tn = _storage.GetTypeNameFromUrl(url);
+                var tp = cc.GeneratedAssembly.GetType(tn);
+                if (tp == null)
+                {
+                    foreach (var t in cc.GeneratedAssembly.GetTypes())
                     {
-                        DslType = tp,
-                        Modified = false,
-                        Url = url
-                    };
-                    lock (_typeCache)
-                    {
-                        _typeCache.Remove(url);
-                        _typeCache[url] = tce;
+                        Console.WriteLine($"Type: {t.FullName}");
                     }
+
+                    throw new Exception("Type not found for url: " + url + ", type name: " + tn);
+                }
+                var tce = new TypeCacheEntry
+                {
+                    DslType = tp,
+                    Modified = false,
+                    Url = url
+                };
+                lock (_typeCache)
+                {
+                    _typeCache.Remove(url);
+                    _typeCache[url] = tce;
                 }
             }
             return cc.GeneratedAssembly;
@@ -275,15 +279,13 @@ namespace NGinnBPM.DSLServices
         public virtual Type TryRecompile(string url, CompilationMode mode)
         {
             url = _storage.Normalize(url);
-            Assembly asm = TryRecompile(new string[] { url }, mode);
-            string typeName = _storage.GetTypeNameFromUrl(url);
+            var asm = TryRecompile(new string[] { url }, mode);
+            var typeName = _storage.GetTypeNameFromUrl(url);
             var tp = asm.GetType(typeName);
-            if (tp == null)
-            {
-                var sb = new StringBuilder();
-                throw new Exception(string.Format("Type {0} not found in generated assembly. List of types: {1}", typeName, asm.GetTypes().Aggregate(sb, (l, s) => l.AppendLine(s.FullName), l => l.ToString())));
-            }
-            return tp;
+            if (tp != null) return tp;
+            var sb = new StringBuilder();
+            throw new Exception(
+                $"Type {typeName} not found in generated assembly. List of types: {asm.GetTypes().Aggregate(sb, (l, s) => l.AppendLine(s.FullName), l => l.ToString())}");
         }
 
         /// <summary>
@@ -295,8 +297,12 @@ namespace NGinnBPM.DSLServices
             if (urls == null) return;
             foreach (string url in urls)
             {
-                _typeCache.Remove(url);
-                _typeCache.Remove(_storage.Normalize(url));
+                lock (_typeCache)
+                {
+                    _typeCache.Remove(url);
+                    _typeCache.Remove(_storage.Normalize(url));
+                }
+                
                 //TypeCacheEntry tce;
                 //if (_typeCache.TryGetValue(url, out tce)) tce.Modified = true;
                 //if (_typeCache.TryGetValue(_storage.Normalize(url), out tce)) tce.Modified = true;
@@ -313,7 +319,7 @@ namespace NGinnBPM.DSLServices
             lock (_typeCache)
             {
                 var e = _typeCache.Values.FirstOrDefault(x => x.DslType == tp);
-                return e != null ? e.Url : null;
+                return e?.Url;
             }
         }
 
@@ -338,7 +344,7 @@ namespace NGinnBPM.DSLServices
         public virtual bool CheckSyntax(string script, IList<string> errors, IList<string> warnings)
         {
             //Console.WriteLine("CheckSyntax {0}", script);
-            BooCompiler compiler = new BooCompiler();
+            var compiler = new BooCompiler();
             compiler.Parameters.OutputType = CompilerOutputType.Library;
             compiler.Parameters.GenerateInMemory = true;
             compiler.Parameters.Pipeline = new Boo.Lang.Compiler.Pipelines.CheckForErrors();
@@ -346,7 +352,7 @@ namespace NGinnBPM.DSLServices
 
             CustomizeCompiler(compiler, compiler.Parameters.Pipeline, new string[] { });
             compiler.Parameters.Input.Add(new Boo.Lang.Compiler.IO.StringInput("the_script", script));
-            CompilerContext compilerContext = compiler.Run();
+            var compilerContext = compiler.Run();
             if (warnings != null)
             {
                 foreach (var w in compilerContext.Warnings)
@@ -354,12 +360,10 @@ namespace NGinnBPM.DSLServices
                     warnings.Add(w.ToString());
                 }
             }
-            if (errors != null)
+            if (errors == null) return compilerContext.Errors.Count == 0;
+            foreach (var e in compilerContext.Errors)
             {
-                foreach (var e in compilerContext.Errors)
-                {
-                    errors.Add(e.ToString(true));
-                }
+                errors.Add(e.ToString(true));
             }
             return compilerContext.Errors.Count == 0;
         }
@@ -373,22 +377,19 @@ namespace NGinnBPM.DSLServices
         protected virtual CompilerContext TryCompile(string[] urls, bool checkSyntaxOnly = false)
         {
             //Console.WriteLine("TryCompile {0}, syntaxcheck={1}", string.Join(",", urls), checkSyntaxOnly);
-            BooCompiler compiler = new BooCompiler();
+            var compiler = new BooCompiler();
             compiler.Parameters.OutputType = CompilerOutputType.Library;
             compiler.Parameters.GenerateInMemory = true;
             compiler.Parameters.Pipeline = checkSyntaxOnly ? (CompilerPipeline) new Boo.Lang.Compiler.Pipelines.CheckForErrors() : new Boo.Lang.Compiler.Pipelines.CompileToMemory();
             compiler.Parameters.WhiteSpaceAgnostic = this.WhitespaceAgnostic;
             CustomizeCompiler(compiler, compiler.Parameters.Pipeline, urls);
-            foreach (string url in urls)
+            foreach (var url in urls)
             {
                 compiler.Parameters.Input.Add(_storage.CreateCompilerInput(url));
             }
-            CompilerContext compilerContext = compiler.Run();
-            if (_compilationCallback != null)
-            {
-                _compilationCallback(compilerContext, urls);
-            }
-            
+            var compilerContext = compiler.Run();
+            _compilationCallback?.Invoke(compilerContext, urls);
+
             if (compilerContext.Errors.Count != 0)
                 throw CreateCompilerException(compilerContext);
             HandleWarnings(compilerContext.Warnings);

@@ -110,8 +110,8 @@ namespace NGinnBPM.Runtime.ProcessDSL
 
         protected string BooHash(IDictionary<string, object> data)
         {
-            JsonTextWriter jtw;
-            
+            //JsonTextWriter jtw;
+
             return JsonConvert.SerializeObject(data);
         }
 

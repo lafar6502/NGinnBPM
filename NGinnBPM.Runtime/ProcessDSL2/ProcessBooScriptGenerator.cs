@@ -12,7 +12,9 @@ namespace NGinnBPM.Runtime.ProcessDSL2
     public class ProcessBooScriptGenerator
     {
         private TextWriter _out;
+/*
         private bool _wsAgnostic = false;
+*/
         private string _curIndent = "";
 
         public static void GenerateScript(ProcessDef pd, TextWriter output)

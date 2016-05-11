@@ -23,7 +23,7 @@ namespace NGinnBPM.DSLServices
         /// Will turn reference expressions with initial @ to string literals
         /// </summary>
         /// <param name="node">The node.</param>
-        public override void OnReferenceExpression(Boo.Lang.Compiler.Ast.ReferenceExpression node)
+        public override void OnReferenceExpression(ReferenceExpression node)
         {
             if(node.Name.StartsWith("@")==false)
                 return;

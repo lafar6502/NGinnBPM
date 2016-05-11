@@ -17,18 +17,18 @@ namespace TestHost.cs
     
     public class Class1
     {
-        private static Logger log = LogManager.GetCurrentClassLogger();
+        private static Logger _log = LogManager.GetCurrentClassLogger();
 
         public static void Main(string[] args)
         {
-            EngineTests.RunTests();
-            return;
+            //EngineTests.RunTests();
+            //return;
             //TestProcessDsl();
             //TestPackageRepo();
             //TestBpmn();
             //TestRepo2();
             //return;
-            var c = ConfigureNGinnBPM();
+            //var c = ConfigureNGinnBPM();
 
             /*using (var ts = new TransactionScope())
             {
@@ -38,18 +38,18 @@ namespace TestHost.cs
                 ts.Complete();
             }*/
 
-            using (var ts = new TransactionScope())
-            {
-                var pr = c.GetInstance<ProcessEngine>();
-                var proc = pr.StartProcess("EngineTest.Simplest.1", new Dictionary<string, object> { });
-                var ti = pr.GetTaskInstanceInfo(proc);
-                ts.Complete();
-            }
+            //using (var ts = new TransactionScope())
+            //{
+            //    var pr = c.GetInstance<ProcessEngine>();
+            //    var proc = pr.StartProcess("EngineTest.Simplest.1", new Dictionary<string, object> { });
+            //    var ti = pr.GetTaskInstanceInfo(proc);
+            //    ts.Complete();
+            //}
             //var proc = pr.StartProcess("Test2.ErrorHandlerTest.1", new Dictionary<string, object> { });
             //var proc = pr.StartProcess("Test2.MultiInstance.1", new Dictionary<string, object> { });
             //TestCompensation(pr);
             //TestProcessScriptGenerator(c);
-            Console.ReadLine();
+            //Console.ReadLine();
 
         }
 

@@ -5,6 +5,7 @@ using System.Text;
 using BL = Boo.Lang;
 using Boo.Lang.Compiler;
 using System.Reflection;
+using NLog;
 
 
 namespace NGinnBPM.DSLServices
@@ -14,6 +15,7 @@ namespace NGinnBPM.DSLServices
     /// </summary>
     public interface ISimpleScriptStorage : IDisposable
     {
+        
         /// <summary>
         /// List of available script urls
         /// </summary>
@@ -73,6 +75,10 @@ namespace NGinnBPM.DSLServices
     /// </summary>
     public class SimpleBaseClassDslCompiler<T>
     {
+        private static Logger log = LogManager.GetCurrentClassLogger();
+
+        public bool LogScripts { get; set; }
+
         protected Type _actualBaseType = typeof(T);
         /// <summary>
         /// 
@@ -99,6 +105,8 @@ namespace NGinnBPM.DSLServices
             /// 
             /// </summary>
             public Type DslType { get; set; }
+
+            public DateTime CompiledDate { get; set; }
         }
         /// <summary>
         /// 
@@ -135,6 +143,12 @@ namespace NGinnBPM.DSLServices
         /// generated class. 'void Prepare()' by default
         /// </summary>
         public string DSLMethodName { get; set; }
+
+        /// <summary>
+        /// true - compile boo files to separate assembly each, 
+        /// false - compile them all together
+        /// </summary>
+        public bool CompileSeparately { get; set; }
 
         /// <summary>
         /// storage
@@ -192,6 +206,37 @@ namespace NGinnBPM.DSLServices
             return GetScriptUrls().Select(x => Create(x)).ToList();
         }
 
+        private DateTime _lastModificationCheck = DateTime.Now;
+
+
+        /// <summary>
+        /// true - file needs recompile
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        protected virtual bool CheckScriptModifications(string url)
+        {
+            TypeCacheEntry tce;
+            
+            lock (_typeCache)
+            {
+                if (!_typeCache.TryGetValue(url, out tce)) return true; //none
+                var d0 = _storage.GetLastModificationDate(url);
+                _lastModificationCheck = DateTime.Now;
+                if (d0 > tce.CompiledDate)
+                {
+                    return true;
+                }
+                return false;
+            }
+
+            
+
+            
+        }
+
+        private HashSet<string> _inCompilation = new HashSet<string>();
+
         /// <summary>
         /// 
         /// </summary>
@@ -200,41 +245,65 @@ namespace NGinnBPM.DSLServices
         public virtual Type GetCompiledDslType(string url)
         {
             url = _storage.Normalize(url);
-            if (_typeCache.Count == 0)
+            var dAll = false;
+            bool recompile = false;
+            lock(_typeCache)
             {
-                try
+                //recompile all only when first time
+                if (_typeCache.Count == 0 && !CompileSeparately)
                 {
-                    string[] urls = _storage.GetScriptUrls().ToArray();
-                    if (urls != null && urls.Contains(url))
+                    try
                     {
-                        TryRecompile(urls, CompilationMode.Compile);
+                        string[] urls = _storage.GetScriptUrls().ToArray();
+                        if (urls != null && urls.Contains(url))
+                        {
+                            log.Warn("Attempt to recompile all scripts for url {0} (in all: {1}). ", string.Join(",", urls), url);
+                            TryRecompile(urls, CompilationMode.Compile);
+                            dAll = true;
+                        }
+                        else
+                        {
+                            log.Warn("Will not recompile all scripts for url {0} ({1}). ", url, urls);
+                        }
                     }
+                    catch (Exception ex)
+                    {
+                        _typeCache["_123compile_error"] = new TypeCacheEntry { Url = ex.Message, CompiledDate = DateTime.Now };
+                        log.Error("Error when compiling all urls - will try to recompile only {1}: {0}", ex, url);
+                    }
+                    
                 }
-                catch (Exception ex)
+                TypeCacheEntry tce;
+                if (!_typeCache.TryGetValue(url, out tce)) recompile = true;
+                if (!recompile)
                 {
-                    _typeCache["_123compile_error"] = new TypeCacheEntry { Url = ex.Message };
-                    Console.WriteLine("Error when compiling all urls - will try to recompile only {1}: {0}", ex, url);
+                    recompile = CheckScriptModifications(url);
                 }
+                if (!recompile) return tce.DslType;
+                log.Warn("dsl type not found in cache - compiling only {0}. CACHE: {1}", url, string.Join(",", _typeCache.Keys));
+                if (dAll) throw new Exception("DSL type not found in cache after recompiling all: " + url);
+                Type t2 = TryRecompile(url, CompilationMode.Compile);
+                return t2;
             }
-            TypeCacheEntry tp;
-            if (_typeCache.TryGetValue(url, out tp)) return tp.DslType;
-            Console.WriteLine("type not found in cache - compiling only {0}", url);
-            Type t2 = TryRecompile(url, CompilationMode.Compile);
-            return t2;
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="urls"></param>
         /// <param name="mode"></param>
         /// <returns></returns>
         protected virtual Assembly TryRecompile(string[] urls, CompilationMode mode)
         {
+            log.Warn("TryRecompile {0}", string.Join(",", urls));
+            var d0 = DateTime.Now;
             CompilerContext cc = TryCompile(urls, mode == CompilationMode.CheckErrors ? true : false);
+            log.Warn("TryRecompile compilation OK {0}", string.Join(",", urls));
             if (cc.GeneratedAssembly == null && (mode == CompilationMode.Compile || mode == CompilationMode.CompileNoReplace)) throw new Exception("Generated assembly missing");
+
             if (mode == CompilationMode.Compile)
             {
+                List<TypeCacheEntry> ents = new List<TypeCacheEntry>();
                 foreach (var url in urls)
                 {
                     string tn = _storage.GetTypeNameFromUrl(url);
@@ -252,15 +321,22 @@ namespace NGinnBPM.DSLServices
                     {
                         DslType = tp,
                         Modified = false,
-                        Url = url
+                        Url = url,
+                        CompiledDate = DateTime.Now
                     };
-                    lock (_typeCache)
+                    ents.Add(tce);
+                }
+                lock (_typeCache)
+                {
+                    foreach(var ent in ents)
                     {
-                        _typeCache.Remove(url);
-                        _typeCache[url] = tce;
+                        _typeCache.Remove(ent.Url);
+                        _typeCache[ent.Url] = ent;
+                        log.Warn("TC:{0}=>{1}, CTime: {2}", ent.Url, ent.DslType, DateTime.Now - d0);
                     }
                 }
             }
+
             return cc.GeneratedAssembly;
         }
         
@@ -293,6 +369,7 @@ namespace NGinnBPM.DSLServices
         public virtual void ReportScriptsModified(string[] urls)
         {
             if (urls == null) return;
+            log.Warn("Script modification reported in {0}", string.Join(",", urls));
             foreach (string url in urls)
             {
                 _typeCache.Remove(url);
@@ -376,14 +453,29 @@ namespace NGinnBPM.DSLServices
             BooCompiler compiler = new BooCompiler();
             compiler.Parameters.OutputType = CompilerOutputType.Library;
             compiler.Parameters.GenerateInMemory = true;
+            compiler.Parameters.TraceLevel = System.Diagnostics.TraceLevel.Warning;
             compiler.Parameters.Pipeline = checkSyntaxOnly ? (CompilerPipeline) new Boo.Lang.Compiler.Pipelines.CheckForErrors() : new Boo.Lang.Compiler.Pipelines.CompileToMemory();
             compiler.Parameters.WhiteSpaceAgnostic = this.WhitespaceAgnostic;
             CustomizeCompiler(compiler, compiler.Parameters.Pipeline, urls);
             foreach (string url in urls)
             {
-                compiler.Parameters.Input.Add(_storage.CreateCompilerInput(url));
+                var inp = _storage.CreateCompilerInput(url);
+                if (LogScripts)
+                {
+                    using (var r = inp.Open())
+                    {
+                        var tx = r.ReadToEnd();
+                        log.Warn("INPUT: {0}\r\n{1}", inp.Name, tx);
+                    }
+                }
+                
+                compiler.Parameters.Input.Add(inp);
             }
+            var d0 = DateTime.Now;
             CompilerContext compilerContext = compiler.Run();
+            var ce = compilerContext.Errors.FirstOrDefault();
+            log.Warn("Compiled {0} scripts: {1}. Error? {2}. Time taken: {3}ms", urls.Length, string.Join(",", urls), ce == null ? "-none-" : ce.ToString(), (DateTime.Now - d0).TotalMilliseconds);
+
             if (_compilationCallback != null)
             {
                 _compilationCallback(compilerContext, urls);

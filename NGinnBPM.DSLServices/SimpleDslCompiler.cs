@@ -459,9 +459,9 @@ namespace NGinnBPM.DSLServices
             CustomizeCompiler(compiler, compiler.Parameters.Pipeline, urls);
             foreach (string url in urls)
             {
-                var inp = _storage.CreateCompilerInput(url);
                 if (LogScripts)
                 {
+                    var inp = _storage.CreateCompilerInput(url);
                     using (var r = inp.Open())
                     {
                         var tx = r.ReadToEnd();
@@ -469,7 +469,7 @@ namespace NGinnBPM.DSLServices
                     }
                 }
                 
-                compiler.Parameters.Input.Add(inp);
+                compiler.Parameters.Input.Add(_storage.CreateCompilerInput(url));
             }
             var d0 = DateTime.Now;
             CompilerContext compilerContext = compiler.Run();

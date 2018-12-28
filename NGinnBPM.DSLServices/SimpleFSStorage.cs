@@ -16,6 +16,8 @@ namespace NGinnBPM.DSLServices
         private DateTime _lastModificationReported;
         private Action<string[]> _modificationCallback;
 
+        public string FileExtension { get; set; }  = ".boo";
+
         /// <summary>
         /// 
         /// </summary>
@@ -26,7 +28,7 @@ namespace NGinnBPM.DSLServices
             BaseDirectory = baseDir;
             if (detectModification)
             {
-                _watcher = new FileSystemWatcher(BaseDirectory, "*.boo");
+                _watcher = new FileSystemWatcher(BaseDirectory, "*" + FileExtension);
                 _watcher.Changed += new FileSystemEventHandler(_watcher_Changed);
                 _lastModificationReported = DateTime.Now;
             }
@@ -53,7 +55,7 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public virtual IEnumerable<string> GetScriptUrls()
         {
-            return Directory.GetFiles(BaseDirectory, "*.boo").Select(x => Path.GetFileName(x));
+            return Directory.GetFiles(BaseDirectory, "*" + FileExtension).Select(x => Path.GetFileName(x));
         }
 
         /// <summary>
@@ -63,13 +65,14 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         public virtual string GetTypeNameFromUrl(string url)
         {
-            if (url.EndsWith(".boo")) return url.Substring(0, url.Length - 4);
+            if (url.EndsWith(FileExtension)) return url.Substring(0, url.Length - 4);
             return url;
         }
         
-        private string MapUrlToFilePath(string url)
+        public virtual string MapUrlToFilePath(string url, string extension = null)
         {
-            if (!url.EndsWith(".boo", StringComparison.InvariantCultureIgnoreCase)) url += ".boo";
+            var ex = extension ?? FileExtension;
+            if (!url.EndsWith(ex, StringComparison.InvariantCultureIgnoreCase)) url +=  ex;
             return Path.Combine(BaseDirectory, url);
         }
         /// <summary>
@@ -80,7 +83,12 @@ namespace NGinnBPM.DSLServices
         public virtual ICompilerInput CreateCompilerInput(string url)
         {
             string path = MapUrlToFilePath(url);
-            return new Boo.Lang.Compiler.IO.FileInput(path);
+            if (!File.Exists(path)) throw new Exception("File doesn't exist: " + path);
+
+            //here it's going wrong if the type name is not same as the file name
+            //because the type name will be taken from the module name (see BaseClassCompilerStep) and the module name
+            //is taken from the file name (compiler input name). 
+            return new  Boo.Lang.Compiler.IO.FileInput(path);
         }
 
         /// <summary>

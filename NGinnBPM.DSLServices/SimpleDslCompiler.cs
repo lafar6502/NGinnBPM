@@ -275,7 +275,7 @@ namespace NGinnBPM.DSLServices
                 }
                 TypeCacheEntry tce;
                 if (!_typeCache.TryGetValue(url, out tce)) recompile = true;
-                if (!recompile)
+                if (!recompile && !dAll)
                 {
                     recompile = CheckScriptModifications(url);
                 }
@@ -295,10 +295,10 @@ namespace NGinnBPM.DSLServices
         /// <returns></returns>
         protected virtual Assembly TryRecompile(string[] urls, CompilationMode mode)
         {
-            log.Warn("TryRecompile {0}", string.Join(",", urls));
+            log.Warn("TryRecompile {0} urls, mode {1}: {2}", urls.Count(), mode.ToString(), string.Join(",", urls));
             var d0 = DateTime.Now;
             CompilerContext cc = TryCompile(urls, mode == CompilationMode.CheckErrors ? true : false);
-            log.Warn("TryRecompile compilation OK {0}", string.Join(",", urls));
+            log.Warn("TryRecompile compilation OK {0} urls, mode {1}: {2}", urls.Count(), mode.ToString(), string.Join(",", urls));
             if (cc.GeneratedAssembly == null && (mode == CompilationMode.Compile || mode == CompilationMode.CompileNoReplace)) throw new Exception("Generated assembly missing");
 
             if (mode == CompilationMode.Compile)

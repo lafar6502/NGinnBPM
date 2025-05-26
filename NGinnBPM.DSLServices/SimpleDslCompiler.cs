@@ -456,6 +456,7 @@ namespace NGinnBPM.DSLServices
             compiler.Parameters.TraceLevel = System.Diagnostics.TraceLevel.Warning;
             compiler.Parameters.Pipeline = checkSyntaxOnly ? (CompilerPipeline) new Boo.Lang.Compiler.Pipelines.CheckForErrors() : new Boo.Lang.Compiler.Pipelines.CompileToMemory();
             compiler.Parameters.WhiteSpaceAgnostic = this.WhitespaceAgnostic;
+            
             CustomizeCompiler(compiler, compiler.Parameters.Pipeline, urls);
             foreach (string url in urls)
             {
